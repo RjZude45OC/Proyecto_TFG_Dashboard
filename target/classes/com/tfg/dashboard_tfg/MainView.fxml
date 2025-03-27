@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane prefHeight="750.0" prefWidth="1400.0" xmlns="http://javafx.com/javafx/17.0.2" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <BorderPane layoutX="0.0" layoutY="0.0" prefHeight="750.0" prefWidth="1400.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <left>
+                <VBox prefHeight="750.0" prefWidth="250.0" style="-fx-background-color: #1e1e2c;">
+                    <children>
+                        <HBox alignment="CENTER_LEFT" prefHeight="80.0" prefWidth="250.0">
+                            <children>
+                                <Label prefHeight="32.0" prefWidth="140.0" text="Dashboard" textFill="WHITE">
+                                    <font>
+                                        <Font name="System Bold" size="24.0" />
+                                    </font>
+                                    <HBox.margin>
+                                        <Insets left="20.0" />
+                                    </HBox.margin>
+                                </Label>
+                            </children>
+                        </HBox>
+                        <VBox prefHeight="670.0" prefWidth="250.0" spacing="10.0">
+                            <children>
+                                <Button fx:id="dashboardBtn" alignment="BASELINE_LEFT" graphicTextGap="15.0" mnemonicParsing="false" prefHeight="50.0" prefWidth="250.0" style="-fx-background-color: #2e2e42; -fx-text-fill: white;" text="Dashboard">
+                                    <graphic>
+                                        <Label text="⊡" textFill="WHITE">
+                                            <font>
+                                                <Font size="18.0" />
+                                            </font>
+                                        </Label>
+                                    </graphic>
+                                    <font>
+                                        <Font size="16.0" />
+                                    </font>
+                                    <padding>
+                                        <Insets left="20.0" />
+                                    </padding>
+                                </Button>
+                                <Button fx:id="sonarrBtn" alignment="BASELINE_LEFT" graphicTextGap="15.0" mnemonicParsing="false" prefHeight="50.0" prefWidth="250.0" style="-fx-background-color: transparent; -fx-text-fill: white;" text="Sonarr">
+                                    <graphic>
+                                        <Label text="📺" textFill="WHITE">
+                                            <font>
+                                                <Font size="18.0" />
+                                            </font>
+                                        </Label>
+                                    </graphic>
+                                    <font>
+                                        <Font size="16.0" />
+                                    </font>
+                                    <padding>
+                                        <Insets left="20.0" />
+                                    </padding>
+                                </Button>
+                                <Button fx:id="jellyfinBtn" alignment="BASELINE_LEFT" graphicTextGap="15.0" mnemonicParsing="false" prefHeight="50.0" prefWidth="250.0" style="-fx-background-color: transparent; -fx-text-fill: white;" text="Jellyfin">
+                                    <graphic>
+                                        <Label text="🎬" textFill="WHITE">
+                                            <font>
+                                                <Font size="18.0" />
+                                            </font>
+                                        </Label>
+                                    </graphic>
+                                    <font>
+                                        <Font size="16.0" />
+                                    </font>
+                                    <padding>
+                                        <Insets left="20.0" />
+                                    </padding>
+                                </Button>
+                                <Button fx:id="dockerBtn" alignment="BASELINE_LEFT" graphicTextGap="15.0" mnemonicParsing="false" prefHeight="50.0" prefWidth="250.0" style="-fx-background-color: transparent; -fx-text-fill: white;" text="Docker">
+                                    <graphic>
+                                        <Label text="🐳" textFill="WHITE">
+                                            <font>
+                                                <Font size="18.0" />
+                                            </font>
+                                        </Label>
+                                    </graphic>
+                                    <font>
+                                        <Font size="16.0" />
+                                    </font>
+                                    <padding>
+                                        <Insets left="20.0" />
+                                    </padding>
+                                </Button>
+                            </children>
+                            <padding>
+                                <Insets top="20.0" />
+                            </padding>
+                        </VBox>
+                    </children>
+                </VBox>
+            </left>
+            <center>
+                <StackPane>
+                    <children>
+                        <!-- Dashboard View -->
+                        <AnchorPane fx:id="dashboardView" style="-fx-background-color: #f5f5f5;">
+                            <children>
+                                <VBox spacing="20.0" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="20.0">
+                                    <children>
+                                        <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                            <children>
+                                                <Label text="Dashboard" textFill="#2e2e42">
+                                                    <font>
+                                                        <Font name="System Bold" size="28.0" />
+                                                    </font>
+                                                </Label>
+                                            </children>
+                                        </HBox>
+                                        <HBox spacing="20.0">
+                                            <children>
+                                                <AnchorPane prefHeight="200.0" prefWidth="350.0" style="-fx-background-color: white; -fx-background-radius: 10;">
+                                                    <children>
+                                                        <VBox alignment="CENTER_LEFT" prefHeight="200.0" prefWidth="350.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                                            <children>
+                                                                <Label text="System Status" textFill="#2e2e42">
+                                                                    <font>
+                                                                        <Font name="System Bold" size="18.0" />
+                                                                    </font>
+                                                                </Label>
+                                                                <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+                                                                    <children>
+                                                                        <Circle fill="#3cb371" radius="8.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" />
+                                                                        <Label text="All services running" />
+                                                                    </children>
+                                                                </HBox>
+                                                            </children>
+                                                            <padding>
+                                                                <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                                                            </padding>
+                                                        </VBox>
+                                                    </children>
+                                                </AnchorPane>
+                                                <AnchorPane prefHeight="200.0" prefWidth="350.0" style="-fx-background-color: white; -fx-background-radius: 10;">
+                                                    <children>
+                                                        <VBox alignment="CENTER_LEFT" prefHeight="200.0" prefWidth="350.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                                            <children>
+                                                                <Label text="Storage" textFill="#2e2e42">
+                                                                    <font>
+                                                                        <Font name="System Bold" size="18.0" />
+                                                                    </font>
+                                                                </Label>
+                                                                <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+                                                                    <children>
+                                                                        <VBox prefHeight="200.0" prefWidth="100.0">
+                                                                            <children>
+                                                                                <Label text="Used: 2.4 TB" />
+                                                                                <Label text="Free: 1.6 TB" />
+                                                                                <Label text="Total: 4.0 TB" />
+                                                                            </children>
+                                                                        </VBox>
+                                                                    </children>
+                                                                </HBox>
+                                                            </children>
+                                                            <padding>
+                                                                <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                                                            </padding>
+                                                        </VBox>
+                                                    </children>
+                                                </AnchorPane>
+                                                <AnchorPane prefHeight="200.0" prefWidth="350.0" style="-fx-background-color: white; -fx-background-radius: 10;">
+                                                    <children>
+                                                        <VBox alignment="CENTER_LEFT" prefHeight="200.0" prefWidth="350.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                                            <children>
+                                                                <Label text="Recent Activity" textFill="#2e2e42">
+                                                                    <font>
+                                                                        <Font name="System Bold" size="18.0" />
+                                                                    </font>
+                                                                </Label>
+                                                                <VBox prefHeight="140.0" prefWidth="100.0" spacing="5.0">
+                                                                    <children>
+                                                                        <Label prefHeight="0.0" prefWidth="208.0" text="• TV Show downloaded (2 min ago)" />
+                                                                        <Label text="• Movie started playing (10 min ago)" />
+                                                                        <Label text="• Docker container restarted (25 min ago)" />
+                                                                    </children>
+                                                                </VBox>
+                                                            </children>
+                                                            <padding>
+                                                                <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                                                            </padding>
+                                                        </VBox>
+                                                    </children>
+                                                </AnchorPane>
+                                            </children>
+                                        </HBox>
+                                        <HBox spacing="20.0">
+                                            <children>
+                                                <AnchorPane prefHeight="300.0" prefWidth="725" style="-fx-background-color: white; -fx-background-radius: 10;">
+                                                    <children>
+                                                        <VBox alignment="CENTER_LEFT" prefHeight="300.0" prefWidth="725" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                                            <children>
+                                                                <Label text="System Resources" textFill="#2e2e42">
+                                                                    <font>
+                                                                        <Font name="System Bold" size="18.0" />
+                                                                    </font>
+                                                                </Label>
+                                                                <VBox prefHeight="240.0" prefWidth="685.0">
+                                                                    <children>
+                                                                        <Label text="CPU Usage: 32%" />
+                                                                        <AnchorPane prefHeight="20.0" prefWidth="200.0" style="-fx-background-color: #f0f0f0; -fx-background-radius: 5;">
+                                                                            <children>
+                                                                                <AnchorPane layoutX="0" layoutY="0" prefHeight="20.0" prefWidth="220.0" style="-fx-background-color: #4CAF50; -fx-background-radius: 5 0 0 5;" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                                                            </children>
+                                                                        </AnchorPane>
+                                                                        <Label text="Memory Usage: 65%" />
+                                                                        <AnchorPane prefHeight="20.0" prefWidth="200.0" style="-fx-background-color: #f0f0f0; -fx-background-radius: 5;">
+                                                                            <children>
+                                                                                <AnchorPane layoutX="0" layoutY="0" prefHeight="20.0" prefWidth="445.0" style="-fx-background-color: #2196F3; -fx-background-radius: 5 0 0 5;" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                                                            </children>
+                                                                        </AnchorPane>
+                                                                        <Label text="Network: 12MB/s" />
+                                                                        <AnchorPane prefHeight="20.0" prefWidth="200.0" style="-fx-background-color: #f0f0f0; -fx-background-radius: 5;">
+                                                                            <children>
+                                                                                <AnchorPane layoutX="0" layoutY="0" prefHeight="20.0" prefWidth="130.0" style="-fx-background-color: #FF9800; -fx-background-radius: 5 0 0 5;" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                                                            </children>
+                                                                        </AnchorPane>
+                                                                    </children>
+                                                                    <padding>
+                                                                        <Insets top="10.0" />
+                                                                    </padding>
+                                                                </VBox>
+                                                            </children>
+                                                            <padding>
+                                                                <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                                                            </padding>
+                                                        </VBox>
+                                                    </children>
+                                                </AnchorPane>
+                                                <AnchorPane prefHeight="300.0" prefWidth="350.0" style="-fx-background-color: white; -fx-background-radius: 10;">
+                                                    <children>
+                                                        <VBox alignment="CENTER_LEFT" prefHeight="300.0" prefWidth="350.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                                            <children>
+                                                                <Label text="Quick Actions" textFill="#2e2e42">
+                                                                    <font>
+                                                                        <Font name="System Bold" size="18.0" />
+                                                                    </font>
+                                                                </Label>
+                                                                <VBox prefHeight="240.0" prefWidth="310.0" spacing="10.0">
+                                                                </VBox>
+                                                            </children>
+                                                        </VBox>
+                                                    </children>
+                                                </AnchorPane>
+                                            </children>
+                                        </HBox>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </AnchorPane>
+                    </children>
+                </StackPane>
+            </center>
+        </BorderPane>
+    </children>
+</AnchorPane>

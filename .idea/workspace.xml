@@ -4,10 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="03070914-e668-499b-9819-07c6a3346388" name="Changes" comment="update fxml for menu scene change">
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/tfg/dashboard_tfg/Controller.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tfg/dashboard_tfg/Controller.java" afterDir="false" />
+    <list default="true" id="03070914-e668-499b-9819-07c6a3346388" name="Changes" comment="update fxml, create tilesfx demo, update Controller for MainView.fxmlupdate fxml, create tilesfx demo, update Controller for MainView.fxml">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/com/tfg/dashboard_tfg/MainView.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/tfg/dashboard_tfg/MainView.fxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/tfg/dashboard_tfg/Controller.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/tfg/dashboard_tfg/Controller.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/com/tfg/dashboard_tfg/MainView.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/tfg/dashboard_tfg/MainView.fxml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -31,12 +30,12 @@
     &quot;state&quot;: &quot;OPEN&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/RjZude45OC/Proyecto_TFG_Dashboard&quot;,
-    &quot;accountId&quot;: &quot;90e5f755-a84e-4e63-ac2d-c604dae410e1&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/RjZude45OC/Proyecto_TFG_Dashboard.git",
+    "accountId": "90e5f755-a84e-4e63-ac2d-c604dae410e1"
   }
-}</component>
+}]]></component>
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="CurrentFile" />
   </component>
@@ -49,20 +48,20 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Application.App.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;inlay.hints&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.App.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "main",
+    "ignore.virus.scanning.warn.message": "true",
+    "kotlin-language-version-configured": "true",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0",
+    "settings.editor.selected.configurable": "reference.settingsdialog.IDE.editor.colors.XML"
   }
-}</component>
+}]]></component>
   <component name="RunManager">
     <configuration name="App" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="com.tfg.dashboard_tfg.App" />
@@ -133,7 +132,15 @@
       <option name="project" value="LOCAL" />
       <updated>1743157565326</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="update fxml, create tilesfx demo, update Controller for MainView.fxml">
+      <option name="closed" value="true" />
+      <created>1743159908578</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1743159908578</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -185,6 +192,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="update fxml for menu scene change" />
-    <option name="LAST_COMMIT_MESSAGE" value="update fxml for menu scene change" />
+    <MESSAGE value="Revert &quot;update fxml for menu scene change&quot;&#10;&#10;This reverts commit 468753f5e7f814de217cb69ac17f4b823fe14639." />
+    <MESSAGE value="update fxml, create tilesfx demo, update Controller for MainView.fxml" />
+    <option name="LAST_COMMIT_MESSAGE" value="update fxml, create tilesfx demo, update Controller for MainView.fxml" />
   </component>
 </project>

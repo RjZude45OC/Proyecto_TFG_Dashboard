@@ -4,10 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="03070914-e668-499b-9819-07c6a3346388" name="Changes" comment="update fxml, create tilesfx demo, update Controller for MainView.fxmlupdate fxml, create tilesfx demo, update Controller for MainView.fxml">
+    <list default="true" id="03070914-e668-499b-9819-07c6a3346388" name="Changes" comment="update MainView.fxml">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/com/tfg/dashboard_tfg/MainView.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/tfg/dashboard_tfg/MainView.fxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/tfg/dashboard_tfg/MainView.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/tfg/dashboard_tfg/MainView.fxml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -140,7 +138,15 @@
       <option name="project" value="LOCAL" />
       <updated>1743159908578</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="update MainView.fxml">
+      <option name="closed" value="true" />
+      <created>1743161956136</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1743161956136</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -194,6 +200,7 @@
     <MESSAGE value="update fxml for menu scene change" />
     <MESSAGE value="Revert &quot;update fxml for menu scene change&quot;&#10;&#10;This reverts commit 468753f5e7f814de217cb69ac17f4b823fe14639." />
     <MESSAGE value="update fxml, create tilesfx demo, update Controller for MainView.fxml" />
-    <option name="LAST_COMMIT_MESSAGE" value="update fxml, create tilesfx demo, update Controller for MainView.fxml" />
+    <MESSAGE value="update MainView.fxml" />
+    <option name="LAST_COMMIT_MESSAGE" value="update MainView.fxml" />
   </component>
 </project>

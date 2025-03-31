@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.tfg.dashboard_tfg.viewmodel.dockerViewModel"
+            prefHeight="400.0" prefWidth="600.0">
+
+    <children>
+        <VBox spacing="20.0"
+              AnchorPane.bottomAnchor="20.0"
+              AnchorPane.leftAnchor="20.0"
+              AnchorPane.rightAnchor="20.0"
+              AnchorPane.topAnchor="20.0">
+
+            <children>
+                <Label text="Docker CLI" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #2e2e42;"/>
+                <TextArea fx:id="cliOutput" prefHeight="300.0" wrapText="true" editable="false"
+                          style="-fx-font-family: 'Consolas'; -fx-background-color: black; -fx-text-fill: lime;"/>
+
+                <HBox spacing="10.0">
+                    <TextField fx:id="cliInput" prefWidth="400.0" promptText="Enter command..."/>
+                    <Button text="Run" onAction="#executeCommand"/>
+                </HBox>
+            </children>
+        </VBox>
+    </children>
+</AnchorPane>

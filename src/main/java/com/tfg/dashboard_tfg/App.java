@@ -3,9 +3,12 @@ package com.tfg.dashboard_tfg;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.Objects;
 
 public class App extends Application {
     @Override
@@ -14,6 +17,9 @@ public class App extends Application {
         Scene scene = new Scene(fxmlLoader.load());
         stage.setTitle("Dashboard");
         stage.setScene(scene);
+        String iconPath = "/com/tfg/dashboard_tfg/assets/logo.png";
+        Image icon = new Image(Objects.requireNonNull(App.class.getResourceAsStream(iconPath)));
+        stage.getIcons().add(icon);
         stage.show();
 //        tilesfx test
 //        double TILE_WIDTH  = 150;

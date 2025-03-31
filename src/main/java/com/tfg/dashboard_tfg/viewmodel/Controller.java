@@ -2,12 +2,17 @@ package com.tfg.dashboard_tfg.viewmodel;
 
 import eu.hansolo.tilesfx.Tile;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 public class Controller {
 
@@ -62,18 +67,19 @@ public class Controller {
     @FXML
     private Label loginErrorLabel;
 
-    @FXML private Tile systemStatusTile;
-    @FXML private Tile storageTile;
-    @FXML private Tile networkTile;
-    @FXML private Tile cpuTile;
-    @FXML private Tile memoryTile;
-    @FXML private Tile temperatureTile;
-    @FXML private Tile jellyfinStatusTile;
-    @FXML private Tile dockerStatusTile;
+    @FXML
+    public void initialize() {
+        try {
+            loadViews();
+            showDashboardView();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     // Navigation Methods
     @FXML
-    private void showDashboardView() {
+    public void showDashboardView() {
         resetViewStyles();
         dashboardBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: white;");
 
@@ -81,7 +87,7 @@ public class Controller {
     }
 
     @FXML
-    private void showSonarrView() {
+    public void showSonarrView() {
         resetViewStyles();
         sonarrBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: white;");
 
@@ -89,7 +95,7 @@ public class Controller {
     }
 
     @FXML
-    private void showJellyfinView() {
+    public void showJellyfinView() {
         resetViewStyles();
         jellyfinBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: white;");
 
@@ -97,7 +103,7 @@ public class Controller {
     }
 
     @FXML
-    private void showDockerView() {
+    public void showDockerView() {
         resetViewStyles();
         dockerBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: white;");
 
@@ -105,7 +111,7 @@ public class Controller {
     }
 
     @FXML
-    private void showRssView() {
+    public void showRssView() {
         resetViewStyles();
         rssBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: white;");
 
@@ -113,37 +119,16 @@ public class Controller {
     }
 
     @FXML
-    private void showLoginForm() {
+    public void showLoginForm() {
         resetViewStyles();
         loginMenuBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: white;");
 
         // Reset login form
-        usernameField.clear();
-        passwordField.clear();
-        loginErrorLabel.setVisible(false);
+//        usernameField.clear();
+//        passwordField.clear();
+//        loginErrorLabel.setVisible(false);
 
         setViewVisibility(loginView);
-    }
-
-    // Login Handling Methods
-    @FXML
-    private void handleLogin() {
-        String username = usernameField.getText();
-        String password = passwordField.getText();
-
-        // Basic login validation (replace with actual authentication)
-        if ("admin".equals(username) && "password".equals(password)) {
-            loginErrorLabel.setVisible(false);
-            showDashboardView(); // Redirect to dashboard after successful login
-        } else {
-            loginErrorLabel.setText("Invalid username or password");
-            loginErrorLabel.setVisible(true);
-        }
-    }
-
-    @FXML
-    private void cancelLogin() {
-        showDashboardView(); // Return to dashboard
     }
 
     // Utility Methods
@@ -169,5 +154,56 @@ public class Controller {
         activeView.setVisible(true);
     }
 
+    private void loadViews() throws IOException {
+        String path = "";
+        System.out.println("check null");
+        //load dashboard view
+        path = "/com/tfg/dashboard_tfg/view/DashboardView.fxml";
+        FXMLLoader dashboardLoader = new FXMLLoader(getClass().getResource(path));
+        PathCheck(path);
+        dashboardView = dashboardLoader.load();
 
+        //load docker view
+        path = "/com/tfg/dashboard_tfg/view/dockerView.fxml";
+        FXMLLoader dockerLoader = new FXMLLoader(getClass().getResource(path));
+        PathCheck(path);
+        dockerView = dockerLoader.load();
+
+        //load jellyFin view
+        path = "/com/tfg/dashboard_tfg/view/jellyFinView.fxml";
+        FXMLLoader jellyFinLoader = new FXMLLoader(getClass().getResource(path));
+        PathCheck(path);
+        jellyfinView = jellyFinLoader.load();
+
+        //load login view
+        path = "/com/tfg/dashboard_tfg/view/loginView.fxml";
+        FXMLLoader loginLoader = new FXMLLoader(getClass().getResource(path));
+        PathCheck(path);
+        loginView = loginLoader.load();
+
+        //load rss view
+        path = "/com/tfg/dashboard_tfg/view/rssView.fxml";
+        FXMLLoader rssLoader = new FXMLLoader(getClass().getResource(path));
+        PathCheck(path);
+        rssView = rssLoader.load();
+
+        //load sonarr view
+        path = "/com/tfg/dashboard_tfg/view/sonarrView.fxml";
+        FXMLLoader sonarrLoader = new FXMLLoader(getClass().getResource(path));
+        PathCheck(path);
+        sonarrView = sonarrLoader.load();
+
+        //add all child to main panel
+        mainStackPane.getChildren().addAll(dashboardView, dockerView,jellyfinView,loginView,rssView,sonarrView);
+        loginViewModel loginController = loginLoader.getController();
+        loginController.setMainController(this);
+    }
+
+    private void PathCheck(String filePath) throws FileNotFoundException {
+        if (getClass().getResource(filePath) != null) {
+            System.out.println("false");
+        } else {
+            throw new FileNotFoundException("File '" + filePath + "' not found");
+        }
+    }
 }

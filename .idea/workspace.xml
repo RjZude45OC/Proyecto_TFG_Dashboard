@@ -6,6 +6,13 @@
   <component name="ChangeListManager">
     <list default="true" id="03070914-e668-499b-9819-07c6a3346388" name="Changes" comment="update MainView.fxml">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/tfg/dashboard_tfg/Controller.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tfg/dashboard_tfg/viewmodel/Controller.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/module-info.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/module-info.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/com/tfg/dashboard_tfg/MainView.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/tfg/dashboard_tfg/MainView.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/tfg/dashboard_tfg/Controller.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/tfg/dashboard_tfg/MainView.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/tfg/dashboard_tfg/MainView.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/module-info.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/module-info.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -28,12 +35,12 @@
     &quot;state&quot;: &quot;OPEN&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/RjZude45OC/Proyecto_TFG_Dashboard.git",
-    "accountId": "90e5f755-a84e-4e63-ac2d-c604dae410e1"
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/RjZude45OC/Proyecto_TFG_Dashboard.git&quot;,
+    &quot;accountId&quot;: &quot;90e5f755-a84e-4e63-ac2d-c604dae410e1&quot;
   }
-}]]></component>
+}</component>
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="CurrentFile" />
   </component>
@@ -57,7 +64,7 @@
     "project.structure.last.edited": "Project",
     "project.structure.proportion": "0.0",
     "project.structure.side.proportion": "0.0",
-    "settings.editor.selected.configurable": "reference.settingsdialog.IDE.editor.colors.XML"
+    "settings.editor.selected.configurable": "reference.settings.project.maven.importing"
   }
 }]]></component>
   <component name="RunManager">
@@ -66,7 +73,7 @@
       <module name="Dashboard_TFG" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="com.tfg.dashboard_tfg.*" />
+          <option name="PATTERN" value="com.tfg.dashboard_tfg.viewmodel.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -146,7 +153,15 @@
       <option name="project" value="LOCAL" />
       <updated>1743161956136</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="update MainView.fxml">
+      <option name="closed" value="true" />
+      <created>1743163813187</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1743163813187</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">

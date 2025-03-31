@@ -1,4 +1,4 @@
-package com.tfg.dashboard_tfg;
+package com.tfg.dashboard_tfg.viewmodel;
 
 import eu.hansolo.tilesfx.Tile;
 import javafx.fxml.FXML;
@@ -30,6 +30,9 @@ public class Controller {
     @FXML
     private AnchorPane loginView;
 
+    @FXML
+    private AnchorPane rssView;
+
     // FXML Injected Buttons
     @FXML
     private Button dashboardBtn;
@@ -42,6 +45,9 @@ public class Controller {
 
     @FXML
     private Button dockerBtn;
+
+    @FXML
+    private Button rssBtn;
 
     @FXML
     private Button loginMenuBtn;
@@ -99,6 +105,14 @@ public class Controller {
     }
 
     @FXML
+    private void showRssView() {
+        resetViewStyles();
+        rssBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: white;");
+
+        setViewVisibility(rssView);
+    }
+
+    @FXML
     private void showLoginForm() {
         resetViewStyles();
         loginMenuBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: white;");
@@ -140,6 +154,7 @@ public class Controller {
         jellyfinBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white;");
         dockerBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white;");
         loginMenuBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white;");
+        rssBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white;");
     }
 
     private void setViewVisibility(AnchorPane activeView) {
@@ -149,7 +164,7 @@ public class Controller {
         jellyfinView.setVisible(false);
         dockerView.setVisible(false);
         loginView.setVisible(false);
-
+        rssView.setVisible(false);
         // Show the active view
         activeView.setVisible(true);
     }

@@ -5,9 +5,10 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 <?import javafx.scene.image.*?>
-
 <?import eu.hansolo.tilesfx.Tile?>
-<AnchorPane fx:controller="com.tfg.dashboard_tfg.Controller"
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<AnchorPane fx:controller="com.tfg.dashboard_tfg.viewmodel.Controller"
             prefHeight="750.0" prefWidth="1400.0"
             styleClass="root"
             xmlns="http://javafx.com/javafx/17.0.2"
@@ -46,11 +47,7 @@
                                         style="-fx-background-color: #2e2e42; -fx-text-fill: white;"
                                         text="Dashboard">
                                     <graphic>
-                                        <Label text="⊡" textFill="WHITE">
-                                            <font>
-                                                <Font size="18.0"/>
-                                            </font>
-                                        </Label>
+                                        <FontIcon iconLiteral="fas-tachometer-alt" iconSize="20" iconColor="white"/>
                                     </graphic>
                                     <font>
                                         <Font size="16.0"/>
@@ -69,11 +66,7 @@
                                         style="-fx-background-color: transparent; -fx-text-fill: white;"
                                         text="Sonarr">
                                     <graphic>
-                                        <Label text="📺" textFill="WHITE">
-                                            <font>
-                                                <Font size="18.0"/>
-                                            </font>
-                                        </Label>
+                                        <FontIcon iconLiteral="fas-server" iconSize="20" iconColor="white"/>
                                     </graphic>
                                     <font>
                                         <Font size="16.0"/>
@@ -92,11 +85,7 @@
                                         style="-fx-background-color: transparent; -fx-text-fill: white;"
                                         text="Jellyfin">
                                     <graphic>
-                                        <Label text="🎬" textFill="WHITE">
-                                            <font>
-                                                <Font size="18.0"/>
-                                            </font>
-                                        </Label>
+                                        <FontIcon iconLiteral="mdmz-video_library" iconSize="20" iconColor="white"/>
                                     </graphic>
                                     <font>
                                         <Font size="16.0"/>
@@ -115,11 +104,26 @@
                                         style="-fx-background-color: transparent; -fx-text-fill: white;"
                                         text="Docker">
                                     <graphic>
-                                        <Label text="🐳" textFill="WHITE">
-                                            <font>
-                                                <Font size="18.0"/>
-                                            </font>
-                                        </Label>
+                                        <FontIcon iconLiteral="mdi2d-docker" iconSize="20" iconColor="white"/>
+                                    </graphic>
+                                    <font>
+                                        <Font size="16.0"/>
+                                    </font>
+                                    <padding>
+                                        <Insets left="20.0"/>
+                                    </padding>
+                                </Button>
+
+                                <Button fx:id="rssBtn"
+                                        onAction="#showRssView"
+                                        alignment="BASELINE_LEFT"
+                                        graphicTextGap="15.0"
+                                        prefHeight="50.0"
+                                        prefWidth="250.0"
+                                        style="-fx-background-color: transparent; -fx-text-fill: white;"
+                                        text="Rss">
+                                    <graphic>
+                                        <FontIcon iconLiteral="mdi2r-rss-box" iconSize="20" iconColor="white"/>
                                     </graphic>
                                     <font>
                                         <Font size="16.0"/>
@@ -129,6 +133,7 @@
                                     </padding>
                                 </Button>
                             </children>
+
                             <padding>
                                 <Insets top="20.0"/>
                             </padding>
@@ -332,6 +337,23 @@
                                       AnchorPane.topAnchor="20.0">
                                     <children>
                                         <Label text="Docker"
+                                               style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #2e2e42;"/>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </AnchorPane>
+                        <!-- Rss View -->
+                        <AnchorPane fx:id="rssView"
+                                    style="-fx-background-color: #f5f5f5;"
+                                    visible="false">
+                            <children>
+                                <VBox spacing="20.0"
+                                      AnchorPane.bottomAnchor="20.0"
+                                      AnchorPane.leftAnchor="20.0"
+                                      AnchorPane.rightAnchor="20.0"
+                                      AnchorPane.topAnchor="20.0">
+                                    <children>
+                                        <Label text="Rss"
                                                style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #2e2e42;"/>
                                     </children>
                                 </VBox>

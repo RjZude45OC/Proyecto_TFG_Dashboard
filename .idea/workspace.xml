@@ -5,25 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="03070914-e668-499b-9819-07c6a3346388" name="Changes" comment="added icon pack, update MainView.fxml to adapt new iconpack , added rss option in menu">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/tfg/dashboard_tfg/viewmodel/DashboardController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/tfg/dashboard_tfg/viewmodel/dockerViewModel.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/tfg/dashboard_tfg/viewmodel/jellyFinViewModel.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/tfg/dashboard_tfg/viewmodel/loginViewModel.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/tfg/dashboard_tfg/viewmodel/rssViewModel.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/tfg/dashboard_tfg/viewmodel/sonarrViewModel.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/com/tfg/dashboard_tfg/assets/logo.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/com/tfg/dashboard_tfg/view/DashboardView.fxml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/com/tfg/dashboard_tfg/view/dockerView.fxml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/com/tfg/dashboard_tfg/view/jellyFinView.fxml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/com/tfg/dashboard_tfg/view/loginView.fxml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/com/tfg/dashboard_tfg/view/rssView.fxml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/com/tfg/dashboard_tfg/view/sonarrView.fxml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/tfg/dashboard_tfg/App.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tfg/dashboard_tfg/App.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/tfg/dashboard_tfg/viewmodel/Controller.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tfg/dashboard_tfg/viewmodel/Controller.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/com/tfg/dashboard_tfg/MainView.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/tfg/dashboard_tfg/MainView.fxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/tfg/dashboard_tfg/App.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/tfg/dashboard_tfg/App.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/tfg/dashboard_tfg/MainView.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/tfg/dashboard_tfg/MainView.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/tfg/dashboard_tfg/viewmodel/loginViewModel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tfg/dashboard_tfg/viewmodel/loginViewModel.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -54,12 +38,12 @@
     &quot;state&quot;: &quot;OPEN&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/RjZude45OC/Proyecto_TFG_Dashboard.git&quot;,
-    &quot;accountId&quot;: &quot;90e5f755-a84e-4e63-ac2d-c604dae410e1&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/RjZude45OC/Proyecto_TFG_Dashboard.git",
+    "accountId": "8b51454b-c46a-4381-8a45-675bfa928123"
   }
-}</component>
+}]]></component>
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="CurrentFile" />
   </component>
@@ -72,21 +56,21 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Application.App.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "main",
-    "ignore.virus.scanning.warn.message": "true",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/usuario/IdeaProjects/Proyecto_TFG_Dashboard/src/main/resources/com/tfg/dashboard_tfg/assets",
-    "project.structure.last.edited": "Project",
-    "project.structure.proportion": "0.0",
-    "project.structure.side.proportion": "0.0",
-    "settings.editor.selected.configurable": "reference.settings.project.maven.importing"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Application.App.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/usuario/IdeaProjects/Proyecto_TFG_Dashboard/src/main/resources/com/tfg/dashboard_tfg/assets&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settings.project.maven.importing&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CreateClassDialog.RecentsKey">
       <recent name="com.tfg.dashboard_tfg.viewmodel" />
@@ -112,15 +96,6 @@
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
-    </configuration>
-    <configuration default="true" type="JetRunConfigurationType">
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
-      <option name="filePath" />
-      <method v="2" />
     </configuration>
     <recent_temporary>
       <list>

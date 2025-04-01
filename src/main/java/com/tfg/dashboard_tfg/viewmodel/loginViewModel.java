@@ -29,10 +29,12 @@ public class loginViewModel {
     private void handleLogin() {
         String username = usernameField.getText();
         String password = passwordField.getText();
+
         // Basic login validation (replace with actual authentication)
         if ("admin".equals(username) && "password".equals(password)) {
             loginErrorLabel.setVisible(false);
-            mainController.showDashboardView(); // Redirect to dashboard after successful login
+            // Redirect to dashboard after successful login
+            mainController.showDashboardView();
         } else {
             loginErrorLabel.setText("Invalid username or password");
             loginErrorLabel.setVisible(true);

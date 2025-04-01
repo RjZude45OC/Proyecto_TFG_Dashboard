@@ -200,9 +200,13 @@ public class Controller {
     }
 
     private void PathCheck(String filePath) throws FileNotFoundException {
+        String RESET = "\u001B[0m";
+        String RED = "\u001B[31m";
+        String GREEN = "\u001B[32m";
         if (getClass().getResource(filePath) != null) {
-            System.out.println("false");
+            System.out.println(GREEN + "false" + RESET);
         } else {
+            System.out.println(RED + "true" + RESET);
             throw new FileNotFoundException("File '" + filePath + "' not found");
         }
     }

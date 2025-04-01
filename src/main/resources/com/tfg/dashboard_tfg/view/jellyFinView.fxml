@@ -11,16 +11,12 @@
             fx:controller="com.tfg.dashboard_tfg.viewmodel.jellyFinViewModel"
             prefHeight="400.0" prefWidth="600.0">
 
-    <children>
-        <VBox spacing="20.0"
-              AnchorPane.bottomAnchor="20.0"
-              AnchorPane.leftAnchor="20.0"
-              AnchorPane.rightAnchor="20.0"
-              AnchorPane.topAnchor="20.0">
-            <children>
-                <Label text="Jellyfin"
-                       style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #2e2e42;"/>
-            </children>
-        </VBox>
-    </children>
+    <VBox spacing="20.0"
+          AnchorPane.bottomAnchor="20.0"
+          AnchorPane.leftAnchor="20.0"
+          AnchorPane.rightAnchor="20.0"
+          AnchorPane.topAnchor="20.0">
+        <Label text="Jellyfin"
+               style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #2e2e42;"/>
+    </VBox>
 </AnchorPane>

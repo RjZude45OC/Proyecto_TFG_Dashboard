@@ -12,119 +12,113 @@
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.tfg.dashboard_tfg.viewmodel.DashboardController"
             prefHeight="400.0" prefWidth="600.0">
-    <children>
-        <VBox spacing="20.0"
-              AnchorPane.bottomAnchor="20.0"
-              AnchorPane.leftAnchor="20.0"
-              AnchorPane.rightAnchor="20.0"
-              AnchorPane.topAnchor="20.0">
-            <children>
-                <Label text="Dashboard"
-                       style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #2e2e42;">
-                </Label>
+    <VBox spacing="20.0"
+          AnchorPane.bottomAnchor="20.0"
+          AnchorPane.leftAnchor="20.0"
+          AnchorPane.rightAnchor="20.0"
+          AnchorPane.topAnchor="20.0">
+        <Label text="Dashboard"
+               style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #2e2e42;">
+        </Label>
 
-                <HBox spacing="20.0">
-                    <children>
-                        <!-- System Status Card -->
-                        <VBox style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 20px;">
-                            <Label text="System Status"
-                                   style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
-                            <Label text="All services running"
-                                   style="-fx-text-fill: green;"/>
-                            <GridPane hgap="20.0" vgap="20.0">
-                                <!-- Grid layout with tiles as in your original file -->
-                                <columnConstraints>
-                                    <ColumnConstraints percentWidth="25"/>
-                                    <ColumnConstraints percentWidth="25"/>
-                                    <ColumnConstraints percentWidth="25"/>
-                                    <ColumnConstraints percentWidth="25"/>
-                                </columnConstraints>
-                                <rowConstraints>
-                                    <RowConstraints percentHeight="50"/>
-                                    <RowConstraints percentHeight="50"/>
-                                </rowConstraints>
+        <HBox spacing="20.0">
+            <!-- System Status Card -->
+            <VBox style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 20px;">
+                <Label text="System Status"
+                       style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+                <Label text="All services running"
+                       style="-fx-text-fill: green;"/>
+                <GridPane hgap="20.0" vgap="20.0">
+                    <!-- Grid layout with tiles as in your original file -->
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="25"/>
+                        <ColumnConstraints percentWidth="25"/>
+                        <ColumnConstraints percentWidth="25"/>
+                        <ColumnConstraints percentWidth="25"/>
+                    </columnConstraints>
+                    <rowConstraints>
+                        <RowConstraints percentHeight="50"/>
+                        <RowConstraints percentHeight="50"/>
+                    </rowConstraints>
 
-                                <!-- System Status Tile -->
-                                <Tile fx:id="systemStatusTile"
-                                      GridPane.columnIndex="0"
-                                      GridPane.rowIndex="0"
-                                      title="System Status"
-                                      description="Media Server Health"
-                                      textSize="BIGGER"
-                                      valueColor="GREEN"
-                                      animated="true"/>
+                    <!-- System Status Tile -->
+                    <Tile fx:id="systemStatusTile"
+                          GridPane.columnIndex="0"
+                          GridPane.rowIndex="0"
+                          title="System Status"
+                          description="Media Server Health"
+                          textSize="BIGGER"
+                          valueColor="GREEN"
+                          animated="true"/>
 
-                                <!-- Continue with the rest of the tiles -->
-                                <!-- Storage Tile -->
-                                <Tile fx:id="storageTile"
-                                      GridPane.columnIndex="1"
-                                      GridPane.rowIndex="0"
-                                      title="Storage"
-                                      description="Total Space"
-                                      textSize="BIGGER"
-                                      animated="true"/>
+                    <!-- Continue with the rest of the tiles -->
+                    <!-- Storage Tile -->
+                    <Tile fx:id="storageTile"
+                          GridPane.columnIndex="1"
+                          GridPane.rowIndex="0"
+                          title="Storage"
+                          description="Total Space"
+                          textSize="BIGGER"
+                          animated="true"/>
 
-                                <!-- Network Tile -->
-                                <Tile fx:id="networkTile"
-                                      GridPane.columnIndex="2"
-                                      GridPane.rowIndex="0"
-                                      title="Network"
-                                      description="Bandwidth"
-                                      textSize="BIGGER"
-                                      animated="true"/>
+                    <!-- Network Tile -->
+                    <Tile fx:id="networkTile"
+                          GridPane.columnIndex="2"
+                          GridPane.rowIndex="0"
+                          title="Network"
+                          description="Bandwidth"
+                          textSize="BIGGER"
+                          animated="true"/>
 
-                                <!-- CPU Usage Tile -->
-                                <Tile fx:id="cpuTile"
-                                      GridPane.columnIndex="3"
-                                      GridPane.rowIndex="0"
-                                      title="CPU Usage"
-                                      description="Processing Load"
-                                      textSize="BIGGER"
-                                      animated="true"/>
+                    <!-- CPU Usage Tile -->
+                    <Tile fx:id="cpuTile"
+                          GridPane.columnIndex="3"
+                          GridPane.rowIndex="0"
+                          title="CPU Usage"
+                          description="Processing Load"
+                          textSize="BIGGER"
+                          animated="true"/>
 
-                                <!-- Memory Tile -->
-                                <Tile fx:id="memoryTile"
-                                      GridPane.columnIndex="0"
-                                      GridPane.rowIndex="1"
-                                      title="Memory"
-                                      description="RAM Usage"
-                                      textSize="BIGGER"
-                                      animated="true"/>
+                    <!-- Memory Tile -->
+                    <Tile fx:id="memoryTile"
+                          GridPane.columnIndex="0"
+                          GridPane.rowIndex="1"
+                          title="Memory"
+                          description="RAM Usage"
+                          textSize="BIGGER"
+                          animated="true"/>
 
-                                <!-- Temperature Tile -->
-                                <Tile fx:id="temperatureTile"
-                                      GridPane.columnIndex="1"
-                                      GridPane.rowIndex="1"
-                                      title="Server Temp"
-                                      description="Hardware Temperature"
-                                      textSize="BIGGER"
-                                      unit="CELSIUS"
-                                      animated="true"/>
+                    <!-- Temperature Tile -->
+                    <Tile fx:id="temperatureTile"
+                          GridPane.columnIndex="1"
+                          GridPane.rowIndex="1"
+                          title="Server Temp"
+                          description="Hardware Temperature"
+                          textSize="BIGGER"
+                          unit="CELSIUS"
+                          animated="true"/>
 
-                                <!-- Jellyfin Status Tile -->
-                                <Tile fx:id="jellyfinStatusTile"
-                                      GridPane.columnIndex="2"
-                                      GridPane.rowIndex="1"
-                                      title="Jellyfin"
-                                      description="Media Server"
-                                      textSize="BIGGER"
-                                      valueColor="GREEN"
-                                      animated="true"/>
+                    <!-- Jellyfin Status Tile -->
+                    <Tile fx:id="jellyfinStatusTile"
+                          GridPane.columnIndex="2"
+                          GridPane.rowIndex="1"
+                          title="Jellyfin"
+                          description="Media Server"
+                          textSize="BIGGER"
+                          valueColor="GREEN"
+                          animated="true"/>
 
-                                <!-- Docker Status Tile -->
-                                <Tile fx:id="dockerStatusTile"
-                                      GridPane.columnIndex="3"
-                                      GridPane.rowIndex="1"
-                                      title="Docker"
-                                      description="Containers"
-                                      textSize="BIGGER"
-                                      animated="true"
-                                      skinType="SMOOTHED_CHART"/>
-                            </GridPane>
-                        </VBox>
-                    </children>
-                </HBox>
-            </children>
-        </VBox>
-    </children>
+                    <!-- Docker Status Tile -->
+                    <Tile fx:id="dockerStatusTile"
+                          GridPane.columnIndex="3"
+                          GridPane.rowIndex="1"
+                          title="Docker"
+                          description="Containers"
+                          textSize="BIGGER"
+                          animated="true"
+                          skinType="SMOOTHED_CHART"/>
+                </GridPane>
+            </VBox>
+        </HBox>
+    </VBox>
 </AnchorPane>

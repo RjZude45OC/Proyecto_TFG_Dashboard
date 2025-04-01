@@ -5,4 +5,7 @@ import javafx.event.ActionEvent;
 public class dockerViewModel {
     public void executeCommand(ActionEvent actionEvent) {
     }
+
+    public void clearTerminal(ActionEvent actionEvent) {
+    }
 }

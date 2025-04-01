@@ -4,11 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="03070914-e668-499b-9819-07c6a3346388" name="Changes" comment="update view fix warnings">
+    <list default="true" id="03070914-e668-499b-9819-07c6a3346388" name="Changes" comment="update dockerCLI view and its controller">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/tfg/dashboard_tfg/viewmodel/dockerViewModel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tfg/dashboard_tfg/viewmodel/dockerViewModel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/com/tfg/dashboard_tfg/view/dockerView.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/tfg/dashboard_tfg/view/dockerView.fxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/tfg/dashboard_tfg/MainView.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/tfg/dashboard_tfg/MainView.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/com/tfg/dashboard_tfg/MainView.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/tfg/dashboard_tfg/MainView.fxml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -69,7 +67,7 @@
     "project.structure.last.edited": "Project",
     "project.structure.proportion": "0.0",
     "project.structure.side.proportion": "0.0",
-    "settings.editor.selected.configurable": "org.jetbrains.plugins.github.ui.GithubSettingsConfigurable"
+    "settings.editor.selected.configurable": "vcs.Git"
   }
 }]]></component>
   <component name="RecentsManager">
@@ -193,7 +191,15 @@
       <option name="project" value="LOCAL" />
       <updated>1743510371813</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="update dockerCLI view and its controller">
+      <option name="closed" value="true" />
+      <created>1743512377871</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1743512377871</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -251,6 +257,7 @@
     <MESSAGE value="added icon pack, update MainView.fxml to adapt new iconpack , added rss option in menu" />
     <MESSAGE value="update Controller and update loginViewModel" />
     <MESSAGE value="update view fix warnings" />
-    <option name="LAST_COMMIT_MESSAGE" value="update view fix warnings" />
+    <MESSAGE value="update dockerCLI view and its controller" />
+    <option name="LAST_COMMIT_MESSAGE" value="update dockerCLI view and its controller" />
   </component>
 </project>

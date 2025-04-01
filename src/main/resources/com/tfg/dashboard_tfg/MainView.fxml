@@ -156,7 +156,7 @@
 
         <center>
             <StackPane fx:id="mainStackPane">
-
+            <!-- inject Views-->
             </StackPane>
         </center>
     </BorderPane>

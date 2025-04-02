@@ -1,0 +1,130 @@
+/* styles.css */
+
+/* Dark Theme - Default */
+.dark-theme {
+    -fx-base: #1e1e2c;
+    -fx-background: #1e1e2c;
+    -fx-control-inner-background: #2e2e42;
+    -fx-text-fill: white;
+    -fx-text-base-color: white;
+    -fx-accent: #7c78dc;
+    -fx-focus-color: #7c78dc;
+    -fx-faint-focus-color: #7c78dc22;
+}
+
+.dark-theme .sidebar {
+    -fx-background-color: #1e1e2c;
+}
+
+.dark-theme .button {
+    -fx-text-fill: white;
+}
+
+.dark-theme .content-area {
+    -fx-background-color: #2e2e42;
+}
+
+.dark-theme .chart-plot-background {
+    -fx-background-color: #2e2e42;
+}
+
+.dark-theme .chart-vertical-grid-lines {
+    -fx-stroke: #3d3d5c;
+}
+
+.dark-theme .chart-horizontal-grid-lines {
+    -fx-stroke: #3d3d5c;
+}
+
+.dark-theme .chart-series-line {
+    -fx-stroke-width: 2px;
+}
+
+.dark-theme .text-area {
+    -fx-control-inner-background: #25253a;
+    -fx-text-fill: white;
+}
+
+.dark-theme .text-field {
+    -fx-background-color: #25253a;
+    -fx-text-fill: white;
+    -fx-prompt-text-fill: #a0a0a0;
+}
+
+/* Light Theme */
+.light-theme {
+    -fx-base: #f5f5f7;
+    -fx-background: #f5f5f7;
+    -fx-control-inner-background: white;
+    -fx-text-fill: #333333;
+    -fx-text-base-color: #333333;
+    -fx-accent: #7c78dc;
+    -fx-focus-color: #7c78dc;
+    -fx-faint-focus-color: #7c78dc22;
+}
+
+.light-theme .sidebar {
+    -fx-background-color: #e8e8e8;
+}
+
+.light-theme .sidebar .label {
+    -fx-text-fill: #333333;
+}
+
+.light-theme .sidebar .button {
+    -fx-text-fill: #333333;
+}
+
+.light-theme .sidebar .button:hover {
+    -fx-background-color: #d1d1d1;
+}
+
+.light-theme .content-area {
+    -fx-background-color: white;
+}
+
+.light-theme .chart-plot-background {
+    -fx-background-color: white;
+}
+
+.light-theme .chart-vertical-grid-lines {
+    -fx-stroke: #e0e0e0;
+}
+
+.light-theme .chart-horizontal-grid-lines {
+    -fx-stroke: #e0e0e0;
+}
+
+.light-theme .chart-series-line {
+    -fx-stroke-width: 2px;
+}
+
+.light-theme .text-area {
+    -fx-control-inner-background: white;
+    -fx-text-fill: #333333;
+}
+
+.light-theme .text-field {
+    -fx-background-color: white;
+    -fx-text-fill: #333333;
+    -fx-prompt-text-fill: #a0a0a0;
+}
+
+/* Sidebar buttons for light theme */
+.light-theme .sidebar Button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #333333;
+}
+
+.light-theme .sidebar Button:hover {
+    -fx-background-color: #e0e0e0;
+}
+
+.light-theme .sidebar Button .ikonli-font-icon {
+    -fx-icon-color: #333333;
+}
+
+.light-theme .sidebar #dashboardBtn {
+    -fx-background-color: #e0e0e0;
+    -fx-text-fill: #333333;
+}

@@ -13,11 +13,13 @@ import java.util.Objects;
 public class App extends Application {
     @Override
     public void start(Stage stage) throws IOException {
+        String iconPath = "/com/tfg/dashboard_tfg/assets/logo.png";
+        String stylesheetPath = "/com/tfg/dashboard_tfg/styles/styles.css";
         FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("MainView.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
+        scene.getStylesheets().add(String.valueOf(Objects.requireNonNull(App.class.getResource(stylesheetPath)).toExternalForm()));
         stage.setTitle("Dashboard");
         stage.setScene(scene);
-        String iconPath = "/com/tfg/dashboard_tfg/assets/logo.png";
         Image icon = new Image(Objects.requireNonNull(App.class.getResourceAsStream(iconPath)));
         stage.getIcons().add(icon);
         stage.show();

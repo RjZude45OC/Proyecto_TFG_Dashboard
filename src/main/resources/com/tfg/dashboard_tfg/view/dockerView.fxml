@@ -16,11 +16,14 @@
           AnchorPane.bottomAnchor="20.0"
           AnchorPane.leftAnchor="20.0"
           AnchorPane.rightAnchor="20.0"
-          AnchorPane.topAnchor="20.0">
+          AnchorPane.topAnchor="20.0"
+          style="-fx-border-color: #313244;
+                 -fx-border-width: 1;
+                 -fx-padding: 20 40 0 40;">
 
         <HBox alignment="CENTER_LEFT" spacing="10.0">
             <Label text="Docker Terminal" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #CDD6F4;"/>
-            <Region HBox.hgrow="ALWAYS" />
+            <Region HBox.hgrow="ALWAYS"/>
             <Button text="Clear" onAction="#clearTerminal"
                     style="-fx-background-color: #45475A; -fx-text-fill: #CDD6F4; -fx-background-radius: 4;"/>
             <ChoiceBox fx:id="themeSelector" prefWidth="120.0"
@@ -29,7 +32,7 @@
 
         <TextArea fx:id="cliOutput" prefHeight="450.0" wrapText="true" editable="false"
                   style="-fx-font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
-                         -fx-background-color: #11111B;
+                         -fx-control-inner-background: #11111B;
                          -fx-text-fill: #A6E3A1;
                          -fx-background-radius: 8;
                          -fx-border-radius: 8;
@@ -64,7 +67,7 @@
                       style="-fx-background-color: #313244;
                             -fx-text-fill: #CDD6F4;
                             -fx-background-radius: 4;"/>
-            <Region HBox.hgrow="ALWAYS" />
+            <Region HBox.hgrow="ALWAYS"/>
             <Label fx:id="statusLabel" text="Ready" style="-fx-font-size: 14px; -fx-text-fill: #A6E3A1;"/>
         </HBox>
     </VBox>

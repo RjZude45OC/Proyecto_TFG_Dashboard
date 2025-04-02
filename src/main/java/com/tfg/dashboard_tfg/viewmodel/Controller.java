@@ -1,20 +1,39 @@
 package com.tfg.dashboard_tfg.viewmodel;
 
 import eu.hansolo.tilesfx.Tile;
+import javafx.animation.TranslateTransition;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextField;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
+import javafx.util.Duration;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.prefs.Preferences;
 
 public class Controller {
+
+    // Theme Properties
+    @FXML
+    private ToggleButton themeToggle;
+
+    @FXML
+    private FontIcon lightThemeIcon;
+
+    @FXML
+    private FontIcon darkThemeIcon;
+
+    private BooleanProperty darkMode = new SimpleBooleanProperty(true);
+    private final Preferences prefs = Preferences.userNodeForPackage(Controller.class);
 
     // FXML Injected Views
     @FXML
@@ -70,6 +89,9 @@ public class Controller {
     @FXML
     public void initialize() {
         try {
+            // Initialize theme toggle
+            initializeThemeToggle();
+
             loadViews();
             showDashboardView();
         } catch (IOException e) {
@@ -77,69 +99,219 @@ public class Controller {
         }
     }
 
+    // Theme Methods
+    private void initializeThemeToggle() {
+        // Load saved theme preference or use dark theme as default
+        boolean savedDarkMode = prefs.getBoolean("darkMode", true);
+        darkMode.set(savedDarkMode);
+
+        // Bind toggle button to dark mode property
+        themeToggle.setSelected(darkMode.get());
+
+        // Set initial icon visibility
+        updateThemeIcons(darkMode.get());
+
+        // Listen for theme changes
+        themeToggle.selectedProperty().addListener((obs, oldVal, newVal) -> {
+            darkMode.set(newVal);
+            updateThemeIcons(newVal);
+            applyTheme(newVal);
+            // Save preference
+            prefs.putBoolean("darkMode", newVal);
+        });
+    }
+
+    @FXML
+    public void toggleTheme() {
+        boolean newValue = !darkMode.get();
+        darkMode.set(newValue);
+        themeToggle.setSelected(newValue);
+    }
+
+    private void updateThemeIcons(boolean isDarkMode) {
+        darkThemeIcon.setVisible(isDarkMode);
+        lightThemeIcon.setVisible(!isDarkMode);
+
+        // Get the toggle button handle
+        Node toggleHandle = themeToggle.getGraphic();
+
+        // Animate the handle
+        TranslateTransition transition = new TranslateTransition(Duration.millis(150), toggleHandle);
+
+        if (isDarkMode) {
+            themeToggle.setStyle("-fx-background-radius: 12.5; -fx-background-color: #3d3d5c;");
+            transition.setToX(10);
+        } else {
+            themeToggle.setStyle("-fx-background-radius: 12.5; -fx-background-color: #d1d1e0;");
+            transition.setToX(-10);
+        }
+
+        transition.play();
+    }
+
+    public void applyTheme(boolean isDarkMode) {
+        Scene scene = mainStackPane.getScene();
+        if (scene == null) return;
+
+        Parent root = scene.getRoot();
+
+        if (isDarkMode) {
+            // Apply dark theme
+            root.getStyleClass().remove("light-theme");
+            root.getStyleClass().add("dark-theme");
+            applyDarkThemeToButtons();
+        } else {
+            // Apply light theme
+            root.getStyleClass().remove("dark-theme");
+            root.getStyleClass().add("light-theme");
+            applyLightThemeToButtons();
+        }
+
+        // Apply theme to all loaded views
+        applyThemeToViews(isDarkMode);
+    }
+
+    private void applyThemeToViews(boolean isDarkMode) {
+        for (Node view : mainStackPane.getChildren()) {
+            if (isDarkMode) {
+                view.getStyleClass().remove("light-theme");
+                view.getStyleClass().add("dark-theme");
+            } else {
+                view.getStyleClass().remove("dark-theme");
+                view.getStyleClass().add("light-theme");
+            }
+        }
+    }
+
+    private void applyDarkThemeToButtons() {
+        String activeStyle = "-fx-background-color: #2e2e42; -fx-text-fill: white;";
+        String inactiveStyle = "-fx-background-color: transparent; -fx-text-fill: white;";
+
+        // Get the active button and only apply active style to it
+        Button activeButton = getActiveButton();
+
+        dashboardBtn.setStyle(activeButton == dashboardBtn ? activeStyle : inactiveStyle);
+        sonarrBtn.setStyle(activeButton == sonarrBtn ? activeStyle : inactiveStyle);
+        jellyfinBtn.setStyle(activeButton == jellyfinBtn ? activeStyle : inactiveStyle);
+        dockerBtn.setStyle(activeButton == dockerBtn ? activeStyle : inactiveStyle);
+        loginMenuBtn.setStyle(activeButton == loginMenuBtn ? activeStyle : inactiveStyle);
+        rssBtn.setStyle(activeButton == rssBtn ? activeStyle : inactiveStyle);
+    }
+
+    private void applyLightThemeToButtons() {
+        String activeStyle = "-fx-background-color: #e0e0e0; -fx-text-fill: #333333;";
+        String inactiveStyle = "-fx-background-color: transparent; -fx-text-fill: #333333;";
+
+        // Get the active button and only apply active style to it
+        Button activeButton = getActiveButton();
+
+        dashboardBtn.setStyle(activeButton == dashboardBtn ? activeStyle : inactiveStyle);
+        sonarrBtn.setStyle(activeButton == sonarrBtn ? activeStyle : inactiveStyle);
+        jellyfinBtn.setStyle(activeButton == jellyfinBtn ? activeStyle : inactiveStyle);
+        dockerBtn.setStyle(activeButton == dockerBtn ? activeStyle : inactiveStyle);
+        loginMenuBtn.setStyle(activeButton == loginMenuBtn ? activeStyle : inactiveStyle);
+        rssBtn.setStyle(activeButton == rssBtn ? activeStyle : inactiveStyle);
+    }
+
+    private Button getActiveButton() {
+        if (dashboardView != null && dashboardView.isVisible()) return dashboardBtn;
+        if (sonarrView != null && sonarrView.isVisible()) return sonarrBtn;
+        if (jellyfinView != null && jellyfinView.isVisible()) return jellyfinBtn;
+        if (dockerView != null && dockerView.isVisible()) return dockerBtn;
+        if (loginView != null && loginView.isVisible()) return loginMenuBtn;
+        if (rssView != null && rssView.isVisible()) return rssBtn;
+        return dashboardBtn; // Default
+    }
+
     // Navigation Methods
     @FXML
     public void showDashboardView() {
         resetViewStyles();
-        dashboardBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: white;");
-
+        if (darkMode.get()) {
+            dashboardBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: white;");
+        } else {
+            dashboardBtn.setStyle("-fx-background-color: #e0e0e0; -fx-text-fill: #333333;");
+        }
         setViewVisibility(dashboardView);
     }
 
     @FXML
     public void showSonarrView() {
         resetViewStyles();
-        sonarrBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: white;");
-
+        if (darkMode.get()) {
+            sonarrBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: white;");
+        } else {
+            sonarrBtn.setStyle("-fx-background-color: #e0e0e0; -fx-text-fill: #333333;");
+        }
         setViewVisibility(sonarrView);
     }
 
     @FXML
     public void showJellyfinView() {
         resetViewStyles();
-        jellyfinBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: white;");
-
+        if (darkMode.get()) {
+            jellyfinBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: white;");
+        } else {
+            jellyfinBtn.setStyle("-fx-background-color: #e0e0e0; -fx-text-fill: #333333;");
+        }
         setViewVisibility(jellyfinView);
     }
 
     @FXML
     public void showDockerView() {
         resetViewStyles();
-        dockerBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: white;");
-
+        if (darkMode.get()) {
+            dockerBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: white;");
+        } else {
+            dockerBtn.setStyle("-fx-background-color: #e0e0e0; -fx-text-fill: #333333;");
+        }
         setViewVisibility(dockerView);
     }
 
     @FXML
     public void showRssView() {
         resetViewStyles();
-        rssBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: white;");
-
+        if (darkMode.get()) {
+            rssBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: white;");
+        } else {
+            rssBtn.setStyle("-fx-background-color: #e0e0e0; -fx-text-fill: #333333;");
+        }
         setViewVisibility(rssView);
     }
 
     @FXML
     public void showLoginForm() {
         resetViewStyles();
-        loginMenuBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: white;");
-
+        if (darkMode.get()) {
+            loginMenuBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: white;");
+        } else {
+            loginMenuBtn.setStyle("-fx-background-color: #e0e0e0; -fx-text-fill: #333333;");
+        }
         // Reset login form
 //        usernameField.clear();
 //        passwordField.clear();
 //        loginErrorLabel.setVisible(false);
-
         setViewVisibility(loginView);
     }
 
     // Utility Methods
     private void resetViewStyles() {
-        // Reset all button styles
-        dashboardBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white;");
-        sonarrBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white;");
-        jellyfinBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white;");
-        dockerBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white;");
-        loginMenuBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white;");
-        rssBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white;");
+        // Reset all button styles based on current theme
+        if (darkMode.get()) {
+            dashboardBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white;");
+            sonarrBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white;");
+            jellyfinBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white;");
+            dockerBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white;");
+            loginMenuBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white;");
+            rssBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white;");
+        } else {
+            dashboardBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");
+            sonarrBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");
+            jellyfinBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");
+            dockerBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");
+            loginMenuBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");
+            rssBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");
+        }
     }
 
     private void setViewVisibility(AnchorPane activeView) {
@@ -194,9 +366,16 @@ public class Controller {
         sonarrView = sonarrLoader.load();
 
         //add all child to main panel
-        mainStackPane.getChildren().addAll(dashboardView, dockerView,jellyfinView,loginView,rssView,sonarrView);
+        mainStackPane.getChildren().addAll(dashboardView, dockerView, jellyfinView, loginView, rssView, sonarrView);
         loginViewModel loginController = loginLoader.getController();
         loginController.setMainController(this);
+
+        // Initialize theme once all views are loaded and scene is available
+        mainStackPane.sceneProperty().addListener((observable, oldScene, newScene) -> {
+            if (newScene != null) {
+                applyTheme(darkMode.get());
+            }
+        });
     }
 
     private void PathCheck(String filePath) throws FileNotFoundException {
@@ -209,5 +388,14 @@ public class Controller {
             System.out.println(RED + "true" + RESET);
             throw new FileNotFoundException("File '" + filePath + "' not found");
         }
+    }
+
+    // Public method for other controllers to access theme state
+    public BooleanProperty darkModeProperty() {
+        return darkMode;
+    }
+
+    public boolean isDarkMode() {
+        return darkMode.get();
     }
 }

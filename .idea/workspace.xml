@@ -4,9 +4,22 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="03070914-e668-499b-9819-07c6a3346388" name="Changes" comment="update dockerCLI view and its controller">
+    <list default="true" id="03070914-e668-499b-9819-07c6a3346388" name="Changes" comment="added icon pack, update MainView.fxml to adapt new iconpack , added rss option in menu">
+      <change afterPath="$PROJECT_DIR$/src/main/resources/com/tfg/dashboard_tfg/styles/styles.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/tfg/dashboard_tfg/App.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tfg/dashboard_tfg/App.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/tfg/dashboard_tfg/viewmodel/Controller.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tfg/dashboard_tfg/viewmodel/Controller.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/module-info.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/module-info.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/com/tfg/dashboard_tfg/MainView.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/tfg/dashboard_tfg/MainView.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/com/tfg/dashboard_tfg/view/DashboardView.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/tfg/dashboard_tfg/view/DashboardView.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/com/tfg/dashboard_tfg/view/dockerView.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/tfg/dashboard_tfg/view/dockerView.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/com/tfg/dashboard_tfg/view/jellyFinView.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/tfg/dashboard_tfg/view/jellyFinView.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/com/tfg/dashboard_tfg/view/loginView.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/tfg/dashboard_tfg/view/loginView.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/com/tfg/dashboard_tfg/view/rssView.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/tfg/dashboard_tfg/view/rssView.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/com/tfg/dashboard_tfg/view/sonarrView.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/tfg/dashboard_tfg/view/sonarrView.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/tfg/dashboard_tfg/App.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/tfg/dashboard_tfg/App.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/tfg/dashboard_tfg/MainView.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/tfg/dashboard_tfg/MainView.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/module-info.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/module-info.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -40,7 +53,7 @@
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
     &quot;url&quot;: &quot;https://github.com/RjZude45OC/Proyecto_TFG_Dashboard.git&quot;,
-    &quot;accountId&quot;: &quot;8b51454b-c46a-4381-8a45-675bfa928123&quot;
+    &quot;accountId&quot;: &quot;90e5f755-a84e-4e63-ac2d-c604dae410e1&quot;
   }
 }</component>
   <component name="ProblemsViewState">
@@ -67,7 +80,12 @@
     "project.structure.last.edited": "Project",
     "project.structure.proportion": "0.0",
     "project.structure.side.proportion": "0.0",
-    "settings.editor.selected.configurable": "vcs.Git"
+    "settings.editor.selected.configurable": "reference.settings.project.maven.importing"
+  },
+  "keyToStringList": {
+    "com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File": [
+      "CSS"
+    ]
   }
 }]]></component>
   <component name="RecentsManager">
@@ -95,6 +113,15 @@
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
+    </configuration>
+    <configuration default="true" type="JetRunConfigurationType">
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <option name="filePath" />
+      <method v="2" />
     </configuration>
     <recent_temporary>
       <list>
@@ -175,31 +202,7 @@
       <option name="project" value="LOCAL" />
       <updated>1743410819688</updated>
     </task>
-    <task id="LOCAL-00009" summary="update Controller and update loginViewModel">
-      <option name="closed" value="true" />
-      <created>1743509948452</created>
-      <option name="number" value="00009" />
-      <option name="presentableId" value="LOCAL-00009" />
-      <option name="project" value="LOCAL" />
-      <updated>1743509948452</updated>
-    </task>
-    <task id="LOCAL-00010" summary="update view fix warnings">
-      <option name="closed" value="true" />
-      <created>1743510371813</created>
-      <option name="number" value="00010" />
-      <option name="presentableId" value="LOCAL-00010" />
-      <option name="project" value="LOCAL" />
-      <updated>1743510371813</updated>
-    </task>
-    <task id="LOCAL-00011" summary="update dockerCLI view and its controller">
-      <option name="closed" value="true" />
-      <created>1743512377871</created>
-      <option name="number" value="00011" />
-      <option name="presentableId" value="LOCAL-00011" />
-      <option name="project" value="LOCAL" />
-      <updated>1743512377871</updated>
-    </task>
-    <option name="localTasksCounter" value="12" />
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -255,9 +258,6 @@
     <MESSAGE value="update fxml, create tilesfx demo, update Controller for MainView.fxml" />
     <MESSAGE value="update MainView.fxml" />
     <MESSAGE value="added icon pack, update MainView.fxml to adapt new iconpack , added rss option in menu" />
-    <MESSAGE value="update Controller and update loginViewModel" />
-    <MESSAGE value="update view fix warnings" />
-    <MESSAGE value="update dockerCLI view and its controller" />
-    <option name="LAST_COMMIT_MESSAGE" value="update dockerCLI view and its controller" />
+    <option name="LAST_COMMIT_MESSAGE" value="added icon pack, update MainView.fxml to adapt new iconpack , added rss option in menu" />
   </component>
 </project>

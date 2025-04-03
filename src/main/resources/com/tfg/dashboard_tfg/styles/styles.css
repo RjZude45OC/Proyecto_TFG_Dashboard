@@ -1,60 +1,41 @@
 /* styles.css */
 
-/* Dark Theme - Default */
+/* Dark Theme - default */
 .dark-theme {
-    -fx-base: #1e1e2c;
-    -fx-background: #1e1e2c;
+    -fx-background: #191924;
     -fx-control-inner-background: #2e2e42;
-    -fx-text-fill: white;
-    -fx-text-base-color: white;
+    -fx-text-fill:#CDD6F4;
+    -fx-text-base-color: #CDD6F4;
     -fx-accent: #7c78dc;
     -fx-focus-color: #7c78dc;
     -fx-faint-focus-color: #7c78dc22;
 }
 
-.dark-theme .sidebar {
-    -fx-background-color: #1e1e2c;
+.dark-theme .view-box{
+    -fx-background-color: #303042;
 }
-
-.dark-theme .button {
-    -fx-text-fill: white;
+.dark-theme .ikonli-font-icon {
+    -fx-icon-color: #fafafa;
 }
-
-.dark-theme .content-area {
-    -fx-background-color: #2e2e42;
+.dark-theme .title{
+    -fx-text-fill:  #CDD6F4;
 }
-
-.dark-theme .chart-plot-background {
-    -fx-background-color: #2e2e42;
+.dark-theme .view-box .view{
+    -fx-border-radius: 3;
+    -fx-border-color: #484b6a;
 }
-
-.dark-theme .chart-vertical-grid-lines {
-    -fx-stroke: #3d3d5c;
+.dark-theme .dashboard-container{
+    -fx-background-color: #3e3e42;
 }
-
-.dark-theme .chart-horizontal-grid-lines {
-    -fx-stroke: #3d3d5c;
+.dark-theme .toggle{
+    -fx-background-color: #fafafa;
 }
-
-.dark-theme .chart-series-line {
-    -fx-stroke-width: 2px;
+.dark-theme .login-box{
+    -fx-background-color: #28283C;
 }
-
-.dark-theme .text-area {
-    -fx-control-inner-background: #25253a;
-    -fx-text-fill: white;
-}
-
-.dark-theme .text-field {
-    -fx-background-color: #25253a;
-    -fx-text-fill: white;
-    -fx-prompt-text-fill: #a0a0a0;
-}
-
 /* Light Theme */
 .light-theme {
-    -fx-base: #f5f5f7;
-    -fx-background: #f5f5f7;
+    -fx-background: #fafafa;
     -fx-control-inner-background: white;
     -fx-text-fill: #333333;
     -fx-text-base-color: #333333;
@@ -63,68 +44,73 @@
     -fx-faint-focus-color: #7c78dc22;
 }
 
-.light-theme .sidebar {
-    -fx-background-color: #e8e8e8;
+.light-theme .view-box{
+    -fx-background-color: #e4e5f0;
 }
-
-.light-theme .sidebar .label {
-    -fx-text-fill: #333333;
+.light-theme .ikonli-font-icon {
+    -fx-icon-color: #252526;
 }
-
-.light-theme .sidebar .button {
-    -fx-text-fill: #333333;
+.light-theme .title{
+    -fx-text-fill:  #484b6a;
 }
-
-.light-theme .sidebar .button:hover {
-    -fx-background-color: #d1d1d1;
+.light-theme .view-box .view{
+    -fx-border-radius: 3;
+    -fx-border-color: #d2d3db;
 }
-
-.light-theme .content-area {
+.light-theme .dashboard-container{
+    -fx-background-color: #f0f1fc;
+}
+.light-theme .toggle{
+    -fx-background-color: #6C6E87;
+}
+.light-theme .tiles{
     -fx-background-color: white;
 }
-
-.light-theme .chart-plot-background {
-    -fx-background-color: white;
+.light-theme .login-box{
+    -fx-background-color: #fafafa;
 }
+/* docker view old css */
+/*
 
-.light-theme .chart-vertical-grid-lines {
-    -fx-stroke: #e0e0e0;
-}
+style="-fx-background-color: #45475A; -fx-text-fill: #CDD6F4; -fx-background-radius: 4;"
+style="-fx-background-color: #45475A; -fx-mark-color: #CDD6F4; -fx-background-radius: 4;"
+style="-fx-font-size: 14px; -fx-text-fill: #CDD6F4;"
+style="-fx-font-size: 14px; -fx-text-fill: #A6E3A1;"
+style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #F5C2E7;"
+style="-fx-background-color: #1E1E2E;"
 
-.light-theme .chart-horizontal-grid-lines {
-    -fx-stroke: #e0e0e0;
-}
+style="-fx-border-color: #313244;
+                 -fx-border-width: 1;
+                 -fx-padding: 20 40 0 40;"
 
-.light-theme .chart-series-line {
-    -fx-stroke-width: 2px;
-}
+style="-fx-font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+                         -fx-control-inner-background: #11111B;
+                         -fx-text-fill: #A6E3A1;
+                         -fx-background-radius: 8;
+                         -fx-border-radius: 8;
+                         -fx-border-color: #313244;
+                         -fx-border-width: 1;
+                         -fx-padding: 10;"
+style="-fx-font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+                          -fx-background-color: #313244;
+                          -fx-text-fill: #CDD6F4;
+                          -fx-prompt-text-fill: #7F849C;
+                          -fx-background-radius: 4;
+                          -fx-border-radius: 4;
+                          -fx-border-color: #45475A;
+                          -fx-border-width: 1;
+                          -fx-padding: 5 10 5 10;"
+style="-fx-background-color: #89B4FA;
+                          -fx-text-fill: #11111B;
+                          -fx-font-weight: bold;
+                          -fx-background-radius: 4;
+                          -fx-border-radius: 4;
+                          -fx-cursor: hand;"
+style="-fx-background-color: #313244;
+                            -fx-text-fill: #CDD6F4;
+                            -fx-background-radius: 4;"
+                         */
 
-.light-theme .text-area {
-    -fx-control-inner-background: white;
-    -fx-text-fill: #333333;
-}
 
-.light-theme .text-field {
-    -fx-background-color: white;
-    -fx-text-fill: #333333;
-    -fx-prompt-text-fill: #a0a0a0;
-}
-
-/* Sidebar buttons for light theme */
-.light-theme .sidebar Button {
-    -fx-background-color: transparent;
-    -fx-text-fill: #333333;
-}
-
-.light-theme .sidebar Button:hover {
-    -fx-background-color: #e0e0e0;
-}
-
-.light-theme .sidebar Button .ikonli-font-icon {
-    -fx-icon-color: #333333;
-}
-
-.light-theme .sidebar #dashboardBtn {
-    -fx-background-color: #e0e0e0;
-    -fx-text-fill: #333333;
-}
+/* good looking color*/
+/* mediumseagreen */

@@ -16,8 +16,11 @@
           AnchorPane.leftAnchor="20.0"
           AnchorPane.rightAnchor="20.0"
           AnchorPane.topAnchor="20.0"
-          style="-fx-padding: 20 40 0 40;">
+          style="-fx-border-width: 1;
+                 -fx-padding: 20 40 0 40;"
+          styleClass="view">
+
         <Label text="Sonarr"
-               style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #2e2e42;"/>
+               style="-fx-font-size: 28px; -fx-font-weight: bold;"/>
     </VBox>
 </AnchorPane>

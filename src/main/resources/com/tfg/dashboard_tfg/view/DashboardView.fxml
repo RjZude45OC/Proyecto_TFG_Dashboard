@@ -12,19 +12,23 @@
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.tfg.dashboard_tfg.viewmodel.DashboardController"
             prefHeight="400.0" prefWidth="600.0">
+
     <VBox spacing="20.0"
           AnchorPane.bottomAnchor="20.0"
           AnchorPane.leftAnchor="20.0"
           AnchorPane.rightAnchor="20.0"
           AnchorPane.topAnchor="20.0"
-          style="-fx-padding: 20 40 0 40;">
+          style="-fx-border-width: 1;
+                 -fx-padding: 20 40 0 40;"
+          styleClass="view">
+
         <Label text="Dashboard"
-               style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #2e2e42;">
+               style="-fx-font-size: 28px; -fx-font-weight: bold;">
         </Label>
 
         <HBox spacing="20.0">
             <!-- System Status Card -->
-            <VBox style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 20px;">
+            <VBox style="-fx-background-radius: 5; -fx-padding: 20px;" styleClass="dashboard-container">
                 <Label text="System Status"
                        style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
                 <Label text="All services running"
@@ -50,7 +54,8 @@
                           description="Media Server Health"
                           textSize="BIGGER"
                           valueColor="GREEN"
-                          animated="true"/>
+                          animated="true"
+                    />
 
                     <!-- Continue with the rest of the tiles -->
                     <!-- Storage Tile -->
@@ -60,7 +65,9 @@
                           title="Storage"
                           description="Total Space"
                           textSize="BIGGER"
-                          animated="true"/>
+                          animated="true"
+
+                    />
 
                     <!-- Network Tile -->
                     <Tile fx:id="networkTile"
@@ -69,7 +76,8 @@
                           title="Network"
                           description="Bandwidth"
                           textSize="BIGGER"
-                          animated="true"/>
+                          animated="true"
+                    />
 
                     <!-- CPU Usage Tile -->
                     <Tile fx:id="cpuTile"
@@ -78,7 +86,8 @@
                           title="CPU Usage"
                           description="Processing Load"
                           textSize="BIGGER"
-                          animated="true"/>
+                          animated="true"
+                    />
 
                     <!-- Memory Tile -->
                     <Tile fx:id="memoryTile"
@@ -87,7 +96,8 @@
                           title="Memory"
                           description="RAM Usage"
                           textSize="BIGGER"
-                          animated="true"/>
+                          animated="true"
+                    />
 
                     <!-- Temperature Tile -->
                     <Tile fx:id="temperatureTile"
@@ -97,7 +107,8 @@
                           description="Hardware Temperature"
                           textSize="BIGGER"
                           unit="CELSIUS"
-                          animated="true"/>
+                          animated="true"
+                    />
 
                     <!-- Jellyfin Status Tile -->
                     <Tile fx:id="jellyfinStatusTile"
@@ -107,7 +118,8 @@
                           description="Media Server"
                           textSize="BIGGER"
                           valueColor="GREEN"
-                          animated="true"/>
+                          animated="true"
+                    />
 
                     <!-- Docker Status Tile -->
                     <Tile fx:id="dockerStatusTile"
@@ -117,7 +129,8 @@
                           description="Containers"
                           textSize="BIGGER"
                           animated="true"
-                          skinType="SMOOTHED_CHART"/>
+                          skinType="SMOOTHED_CHART"
+                    />
                 </GridPane>
             </VBox>
         </HBox>

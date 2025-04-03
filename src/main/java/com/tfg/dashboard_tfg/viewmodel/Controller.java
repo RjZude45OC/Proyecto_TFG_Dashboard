@@ -32,7 +32,7 @@ public class Controller {
     @FXML
     private FontIcon darkThemeIcon;
 
-    private BooleanProperty darkMode = new SimpleBooleanProperty(true);
+    public static BooleanProperty darkMode = new SimpleBooleanProperty(true);
     private final Preferences prefs = Preferences.userNodeForPackage(Controller.class);
 
     // FXML Injected Views
@@ -116,7 +116,6 @@ public class Controller {
             darkMode.set(newVal);
             updateThemeIcons(newVal);
             applyTheme(newVal);
-            // Save preference
             prefs.putBoolean("darkMode", newVal);
         });
     }
@@ -184,8 +183,8 @@ public class Controller {
     }
 
     private void applyDarkThemeToButtons() {
-        String activeStyle = "-fx-background-color: #2e2e42; -fx-text-fill: white;";
-        String inactiveStyle = "-fx-background-color: transparent; -fx-text-fill: white;";
+        String activeStyle = "-fx-background-color: #2e2e42; -fx-text-fill: #CDD6F4;";
+        String inactiveStyle = "-fx-background-color: transparent; -fx-text-fill: #CDD6F4;";
 
         // Get the active button and only apply active style to it
         Button activeButton = getActiveButton();
@@ -228,7 +227,7 @@ public class Controller {
     public void showDashboardView() {
         resetViewStyles();
         if (darkMode.get()) {
-            dashboardBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: white;");
+            dashboardBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: #CDD6F4;");
         } else {
             dashboardBtn.setStyle("-fx-background-color: #e0e0e0; -fx-text-fill: #333333;");
         }
@@ -239,7 +238,7 @@ public class Controller {
     public void showSonarrView() {
         resetViewStyles();
         if (darkMode.get()) {
-            sonarrBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: white;");
+            sonarrBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: #CDD6F4;");
         } else {
             sonarrBtn.setStyle("-fx-background-color: #e0e0e0; -fx-text-fill: #333333;");
         }
@@ -250,7 +249,7 @@ public class Controller {
     public void showJellyfinView() {
         resetViewStyles();
         if (darkMode.get()) {
-            jellyfinBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: white;");
+            jellyfinBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: #CDD6F4;");
         } else {
             jellyfinBtn.setStyle("-fx-background-color: #e0e0e0; -fx-text-fill: #333333;");
         }
@@ -261,7 +260,7 @@ public class Controller {
     public void showDockerView() {
         resetViewStyles();
         if (darkMode.get()) {
-            dockerBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: white;");
+            dockerBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: #CDD6F4;");
         } else {
             dockerBtn.setStyle("-fx-background-color: #e0e0e0; -fx-text-fill: #333333;");
         }
@@ -272,7 +271,7 @@ public class Controller {
     public void showRssView() {
         resetViewStyles();
         if (darkMode.get()) {
-            rssBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: white;");
+            rssBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: #CDD6F4;");
         } else {
             rssBtn.setStyle("-fx-background-color: #e0e0e0; -fx-text-fill: #333333;");
         }
@@ -283,7 +282,7 @@ public class Controller {
     public void showLoginForm() {
         resetViewStyles();
         if (darkMode.get()) {
-            loginMenuBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: white;");
+            loginMenuBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: #CDD6F4;");
         } else {
             loginMenuBtn.setStyle("-fx-background-color: #e0e0e0; -fx-text-fill: #333333;");
         }
@@ -298,12 +297,12 @@ public class Controller {
     private void resetViewStyles() {
         // Reset all button styles based on current theme
         if (darkMode.get()) {
-            dashboardBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white;");
-            sonarrBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white;");
-            jellyfinBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white;");
-            dockerBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white;");
-            loginMenuBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white;");
-            rssBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white;");
+            dashboardBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #CDD6F4;");
+            sonarrBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #CDD6F4;");
+            jellyfinBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #CDD6F4;");
+            dockerBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #CDD6F4;");
+            loginMenuBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #CDD6F4;");
+            rssBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #CDD6F4;");
         } else {
             dashboardBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");
             sonarrBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");

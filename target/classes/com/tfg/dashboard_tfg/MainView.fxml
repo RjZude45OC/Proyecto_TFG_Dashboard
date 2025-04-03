@@ -11,9 +11,9 @@
     <BorderPane prefHeight="750.0" prefWidth="1400.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
                 AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <left>
-            <VBox prefHeight="750.0" prefWidth="250.0" style="-fx-background-color: #1e1e2c;">
+            <VBox prefHeight="750.0" prefWidth="250.0">
                 <HBox alignment="CENTER_LEFT" prefHeight="80.0" prefWidth="250.0">
-                    <Label text="Dashboard" textFill="WHITE">
+                    <Label text="Dashboard" styleClass="title">
                         <font>
                             <Font name="System Bold" size="24.0"/>
                         </font>
@@ -25,15 +25,14 @@
                 </HBox>
 
                 <VBox prefWidth="250.0" spacing="10.0" VBox.vgrow="ALWAYS">
-
                     <padding>
                         <Insets top="20.0"/>
                     </padding>
                     <Button fx:id="dashboardBtn" alignment="BASELINE_LEFT" graphicTextGap="15.0"
                             onAction="#showDashboardView" prefHeight="50.0" prefWidth="250.0"
-                            style="-fx-background-color: #2e2e42; -fx-text-fill: white;" text="Dashboard">
+                            text="Dashboard" styleClass="icon-style">
                         <graphic>
-                            <FontIcon iconColor="white" iconLiteral="fas-tachometer-alt" iconSize="19"/>
+                            <FontIcon iconLiteral="fas-tachometer-alt" iconSize="19"/>
                         </graphic>
                         <font>
                             <Font size="16.0"/>
@@ -45,9 +44,9 @@
 
                     <Button fx:id="sonarrBtn" alignment="BASELINE_LEFT" graphicTextGap="15.0" onAction="#showSonarrView"
                             prefHeight="50.0" prefWidth="250.0"
-                            style="-fx-background-color: transparent; -fx-text-fill: white;" text="Sonarr">
+                            text="Sonarr">
                         <graphic>
-                            <FontIcon iconColor="white" iconLiteral="fas-server" iconSize="22"/>
+                            <FontIcon iconLiteral="fas-server" iconSize="22"/>
                         </graphic>
                         <font>
                             <Font size="16.0"/>
@@ -59,9 +58,9 @@
 
                     <Button fx:id="jellyfinBtn" alignment="BASELINE_LEFT" graphicTextGap="15.0"
                             onAction="#showJellyfinView" prefHeight="50.0" prefWidth="250.0"
-                            style="-fx-background-color: transparent; -fx-text-fill: white;" text="Jellyfin">
+                            text="Jellyfin">
                         <graphic>
-                            <FontIcon iconColor="white" iconLiteral="mdmz-video_library" iconSize="22"/>
+                            <FontIcon iconLiteral="mdmz-video_library" iconSize="22"/>
                         </graphic>
                         <font>
                             <Font size="16.0"/>
@@ -73,9 +72,9 @@
 
                     <Button fx:id="dockerBtn" alignment="BASELINE_LEFT" graphicTextGap="15.0" onAction="#showDockerView"
                             prefHeight="50.0" prefWidth="250.0"
-                            style="-fx-background-color: transparent; -fx-text-fill: white;" text="Docker CLI">
+                            text="Docker CLI">
                         <graphic>
-                            <FontIcon iconColor="white" iconLiteral="fab-docker" iconSize="18"/>
+                            <FontIcon iconLiteral="fab-docker" iconSize="18"/>
                         </graphic>
                         <font>
                             <Font size="16.0"/>
@@ -87,9 +86,9 @@
 
                     <Button fx:id="rssBtn" alignment="BASELINE_LEFT" graphicTextGap="15.0" onAction="#showRssView"
                             prefHeight="50.0" prefWidth="250.0"
-                            style="-fx-background-color: transparent; -fx-text-fill: white;" text="Rss">
+                            text="RSS">
                         <graphic>
-                            <FontIcon iconColor="white" iconLiteral="mdi2r-rss-box" iconSize="22"/>
+                            <FontIcon iconLiteral="mdi2r-rss-box" iconSize="22"/>
                         </graphic>
                         <font>
                             <Font size="16.0"/>
@@ -104,9 +103,9 @@
                     <HBox>
                         <Button fx:id="loginMenuBtn" alignment="BASELINE_LEFT" graphicTextGap="15.0"
                                 onAction="#showLoginForm" prefHeight="50.0" prefWidth="140.0"
-                                style="-fx-background-color: transparent; -fx-text-fill: white;" text="Login">
+                                text="Login">
                             <graphic>
-                                <FontIcon iconColor="white" iconLiteral="mdi2l-login-variant" iconSize="20"/>
+                                <FontIcon iconLiteral="mdi2l-login-variant" iconSize="20"/>
                             </graphic>
                             <font>
                                 <Font size="16.0"/>
@@ -116,18 +115,16 @@
                             </padding>
                         </Button>
 
-                        <HBox alignment="CENTER_RIGHT" spacing="10.0" style="-fx-padding:0 0 0 10;">
-                            <FontIcon fx:id="lightThemeIcon" iconColor="white" iconLiteral="fas-sun" iconSize="16"
+                        <HBox alignment="CENTER_RIGHT" spacing="10.0" style="-fx-padding:1 0 0 10;">
+                            <FontIcon fx:id="lightThemeIcon" iconLiteral="fas-sun" iconSize="16"
                                       visible="false"/>
                             <ToggleButton fx:id="themeToggle" onAction="#toggleTheme" onMouseClicked="#toggleTheme"
-                                          prefHeight="15.0" prefWidth="40.0"
-                                          style="-fx-background-radius: 12.5; -fx-background-color: #3d3d5c;">
+                                          prefHeight="15.0" prefWidth="40.0">
                                 <graphic>
-                                    <StackPane maxHeight="16.0" maxWidth="16.0" style="-fx-background-radius: 10;
-                                                                                    -fx-background-color: white;"/>
+                                    <StackPane maxHeight="16.0" maxWidth="16.0" style="-fx-background-radius: 10;" styleClass="toggle"/>
                                 </graphic>
                             </ToggleButton>
-                            <FontIcon fx:id="darkThemeIcon" iconColor="white" iconLiteral="fas-moon" iconSize="14"/>
+                            <FontIcon fx:id="darkThemeIcon" iconLiteral="fas-moon" iconSize="14"/>
                         </HBox>
                     </HBox>
                 </VBox>
@@ -135,7 +132,7 @@
         </left>
 
         <center>
-            <StackPane fx:id="mainStackPane">
+            <StackPane fx:id="mainStackPane" styleClass="view-box">
                 <!-- inject Views-->
             </StackPane>
         </center>

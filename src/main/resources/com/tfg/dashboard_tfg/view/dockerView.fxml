@@ -23,23 +23,22 @@
         <HBox alignment="CENTER_LEFT" spacing="10.0">
             <Label text="Docker Terminal" style="-fx-font-size: 28px; -fx-font-weight: bold;"/>
             <Region HBox.hgrow="ALWAYS"/>
-            <Button text="Clear" onAction="#clearTerminal"/>
-            <ChoiceBox fx:id="themeSelector" prefWidth="120.0"/>
+            <Button text="Clear Output" onAction="#clearTerminal" styleClass="console-button"/>
         </HBox>
 
-        <TextArea fx:id="cliOutput" prefHeight="450.0" wrapText="true" editable="false"/>
+        <TextArea fx:id="cliOutput" prefHeight="450.0" wrapText="true" editable="false" style="-fx-font-weight:bold;" styleClass="command-prompt"/>
 
         <HBox spacing="10.0" alignment="CENTER_LEFT">
             <Label text="\$" />
-            <TextField fx:id="cliInput" HBox.hgrow="ALWAYS" prefHeight="40.0" promptText="Enter docker command..."/>
-            <Button text="Execute" prefHeight="40.0" onAction="#executeCommand"/>
+            <TextField fx:id="cliInput" HBox.hgrow="ALWAYS" prefHeight="40.0" promptText="Enter docker command..." styleClass="input-prompt"/>
+            <Button text="Execute Command" prefHeight="40.0" onAction="#executeCommand" styleClass="console-button"/>
         </HBox>
 
         <HBox spacing="10.0" alignment="CENTER_LEFT">
             <Label text="History:"/>
-            <ComboBox fx:id="commandHistory" editable="false" prefWidth="400.0"/>
+            <ComboBox fx:id="commandHistory" editable="false" prefWidth="400.0" styleClass="history-box"/>
             <Region HBox.hgrow="ALWAYS"/>
-            <Label fx:id="statusLabel" text="Ready" />
+            <Label fx:id="statusLabel" text="Ready" styleClass="status-label"/>
         </HBox>
     </VBox>
 </AnchorPane>

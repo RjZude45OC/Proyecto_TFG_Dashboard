@@ -31,8 +31,7 @@
             <VBox style="-fx-background-radius: 5; -fx-padding: 20px;" styleClass="dashboard-container">
                 <Label text="System Status"
                        style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
-                <Label text="All services running"
-                       style="-fx-text-fill: green;"/>
+                <Label fx:id="statusLabel"/>
                 <GridPane hgap="20.0" vgap="20.0">
                     <!-- Grid layout with tiles as in your original file -->
                     <columnConstraints>
@@ -46,19 +45,20 @@
                         <RowConstraints percentHeight="50"/>
                     </rowConstraints>
 
-                    <!-- System Status Tile -->
+                    <!-- System Status Tile - Using a status indicator tile -->
                     <Tile fx:id="systemStatusTile"
                           GridPane.columnIndex="0"
                           GridPane.rowIndex="0"
-                          title="System Status"
+                          title="Server Status"
                           description="Media Server Health"
                           textSize="BIGGER"
                           valueColor="GREEN"
                           animated="true"
+                          skinType="BAR_GAUGE"
+                          onMouseClicked="#onclicktile"
                     />
 
-                    <!-- Continue with the rest of the tiles -->
-                    <!-- Storage Tile -->
+                    <!-- Storage Tile - Using a gauge tile for space usage -->
                     <Tile fx:id="storageTile"
                           GridPane.columnIndex="1"
                           GridPane.rowIndex="0"
@@ -66,10 +66,14 @@
                           description="Total Space"
                           textSize="BIGGER"
                           animated="true"
-
+                          skinType="GAUGE"
+                          unit="\%"
+                          maxValue="100"
+                          thresholdVisible="true"
+                          onMouseClicked="#onclicktile"
                     />
 
-                    <!-- Network Tile -->
+                    <!-- Network Tile - Using a bar chart for bandwidth -->
                     <Tile fx:id="networkTile"
                           GridPane.columnIndex="2"
                           GridPane.rowIndex="0"
@@ -77,9 +81,15 @@
                           description="Bandwidth"
                           textSize="BIGGER"
                           animated="true"
+                          skinType="SMOOTH_AREA_CHART"
+                          unit="Mbps"
+                          alert="true"
+                          alarmColor="red"
+                          threshold="20"
+                          onMouseClicked="#onclicktile"
                     />
 
-                    <!-- CPU Usage Tile -->
+                    <!-- CPU Usage Tile - Using a spark line chart -->
                     <Tile fx:id="cpuTile"
                           GridPane.columnIndex="3"
                           GridPane.rowIndex="0"
@@ -87,9 +97,13 @@
                           description="Processing Load"
                           textSize="BIGGER"
                           animated="true"
+                          skinType="SPARK_LINE"
+                          unit="\%"
+                          maxValue="100"
+                          onMouseClicked="#onclicktile"
                     />
 
-                    <!-- Memory Tile -->
+                    <!-- Memory Tile - Using a led tile for RAM usage -->
                     <Tile fx:id="memoryTile"
                           GridPane.columnIndex="0"
                           GridPane.rowIndex="1"
@@ -97,39 +111,58 @@
                           description="RAM Usage"
                           textSize="BIGGER"
                           animated="true"
+                          skinType="BAR_GAUGE"
+                          value="20"
+                          unit="GB"
+                          onMouseClicked="#onclicktile"
                     />
 
-                    <!-- Temperature Tile -->
+                    <!-- Temperature Tile - Using a high/low tile -->
                     <Tile fx:id="temperatureTile"
                           GridPane.columnIndex="1"
                           GridPane.rowIndex="1"
                           title="Server Temp"
                           description="Hardware Temperature"
-                          textSize="BIGGER"
-                          unit="CELSIUS"
+                          textSize="NORMAL"
+                          unit="°C"
                           animated="true"
+                          skinType="HIGH_LOW"
+                          maxValue="100"
+                          threshold="70"
+                          thresholdVisible="true"
+                          onMouseClicked="#onclicktile"
                     />
 
-                    <!-- Jellyfin Status Tile -->
+                    <!-- Jellyfin Status Tile - Using a switch tile -->
                     <Tile fx:id="jellyfinStatusTile"
                           GridPane.columnIndex="2"
                           GridPane.rowIndex="1"
                           title="Jellyfin"
                           description="Media Server"
                           textSize="BIGGER"
-                          valueColor="GREEN"
+                          valueColor="green"
                           animated="true"
+                          skinType="LED"
+                          active="true"
+                          onMouseClicked="#onclicktile"
                     />
 
-                    <!-- Docker Status Tile -->
+                    <!-- Docker Status Tile - Using a smoothed chart for container metrics -->
                     <Tile fx:id="dockerStatusTile"
                           GridPane.columnIndex="3"
                           GridPane.rowIndex="1"
                           title="Docker"
                           description="Containers"
+                          textVisible="true"
+                          strokeWithGradient="true"
+                          unit="\%"
                           textSize="BIGGER"
                           animated="true"
-                          skinType="SMOOTHED_CHART"
+                          skinType="GAUGE2"
+                          value="100"
+                          onMouseClicked="#onclicktile"
+                          onDragDetected="#ondrag"
+                          onDragDropped="#ondragdrop"
                     />
                 </GridPane>
             </VBox>

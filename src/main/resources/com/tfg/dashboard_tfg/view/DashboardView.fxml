@@ -97,10 +97,12 @@
                           description="Processing Load"
                           textSize="BIGGER"
                           animated="true"
-                          skinType="SPARK_LINE"
+                          animationDuration="1000"
+                          skinType="GAUGE_SPARK_LINE"
                           unit="\%"
                           maxValue="100"
                           onMouseClicked="#onclicktile"
+                          onScroll="#onscroll"
                     />
 
                     <!-- Memory Tile - Using a led tile for RAM usage -->
@@ -122,14 +124,18 @@
                           GridPane.columnIndex="1"
                           GridPane.rowIndex="1"
                           title="Server Temp"
-                          description="Hardware Temperature"
-                          textSize="NORMAL"
+                          description="Hardware Monitoring"
+                          textSize="BIGGER"
                           unit="°C"
                           animated="true"
-                          skinType="HIGH_LOW"
+                          skinType="GAUGE"
                           maxValue="100"
+                          minValue="20"
                           threshold="70"
                           thresholdVisible="true"
+                          value="42"
+                          averagingPeriod="10"
+                          activeColor="RED"
                           onMouseClicked="#onclicktile"
                     />
 

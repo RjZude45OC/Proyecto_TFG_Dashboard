@@ -3,18 +3,26 @@ package com.tfg.dashboard_tfg.viewmodel;
 import eu.hansolo.tilesfx.Tile;
 import eu.hansolo.tilesfx.chart.ChartData;
 import javafx.animation.KeyFrame;
+import javafx.animation.ScaleTransition;
 import javafx.animation.Timeline;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.input.ScrollEvent;
+import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+
+import static eu.hansolo.tilesfx.Tile.SkinType.*;
+import static javafx.scene.control.PopupControl.USE_COMPUTED_SIZE;
 
 public class DashboardController {
     @FXML
@@ -38,8 +46,21 @@ public class DashboardController {
 
     private List<Tile> tileList;
 
-    // Method to update tile colors based on theme
+    private int test;
 
+    // Add these fields to your DashboardController class
+    private Tile expandedTile = null;
+    private GridPane originalParent = null;
+    private int originalColIndex = 0;
+    private int originalRowIndex = 0;
+    private Node[] hiddenTiles = null;
+    private double originalTileWidth = 0;
+    private double originalTileHeight = 0;
+    private double originalGridWidth = 0;
+    private double originalGridHeight = 0;
+
+
+    // Method to update tile colors based on theme
     private void updateTileColors(boolean isDarkMode) {
         for (Tile tile : tileList) {
             if (isDarkMode) {
@@ -94,6 +115,7 @@ public class DashboardController {
         Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(3), event -> update(null)));
         timeline.setCycleCount(Timeline.INDEFINITE);
         timeline.play();
+        test = 0;
     }
     public void removeolddata(MouseEvent mouseEvent){
         networkTile.clearData();
@@ -107,10 +129,7 @@ public class DashboardController {
         }
         Random RND = new Random();
         ChartData smoothChartData1 = new ChartData("Item 1", RND.nextDouble() * 25, Tile.BLUE);
-        ChartData smoothChartData2 = new ChartData("Item 2", RND.nextDouble() * 25, Tile.BLUE);
-        ChartData smoothChartData3 = new ChartData("Item 3", RND.nextDouble() * 25, Tile.BLUE);
-        ChartData smoothChartData4 = new ChartData("Item 4", RND.nextDouble() * 25, Tile.BLUE);
-        networkTile.addChartData(smoothChartData1, smoothChartData2, smoothChartData3, smoothChartData4);
+        networkTile.addChartData(smoothChartData1);
         cpuTile.setValue(RND.nextDouble() * 25);
         dockerStatusTile.setValue(RND.nextDouble() * 25);
         systemStatusTile.setValue(RND.nextDouble() * 25);
@@ -128,15 +147,145 @@ public class DashboardController {
         }
     }
 
-    public void onclicktile(MouseEvent mouseEvent) {
-        System.out.println("onclick");
-    }
-
     public void ondrag(MouseEvent mouseEvent) {
         System.out.println("ondrag");
     }
 
     public void ondragdrop(DragEvent dragEvent) {
         System.out.println("ondragdrop");
+    }
+
+    public void onscroll(ScrollEvent scrollEvent) {
+        System.out.println("onscroll");
+//        switch (test){
+//            case 0:
+//                cpuTile.setSkinType(TIMELINE);
+//                break;
+//            case 1:
+//                cpuTile.setSkinType(GAUGE_SPARK_LINE);
+//                break;
+//            default:
+//                cpuTile.setSkinType(SPARK_LINE);
+//                break;
+//        }
+//        if (test == 2)
+//        {
+//            test = 0;
+//        }
+//        else{
+//            test++;
+//        }
+    }
+    @FXML
+    public void onclicktile(MouseEvent event) {
+        // Get the clicked tile
+        Tile clickedTile = (Tile) event.getSource();
+
+        // If there's already an expanded tile
+        if (expandedTile != null) {
+            // If clicking the already expanded tile, restore the original layout
+            if (expandedTile == clickedTile) {
+                restoreOriginalLayout();
+            }
+            // If clicking a different tile while one is expanded, restore and then expand the new one
+            else {
+                restoreOriginalLayout();
+                expandTile(clickedTile);
+            }
+        }
+        // If no tile is expanded yet, expand the clicked one
+        else {
+            expandTile(clickedTile);
+        }
+    }
+
+    private void expandTile(Tile tile) {
+        // Save the expanded tile reference
+        expandedTile = tile;
+
+        // Get parent GridPane
+        originalParent = (GridPane) tile.getParent();
+
+        // Store original dimensions
+        originalGridWidth = originalParent.getWidth();
+        originalGridHeight = originalParent.getHeight();
+        originalTileWidth = tile.getWidth();
+        originalTileHeight = tile.getHeight();
+
+        // Set minimum size for the GridPane to prevent resizing
+        originalParent.setMinWidth(originalGridWidth);
+        originalParent.setMinHeight(originalGridHeight);
+        originalParent.setPrefWidth(originalGridWidth);
+        originalParent.setPrefHeight(originalGridHeight);
+
+        // Save original position
+        originalColIndex = GridPane.getColumnIndex(tile) != null ? GridPane.getColumnIndex(tile) : 0;
+        originalRowIndex = GridPane.getRowIndex(tile) != null ? GridPane.getRowIndex(tile) : 0;
+
+        // Store all other tiles to hide them
+        hiddenTiles = new Node[originalParent.getChildren().size() - 1];
+        int index = 0;
+
+        // Remove all other tiles from the GridPane but save them
+        for (Node node : new ArrayList<>(originalParent.getChildren())) {
+            if (node != tile) {
+                originalParent.getChildren().remove(node);
+                hiddenTiles[index++] = node;
+            }
+        }
+
+        // Make the clicked tile span the entire GridPane
+        GridPane.setColumnSpan(tile, originalParent.getColumnConstraints().size());
+        GridPane.setRowSpan(tile, originalParent.getRowConstraints().size());
+        GridPane.setColumnIndex(tile, 0);
+        GridPane.setRowIndex(tile, 0);
+
+        // Force the tile to fill the available space
+        tile.setMaxWidth(Double.MAX_VALUE);
+        tile.setMaxHeight(Double.MAX_VALUE);
+
+        // Optional: Add animation effect for smooth transition
+        ScaleTransition scaleTransition = new ScaleTransition(Duration.millis(300), tile);
+        scaleTransition.setFromX(1.0);
+        scaleTransition.setFromY(1.0);
+        scaleTransition.setToX(1.02);
+        scaleTransition.setToY(1.02);
+        scaleTransition.setCycleCount(2);
+        scaleTransition.setAutoReverse(true);
+        scaleTransition.play();
+
+        // Optional: Change the title to indicate the expanded state
+        tile.setDescription(tile.getDescription() + " (Click to minimize)");
+    }
+
+    private void restoreOriginalLayout() {
+        if (expandedTile == null) return;
+
+        // Reset the expanded tile's position and span
+        GridPane.setColumnSpan(expandedTile, 1);
+        GridPane.setRowSpan(expandedTile, 1);
+        GridPane.setColumnIndex(expandedTile, originalColIndex);
+        GridPane.setRowIndex(expandedTile, originalRowIndex);
+
+        // Reset the tile's size constraints
+        expandedTile.setMaxWidth(USE_COMPUTED_SIZE);
+        expandedTile.setMaxHeight(USE_COMPUTED_SIZE);
+
+        // Restore the original description
+        String currentDesc = expandedTile.getDescription();
+        if (currentDesc.endsWith(" (Click to minimize)")) {
+            expandedTile.setDescription(currentDesc.replace(" (Click to minimize)", ""));
+        }
+
+        // Add back all the hidden tiles
+        for (Node node : hiddenTiles) {
+            if (node != null) {
+                originalParent.getChildren().add(node);
+            }
+        }
+
+        // Clear the expanded tile reference
+        expandedTile = null;
+        hiddenTiles = null;
     }
 }

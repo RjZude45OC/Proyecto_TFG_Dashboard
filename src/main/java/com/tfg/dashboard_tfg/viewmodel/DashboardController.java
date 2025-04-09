@@ -1,5 +1,6 @@
 package com.tfg.dashboard_tfg.viewmodel;
 
+import eu.hansolo.tilesfx.Section;
 import eu.hansolo.tilesfx.Tile;
 import eu.hansolo.tilesfx.chart.ChartData;
 import javafx.animation.KeyFrame;
@@ -90,6 +91,10 @@ public class DashboardController {
 
     @FXML
     public void initialize() {
+        temperatureTile.getSections().clear();
+        temperatureTile.getSections().add(new Section(0, 65, "Normal", Color.GREEN));
+        temperatureTile.getSections().add(new Section(65, 80, "Warning", Color.YELLOW));
+        temperatureTile.getSections().add(new Section(80, 100, "Critical", Color.RED));
         if (jellyfinStatusTile.isActive()){
             statusLabel.setText("server is running healthy");
             statusLabel.setTextFill(Color.web("#28a745"));

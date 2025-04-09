@@ -8,6 +8,7 @@
 
 <?import eu.hansolo.tilesfx.Tile?>
 
+<?import eu.hansolo.tilesfx.Section?>
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.tfg.dashboard_tfg.viewmodel.DashboardController"
@@ -130,13 +131,15 @@
                           animated="true"
                           skinType="GAUGE"
                           maxValue="100"
-                          minValue="20"
-                          threshold="70"
-                          thresholdVisible="true"
-                          value="42"
+                          minValue="0"
                           averagingPeriod="10"
                           activeColor="RED"
                           onMouseClicked="#onclicktile"
+                          checkThreshold="true"
+                          checkSectionsForValue="true"
+                          alertMessage="Temperature Critical!"
+                          sectionsVisible="true"
+                          sectionIconsVisible="true"
                     />
 
                     <!-- Jellyfin Status Tile - Using a switch tile -->

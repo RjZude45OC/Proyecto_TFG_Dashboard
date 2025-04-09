@@ -1,14 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
 <?import eu.hansolo.tilesfx.Tile?>
 
-<?import eu.hansolo.tilesfx.Section?>
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.tfg.dashboard_tfg.viewmodel.DashboardController"
@@ -106,7 +102,7 @@
                           onScroll="#onscroll"
                     />
 
-                    <!-- Memory Tile - Using a led tile for RAM usage -->
+                    <!-- Memory Tile - Using a LED tile for RAM usage -->
                     <Tile fx:id="memoryTile"
                           GridPane.columnIndex="0"
                           GridPane.rowIndex="1"

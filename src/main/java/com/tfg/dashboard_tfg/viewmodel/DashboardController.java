@@ -6,10 +6,10 @@ import eu.hansolo.tilesfx.chart.ChartData;
 import javafx.animation.KeyFrame;
 import javafx.animation.ScaleTransition;
 import javafx.animation.Timeline;
+import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.control.ToggleButton;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
@@ -22,7 +22,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-import static eu.hansolo.tilesfx.Tile.SkinType.*;
 import static javafx.scene.control.PopupControl.USE_COMPUTED_SIZE;
 
 public class DashboardController {
@@ -47,7 +46,7 @@ public class DashboardController {
 
     private List<Tile> tileList;
 
-    private int test;
+//    private int test;
 
     // Add these fields to your DashboardController class
     private Tile expandedTile = null;
@@ -55,10 +54,6 @@ public class DashboardController {
     private int originalColIndex = 0;
     private int originalRowIndex = 0;
     private Node[] hiddenTiles = null;
-    private double originalTileWidth = 0;
-    private double originalTileHeight = 0;
-    private double originalGridWidth = 0;
-    private double originalGridHeight = 0;
 
 
     // Method to update tile colors based on theme
@@ -86,8 +81,8 @@ public class DashboardController {
         }
     }
 
-    @FXML
-    private ToggleButton themeToggle;
+//    @FXML
+//    private ToggleButton themeToggle;
 
     @FXML
     public void initialize() {
@@ -108,29 +103,25 @@ public class DashboardController {
         //inicializa el color inicio de tiles
         updateTileColors(Controller.darkMode.getValue());
         //
-        Controller.darkMode.addListener((observable, oldValue, newValue) -> {
-            updateTileColors(newValue);
-        });
+        Controller.darkMode.addListener(this::changed);
 
 //        Timeline cleardata = new Timeline(new KeyFrame(Duration.seconds(30), event -> removeolddata(null)));
 //        cleardata.setCycleCount(Timeline.INDEFINITE);
 //        cleardata.play();
 
         //update every x time
-        Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(3), event -> update(null)));
+        Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(3), event -> update()));
         timeline.setCycleCount(Timeline.INDEFINITE);
         timeline.play();
-        test = 0;
+//        test = 0;
     }
-    public void removeolddata(MouseEvent mouseEvent){
-        networkTile.clearData();
-    }
-    public void update(MouseEvent mouseEvent) {
+//    public void removeolddata(MouseEvent mouseEvent){
+//        networkTile.clearData();
+//    }
+    public void update() {
         int MAX_VALUE = 15;
         if (networkTile.getChartData().size() > MAX_VALUE){
-            for (int i = 0; i < 5; i++) {
-                networkTile.getChartData().remove(i);
-            }
+            networkTile.getChartData().subList(0, 5).clear();
         }
         Random RND = new Random();
         ChartData smoothChartData1 = new ChartData("Item 1", RND.nextDouble() * 25, Tile.BLUE);
@@ -153,6 +144,7 @@ public class DashboardController {
     }
 
     public void ondrag(MouseEvent mouseEvent) {
+        System.out.println(mouseEvent.getClass());
         System.out.println("ondrag");
     }
 
@@ -160,27 +152,27 @@ public class DashboardController {
         System.out.println("ondragdrop");
     }
 
-    public void onscroll(ScrollEvent scrollEvent) {
-        System.out.println("onscroll");
-//        switch (test){
-//            case 0:
-//                cpuTile.setSkinType(TIMELINE);
-//                break;
-//            case 1:
-//                cpuTile.setSkinType(GAUGE_SPARK_LINE);
-//                break;
-//            default:
-//                cpuTile.setSkinType(SPARK_LINE);
-//                break;
-//        }
-//        if (test == 2)
-//        {
-//            test = 0;
-//        }
-//        else{
-//            test++;
-//        }
-    }
+//    public void onscroll(ScrollEvent scrollEvent) {
+//        System.out.println("onscroll");
+////        switch (test){
+////            case 0:
+////                cpuTile.setSkinType(TIMELINE);
+////                break;
+////            case 1:
+////                cpuTile.setSkinType(GAUGE_SPARK_LINE);
+////                break;
+////            default:
+////                cpuTile.setSkinType(SPARK_LINE);
+////                break;
+////        }
+////        if (test == 2)
+////        {
+////            test = 0;
+////        }
+////        else{
+////            test++;
+////        }
+//    }
     @FXML
     public void onclicktile(MouseEvent event) {
         // Get the clicked tile
@@ -212,10 +204,10 @@ public class DashboardController {
         originalParent = (GridPane) tile.getParent();
 
         // Store original dimensions
-        originalGridWidth = originalParent.getWidth();
-        originalGridHeight = originalParent.getHeight();
-        originalTileWidth = tile.getWidth();
-        originalTileHeight = tile.getHeight();
+        double originalGridWidth = originalParent.getWidth();
+        double originalGridHeight = originalParent.getHeight();
+        double originalTileWidth = tile.getWidth();
+        double originalTileHeight = tile.getHeight();
 
         // Set minimum size for the GridPane to prevent resizing
         originalParent.setMinWidth(originalGridWidth);
@@ -292,5 +284,9 @@ public class DashboardController {
         // Clear the expanded tile reference
         expandedTile = null;
         hiddenTiles = null;
+    }
+
+    private void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+        updateTileColors(newValue);
     }
 }

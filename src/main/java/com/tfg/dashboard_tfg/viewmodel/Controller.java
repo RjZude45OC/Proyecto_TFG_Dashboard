@@ -4,14 +4,18 @@ import eu.hansolo.tilesfx.Tile;
 import javafx.animation.TranslateTransition;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.kordamp.ikonli.javafx.FontIcon;
 
@@ -22,6 +26,20 @@ import java.util.prefs.Preferences;
 
 public class Controller {
 
+    @FXML
+    public AnchorPane rootPane;
+
+    @FXML
+    public HBox customBar;
+
+    @FXML
+    public Button closeButton;
+
+    @FXML
+    public Button minimizeButton;
+
+    @FXML
+    public Button fullscreenButton;
     // Theme Properties
     @FXML
     private ToggleButton themeToggle;
@@ -86,8 +104,22 @@ public class Controller {
     @FXML
     private Label loginErrorLabel;
 
+    private double xOffset = 0;
+    private double yOffset = 0;
+
     @FXML
     public void initialize() {
+
+        customBar.setOnMousePressed((MouseEvent event) -> {
+            xOffset = event.getSceneX();
+            yOffset = event.getSceneY();
+        });
+
+        customBar.setOnMouseDragged((MouseEvent event) -> {
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            stage.setX(event.getScreenX() - xOffset);
+            stage.setY(event.getScreenY() - yOffset);
+        });
         try {
             // Initialize theme toggle
             initializeThemeToggle();
@@ -97,8 +129,8 @@ public class Controller {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
 
+    }
     // Theme Methods
     private void initializeThemeToggle() {
         // Load saved theme preference or use dark theme as default
@@ -396,5 +428,18 @@ public class Controller {
 
     public boolean isDarkMode() {
         return darkMode.get();
+    }
+
+    public void handleClose(ActionEvent actionEvent) {
+        Button source = (Button) actionEvent.getSource();
+        Stage stage = (Stage) source.getScene().getWindow();
+
+        if (source == closeButton) {
+            stage.close();
+        } else if (source == minimizeButton) {
+            stage.setIconified(true);
+        } else if (source == fullscreenButton) {
+            stage.setFullScreen(!stage.isFullScreen());
+        }
     }
 }

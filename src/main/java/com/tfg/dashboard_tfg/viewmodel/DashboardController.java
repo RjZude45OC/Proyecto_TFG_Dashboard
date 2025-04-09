@@ -152,27 +152,27 @@ public class DashboardController {
         System.out.println("ondragdrop");
     }
 
-//    public void onscroll(ScrollEvent scrollEvent) {
-//        System.out.println("onscroll");
-////        switch (test){
-////            case 0:
-////                cpuTile.setSkinType(TIMELINE);
-////                break;
-////            case 1:
-////                cpuTile.setSkinType(GAUGE_SPARK_LINE);
-////                break;
-////            default:
-////                cpuTile.setSkinType(SPARK_LINE);
-////                break;
-////        }
-////        if (test == 2)
-////        {
-////            test = 0;
-////        }
-////        else{
-////            test++;
-////        }
-//    }
+    public void onscroll(ScrollEvent scrollEvent) {
+        System.out.println("onscroll");
+//        switch (test){
+//            case 0:
+//                cpuTile.setSkinType(TIMELINE);
+//                break;
+//            case 1:
+//                cpuTile.setSkinType(GAUGE_SPARK_LINE);
+//                break;
+//            default:
+//                cpuTile.setSkinType(SPARK_LINE);
+//                break;
+//        }
+//        if (test == 2)
+//        {
+//            test = 0;
+//        }
+//        else{
+//            test++;
+//        }
+    }
     @FXML
     public void onclicktile(MouseEvent event) {
         // Get the clicked tile

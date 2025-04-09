@@ -1,7 +1,4 @@
 /* styles.css */
-.root {
-    -fx-transition-duration: 500ms; /* 0.5 seconds transition */
-}
 /* terminal theme - catppuccin-macchiato dark theme*/
 .dark-theme {
     -terminal-black: #494d64;
@@ -204,42 +201,6 @@
     -fx-text-fill: -terminal-green;
 }
 
-/* Reference for docker view old CSS
-style=-fx-background-color: #45475A; -fx-text-fill: #CDD6F4; -fx-background-radius: 4;
-style=-fx-background-color: #45475A; -fx-mark-color: #CDD6F4; -fx-background-radius: 4;
-style=-fx-font-size: 14px; -fx-text-fill: #CDD6F4;
-style=-fx-font-size: 14px; -fx-text-fill: #A6E3A1;
-style=-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #F5C2E7;
-style=-fx-background-color: #1E1E2E;
 
-style=-fx-border-color: #313244;
-                 -fx-border-width: 1;
-                 -fx-padding: 20 40 0 40;
+/* global css*/
 
-style=-fx-font-family: 'JetBrains Mono'; 'Fira Code'; 'Consolas'; monospace;
-                         -fx-control-inner-background: #11111B;
-                         -fx-text-fill: #A6E3A1;
-                         -fx-background-radius: 8;
-                         -fx-border-radius: 8;
-                         -fx-border-color: #313244;
-                         -fx-border-width: 1;
-                         -fx-padding: 10;
-style=-fx-font-family: 'JetBrains Mono'; 'Fira Code'; 'Consolas'; monospace;
-                          -fx-background-color: #313244;
-                          -fx-text-fill: #CDD6F4;
-                          -fx-prompt-text-fill: #7F849C;
-                          -fx-background-radius: 4;
-                          -fx-border-radius: 4;
-                          -fx-border-color: #45475A;
-                          -fx-border-width: 1;
-                          -fx-padding: 5 10 5 10;
-style=-fx-background-color: #89B4FA;
-                          -fx-text-fill: #11111B;
-                          -fx-font-weight: bold;
-                          -fx-background-radius: 4;
-                          -fx-border-radius: 4;
-                          -fx-cursor: hand;
-style=-fx-background-color: #313244;
-                            -fx-text-fill: #CDD6F4;
-                            -fx-background-radius: 4;
-*/

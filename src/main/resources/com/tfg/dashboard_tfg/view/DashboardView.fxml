@@ -22,8 +22,10 @@
                style="-fx-font-size: 28px; -fx-font-weight: bold;">
         </Label>
 
-        <HBox spacing="20.0" alignment="CENTER">
-            <VBox style="-fx-background-radius: 5; -fx-padding: 20;" styleClass="dashboard-container">
+        <HBox spacing="20.0" alignment="CENTER" VBox.vgrow="ALWAYS">
+            <VBox style="-fx-background-radius: 5; -fx-padding: 20;"
+                  styleClass="dashboard-container"
+                  HBox.hgrow="ALWAYS">
                 <Label text="System Status"
                        style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
                 <Label fx:id="statusLabel"/>

@@ -87,9 +87,9 @@ public class DashboardController {
     @FXML
     public void initialize() {
         temperatureTile.getSections().clear();
-        temperatureTile.getSections().add(new Section(0, 65, "Normal", Color.GREEN));
-        temperatureTile.getSections().add(new Section(65, 80, "Warning", Color.YELLOW));
-        temperatureTile.getSections().add(new Section(80, 100, "Critical", Color.RED));
+        temperatureTile.getSections().add(new Section(0, 65, "Normal", Color.web("#28b745")));
+        temperatureTile.getSections().add(new Section(65, 80, "Warning", Color.web("#ffc107")));
+        temperatureTile.getSections().add(new Section(80, 100, "Critical", Color.web("dc3545")));
         if (jellyfinStatusTile.isActive()){
             statusLabel.setText("server is running healthy");
             statusLabel.setTextFill(Color.web("#28a745"));

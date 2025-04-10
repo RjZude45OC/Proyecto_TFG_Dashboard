@@ -2,11 +2,13 @@ package com.tfg.dashboard_tfg.viewmodel;
 
 import eu.hansolo.tilesfx.Tile;
 import javafx.animation.TranslateTransition;
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -107,9 +109,15 @@ public class Controller {
     private double xOffset = 0;
     private double yOffset = 0;
 
+    private final int RESIZE_MARGIN = 6;
+    private double mouseX, mouseY;
+    private Stage stage;
     @FXML
     public void initialize() {
-
+        Platform.runLater(() -> {
+            stage = (Stage) rootPane.getScene().getWindow();
+            setupResizeListeners();
+        });
         customBar.setOnMousePressed((MouseEvent event) -> {
             xOffset = event.getSceneX();
             yOffset = event.getSceneY();
@@ -131,6 +139,7 @@ public class Controller {
         }
 
     }
+
     // Theme Methods
     private void initializeThemeToggle() {
         // Load saved theme preference or use dark theme as default
@@ -441,5 +450,74 @@ public class Controller {
         } else if (source == fullscreenButton) {
             stage.setFullScreen(!stage.isFullScreen());
         }
+    }
+
+    private void setupResizeListeners() {
+        rootPane.setOnMouseMoved(event -> {
+            double x = event.getX();
+            double y = event.getY();
+            double width = rootPane.getWidth();
+            double height = rootPane.getHeight();
+
+            Cursor cursor = Cursor.DEFAULT;
+            if (x < RESIZE_MARGIN && y < RESIZE_MARGIN) {
+                cursor = Cursor.NW_RESIZE;
+            } else if (x > width - RESIZE_MARGIN && y < RESIZE_MARGIN) {
+                cursor = Cursor.NE_RESIZE;
+            } else if (x < RESIZE_MARGIN && y > height - RESIZE_MARGIN) {
+                cursor = Cursor.SW_RESIZE;
+            } else if (x > width - RESIZE_MARGIN && y > height - RESIZE_MARGIN) {
+                cursor = Cursor.SE_RESIZE;
+            } else if (x < RESIZE_MARGIN) {
+                cursor = Cursor.W_RESIZE;
+            } else if (x > width - RESIZE_MARGIN) {
+                cursor = Cursor.E_RESIZE;
+            } else if (y < RESIZE_MARGIN) {
+                cursor = Cursor.N_RESIZE;
+            } else if (y > height - RESIZE_MARGIN) {
+                cursor = Cursor.S_RESIZE;
+            }
+
+            rootPane.setCursor(cursor);
+        });
+
+        rootPane.setOnMousePressed(event -> {
+            mouseX = event.getScreenX();
+            mouseY = event.getScreenY();
+        });
+
+        rootPane.setOnMouseDragged(event -> {
+            if (stage == null) return;
+
+            double dx = event.getScreenX() - mouseX;
+            double dy = event.getScreenY() - mouseY;
+
+            Cursor cursor = rootPane.getCursor();
+
+            if (cursor == Cursor.E_RESIZE || cursor == Cursor.SE_RESIZE || cursor == Cursor.NE_RESIZE) {
+                stage.setWidth(stage.getWidth() + dx);
+                mouseX = event.getScreenX();
+            }
+            if (cursor == Cursor.S_RESIZE || cursor == Cursor.SE_RESIZE || cursor == Cursor.SW_RESIZE) {
+                stage.setHeight(stage.getHeight() + dy);
+                mouseY = event.getScreenY();
+            }
+            if (cursor == Cursor.W_RESIZE || cursor == Cursor.SW_RESIZE || cursor == Cursor.NW_RESIZE) {
+                double newWidth = stage.getWidth() - dx;
+                if (newWidth > stage.getMinWidth()) {
+                    stage.setX(stage.getX() + dx);
+                    stage.setWidth(newWidth);
+                    mouseX = event.getScreenX();
+                }
+            }
+            if (cursor == Cursor.N_RESIZE || cursor == Cursor.NW_RESIZE || cursor == Cursor.NE_RESIZE) {
+                double newHeight = stage.getHeight() - dy;
+                if (newHeight > stage.getMinHeight()) {
+                    stage.setY(stage.getY() + dy);
+                    stage.setHeight(newHeight);
+                    mouseY = event.getScreenY();
+                }
+            }
+        });
     }
 }

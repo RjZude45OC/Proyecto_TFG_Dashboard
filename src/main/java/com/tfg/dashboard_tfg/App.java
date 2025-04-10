@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.util.Objects;
 
 public class App extends Application {
+    private final double MIN_WIDTH = 800;
+    private final double MIN_HEIGHT = 600;
     @Override
     public void start(Stage stage) throws IOException {
         String iconPath = "/com/tfg/dashboard_tfg/assets/logo.png";
@@ -31,10 +33,11 @@ public class App extends Application {
         stage.setScene(scene);
         Image icon = new Image(Objects.requireNonNull(App.class.getResourceAsStream(iconPath)));
         stage.getIcons().add(icon);
+        stage.setMinWidth(MIN_WIDTH);
+        stage.setMinHeight(MIN_HEIGHT);
         stage.initStyle(StageStyle.TRANSPARENT);
         stage.show();
     }
-
     public static void main(String[] args) {
         launch();
     }

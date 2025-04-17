@@ -112,6 +112,15 @@ public class Controller {
     private final int RESIZE_MARGIN = 6;
     private double mouseX, mouseY;
     private Stage stage;
+
+    public BooleanProperty darkModeProperty() {
+        return darkMode;
+    }
+
+    public boolean isDarkMode() {
+        return darkMode.get();
+    }
+
     @FXML
     public void initialize() {
         Platform.runLater(() -> {
@@ -407,7 +416,7 @@ public class Controller {
 
         //add all child to main panel
         mainStackPane.getChildren().addAll(dashboardView, dockerView, jellyfinView, loginView, rssView, sonarrView);
-        loginViewModel loginController = loginLoader.getController();
+        LoginViewModel loginController = loginLoader.getController();
         loginController.setMainController(this);
 
         // Initialize theme once all views are loaded and scene is available
@@ -428,15 +437,6 @@ public class Controller {
             System.out.println(RED + "true" + RESET);
             throw new FileNotFoundException("File '" + filePath + "' not found");
         }
-    }
-
-    // Public method for other controllers to access theme state
-    public BooleanProperty darkModeProperty() {
-        return darkMode;
-    }
-
-    public boolean isDarkMode() {
-        return darkMode.get();
     }
 
     public void handleClose(ActionEvent actionEvent) {

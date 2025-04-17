@@ -12,6 +12,7 @@ module com.tfg.dashboard_tfg {
 //    graph pack
     requires eu.hansolo.tilesfx;
     requires java.prefs;
+    requires org.json;
 
     opens com.tfg.dashboard_tfg to javafx.fxml;
     exports com.tfg.dashboard_tfg;

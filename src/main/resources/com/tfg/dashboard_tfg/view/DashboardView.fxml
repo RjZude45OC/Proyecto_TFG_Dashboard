@@ -110,7 +110,7 @@
                           animated="true"
                           skinType="BAR_GAUGE"
                           value="20"
-                          unit="GB"
+                          unit="\%"
                           onMouseClicked="#onclicktile"
                     />
 

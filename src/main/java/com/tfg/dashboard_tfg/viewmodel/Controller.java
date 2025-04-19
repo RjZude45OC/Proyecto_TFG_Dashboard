@@ -117,10 +117,6 @@ public class Controller {
         return darkMode;
     }
 
-    public boolean isDarkMode() {
-        return darkMode.get();
-    }
-
     @FXML
     public void initialize() {
         Platform.runLater(() -> {
@@ -445,10 +441,15 @@ public class Controller {
 
         if (source == closeButton) {
             stage.close();
+            javafx.application.Platform.exit();
+            System.exit(0);
+            System.out.println("close app");
         } else if (source == minimizeButton) {
             stage.setIconified(true);
+            System.out.println("minimize");
         } else if (source == fullscreenButton) {
             stage.setFullScreen(!stage.isFullScreen());
+            System.out.println("full screen");
         }
     }
 

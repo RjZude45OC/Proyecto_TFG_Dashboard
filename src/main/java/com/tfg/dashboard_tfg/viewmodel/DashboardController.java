@@ -231,12 +231,19 @@ public class DashboardController {
 
     // Helper method for processing CPU data
     private double processCpuUsage(JSONObject cpuData) {
-        double systemCpuLoad = cpuData.getDouble("systemCpuLoad");
-        // Convert from 0-1 to 0-100 if needed
-        if (systemCpuLoad <= 1.0) {
-            systemCpuLoad *= 100;
+        JSONArray perProcessorLoad = cpuData.getJSONArray("perProcessorLoad");
+
+        double totalLoad = 0;
+        for (int i = 0; i < perProcessorLoad.length(); i++) {
+            System.out.println(perProcessorLoad.getDouble(i));
+            totalLoad += perProcessorLoad.getDouble(i); // values are between 0.0 and 1.0
         }
-        return systemCpuLoad;
+        System.out.println(totalLoad);
+        System.out.println("----------------");
+        if (totalLoad > 100) {
+            totalLoad = 100;
+        }
+        return totalLoad;
     }
 
     // Process network data

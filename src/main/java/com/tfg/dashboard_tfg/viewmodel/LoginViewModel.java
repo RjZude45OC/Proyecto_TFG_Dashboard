@@ -22,6 +22,7 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 
 public class LoginViewModel {
 
@@ -106,7 +107,7 @@ public class LoginViewModel {
                     boolean success = getValue();
                     if (success) {
                         loginErrorLabel.setVisible(false);
-                        createUserSession(username, password);
+                        createUserSession(username, password,loginErrorLabel);
                         mainController.showDashboardView();
                     } else {
                         loginErrorLabel.setText("Invalid username or password");
@@ -170,26 +171,38 @@ public class LoginViewModel {
         }
     }
 
-    private void createUserSession(String username, String password) {
+    private void createUserSession(String username, String password, Label errorLabel) {
         try {
-            // Create a simple Map or ObjectNode instead of LoginStatus
-            ObjectNode loginData = objectMapper.createObjectNode();
-            loginData.put("username", username);
-            loginData.put("password", password);
+            HttpClient client = HttpClient.newHttpClient();
 
-            // Convert to JSON
-            String jsonBody = loginData.toString();
+            ObjectNode sessionData = objectMapper.createObjectNode();
+            sessionData.put("usuario", username);
+            sessionData.put("password", password);
 
-            // Rest of your code remains the same...
-            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest sessionRequest = HttpRequest.newBuilder()
                     .uri(URI.create(API_BASE_URL + "/session/create"))
                     .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                    .POST(HttpRequest.BodyPublishers.ofString(sessionData.toString()))
                     .build();
 
-            // Continue with your request...
+            client.sendAsync(sessionRequest, HttpResponse.BodyHandlers.ofString())
+                    .thenAccept(response -> {
+                        if (response.statusCode() == 200) {
+                            // Replace this with loading another scene
+                            System.out.println("Login successful! Redirecting...");
+                            mainController.showDashboardView();
+                        } else {
+                            errorLabel.setText("Session creation failed.");
+                        }
+                    })
+                    .exceptionally(e -> {
+                        errorLabel.setText("Session error.");
+                        e.printStackTrace();
+                        return null;
+                    });
         } catch (Exception e) {
             e.printStackTrace();
+            errorLabel.setText("Unexpected error.");
         }
     }
 

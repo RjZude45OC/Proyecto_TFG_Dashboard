@@ -67,7 +67,7 @@ public class DashboardController {
     private Node[] hiddenTiles = null;
 
     //api endpoint
-    private static final String BASE_URL = "http://localhost:8080/api/v1/system";
+    private static final String BASE_URL = "http://localhost:8393/api/v1/system";
     private static final String CPU_URL = BASE_URL + "/cpu";
     private static final String MEMORY_URL = BASE_URL + "/memory";
     private static final String DISKS_URL = BASE_URL + "/disks";
@@ -108,11 +108,10 @@ public class DashboardController {
         temperatureTile.getSections().add(new Section(0, 65, "Normal", Color.web("#28b745")));
         temperatureTile.getSections().add(new Section(65, 80, "Warning", Color.web("#ffc107")));
         temperatureTile.getSections().add(new Section(80, 100, "Critical", Color.web("dc3545")));
-        if (jellyfinStatusTile.isActive()){
+        if (jellyfinStatusTile.isActive()) {
             statusLabel.setText("server is running healthy");
             statusLabel.setTextFill(Color.web("#28a745"));
-        }
-        else {
+        } else {
             statusLabel.setText("there is problem with server");
             statusLabel.setTextFill(Color.web("#dc3545"));
         }
@@ -127,70 +126,198 @@ public class DashboardController {
         scheduler = Executors.newSingleThreadScheduledExecutor();
         scheduler.scheduleAtFixedRate(this::fetchAndUpdateData, 0, 5, TimeUnit.SECONDS);
 
-//        Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(3), event -> fetchAndUpdateData()));
-//        timeline.setCycleCount(Timeline.INDEFINITE);
-//        timeline.play();
     }
-//    public void removeolddata(MouseEvent mouseEvent){
-//        networkTile.clearData();
-//    }
-//    public void update() {
-//        int MAX_VALUE = 15;
-//        if (networkTile.getChartData().size() > MAX_VALUE){
-//            networkTile.getChartData().subList(0, 5).clear();
-//        }
-//        Random RND = new Random();
-//        ChartData smoothChartData1 = new ChartData("Item 1", RND.nextDouble() * 25, Tile.BLUE);
-//        networkTile.addChartData(smoothChartData1);
-//        cpuTile.setValue(RND.nextDouble() * 25);
-//        dockerStatusTile.setValue(RND.nextDouble() * 25);
-//        systemStatusTile.setValue(RND.nextDouble() * 25);
-//        storageTile.setValue(RND.nextDouble() * 25);
-//        memoryTile.setValue(RND.nextDouble() * 25);
-//        temperatureTile.setValue(RND.nextDouble() * 100);
-//        jellyfinStatusTile.setActive(!jellyfinStatusTile.isActive());
-//        if (jellyfinStatusTile.isActive()){
-//            statusLabel.setText("server is running healthy");
-//            statusLabel.setTextFill(Color.web("#28a745"));
-//        }
-//        else {
-//            statusLabel.setText("there is problem with server");
-//            statusLabel.setTextFill(Color.web("#dc3545"));
-//        }
-//    }
+
+    private static class ProcessedData {
+        double cpuUsage;
+        String cpuDescription;
+        double memoryUsage;
+        String memoryDescription;
+        double storagePercentage;
+        String storageDescription;
+        NetworkData networkData;
+        double systemHealth;
+        String systemHealthDescription;
+        double dockerUsage;
+        String dockerDescription;
+        double temperature;
+        String temperatureDescription;
+        boolean jellyfinActive;
+    }
+
+    // Helper class for network data
+    private static class NetworkData {
+        double kbPerSecond;
+        String description;
+        long currentBytes;
+    }
 
     private void fetchAndUpdateData() {
         try {
-            // Fetch all system data
+            // Step 1: Fetch data in background thread
             JSONObject systemData = fetchJsonData(SYSTEM_URL);
 
-            // Update CPU tile
-            updateCpuTile(systemData.getJSONObject("cpu"));
+            // Step 2: Process all data in background thread
+            final ProcessedData processedData = processAllData(systemData);
 
-            // Update Memory tile
-            updateMemoryTile(systemData.getJSONObject("memory"));
-
-            // Update Storage tile
-            updateStorageTile(systemData.getJSONArray("disks"));
-
-            // Update Network tile
-            updateNetworkTile(systemData.getJSONObject("network"));
-
-            // Update other tiles
-            updateSystemStatusTile(systemData);
-
-            // For demo purposes, we'll toggle Jellyfin status
-            updateJellyfinStatusTile();
-
-            // Update Docker status tile based on CPU usage
-            updateDockerStatusTile(systemData.getJSONObject("cpu"));
-
-            // Update temperature tile (mocked as we don't have actual temperature data)
-            updateTemperatureTile();
-
+            // Step 3: Update UI on the JavaFX thread with all processed data
+            javafx.application.Platform.runLater(() -> updateAllTiles(processedData));
         } catch (Exception e) {
-            System.err.println("Error fetching or updating data: " + e.getMessage());
+            System.err.println("Error in background processing: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    // Process all data off the UI thread
+    private ProcessedData processAllData(JSONObject systemData) {
+        ProcessedData data = new ProcessedData();
+
+        // Process CPU data
+        JSONObject cpuData = systemData.getJSONObject("cpu");
+        data.cpuUsage = processCpuUsage(cpuData);
+        data.cpuDescription = String.format("System CPU Load: %.2f%%", data.cpuUsage);
+
+        // Process Memory data
+        JSONObject memoryData = systemData.getJSONObject("memory");
+        data.memoryUsage = memoryData.getDouble("memoryUsagePercentage");
+        double totalMemoryGB = memoryData.getDouble("totalMemory") / (1024 * 1024 * 1024);
+        double usedMemoryGB = memoryData.getDouble("usedMemory") / (1024 * 1024 * 1024);
+        data.memoryDescription = String.format("%.2f GB / %.2f GB (%.1f%%)",
+                usedMemoryGB, totalMemoryGB, data.memoryUsage);
+
+        // Process Storage data
+        JSONArray disksData = systemData.getJSONArray("disks");
+        double totalSpace = 0;
+        double usedSpace = 0;
+        for (int i = 0; i < disksData.length(); i++) {
+            JSONObject disk = disksData.getJSONObject(i);
+            totalSpace += disk.getDouble("totalSpace");
+            usedSpace += disk.getDouble("usedSpace");
+        }
+        data.storagePercentage = (usedSpace / totalSpace) * 100;
+        double totalSpaceGB = totalSpace / (1024 * 1024 * 1024);
+        double usedSpaceGB = usedSpace / (1024 * 1024 * 1024);
+        data.storageDescription = String.format("%.2f GB / %.2f GB (%.1f%%)",
+                usedSpaceGB, totalSpaceGB, data.storagePercentage);
+
+        // Process Network data
+        data.networkData = processNetworkData(systemData.getJSONObject("network"));
+
+        // Process System Health
+        data.systemHealth = 100 - ((data.cpuUsage + data.memoryUsage) / 2);
+        if (data.systemHealth > 75) {
+            data.systemHealthDescription = "System Health: Excellent";
+        } else if (data.systemHealth > 50) {
+            data.systemHealthDescription = "System Health: Good";
+        } else if (data.systemHealth > 25) {
+            data.systemHealthDescription = "System Health: Fair";
+        } else {
+            data.systemHealthDescription = "System Health: Poor";
+        }
+
+        // Process Docker data (based on CPU)
+        data.dockerUsage = data.cpuUsage * 0.8;
+        data.dockerDescription = "Docker CPU Usage: " + String.format("%.2f", data.dockerUsage) + "%";
+
+        // Process Temperature data (simulated)
+        data.temperature = 40 + (data.cpuUsage * 0.6);
+        data.temperatureDescription = "CPU Temperature: " + String.format("%.1f", data.temperature) + "°C";
+
+        // Toggle Jellyfin status for demo (in real app, you would check actual status)
+        data.jellyfinActive = !jellyfinStatusTile.isActive();
+
+        return data;
+    }
+
+    // Helper method for processing CPU data
+    private double processCpuUsage(JSONObject cpuData) {
+        double systemCpuLoad = cpuData.getDouble("systemCpuLoad");
+        // Convert from 0-1 to 0-100 if needed
+        if (systemCpuLoad <= 1.0) {
+            systemCpuLoad *= 100;
+        }
+        return systemCpuLoad;
+    }
+
+    // Process network data
+    private NetworkData processNetworkData(JSONObject networkData) {
+        NetworkData data = new NetworkData();
+        JSONObject interfaces = networkData.getJSONObject("interfaces");
+        long totalBytesReceived = 0;
+        long totalBytesSent = 0;
+
+        for (String interfaceName : interfaces.keySet()) {
+            JSONObject networkInterface = interfaces.getJSONObject(interfaceName);
+            totalBytesReceived += networkInterface.getLong("bytesReceived");
+            totalBytesSent += networkInterface.getLong("bytesSent");
+        }
+
+        data.currentBytes = totalBytesReceived + totalBytesSent;
+
+        // Calculate network traffic rate
+        String networkKey = "total";
+        if (previousNetworkBytes.containsKey(networkKey)) {
+            long previousBytes = previousNetworkBytes.get(networkKey);
+            long bytesDifference = data.currentBytes - previousBytes;
+            // Convert to KB/s (divided by time between updates)
+            data.kbPerSecond = bytesDifference / 1024.0 / 5; // 5 seconds is the update interval
+        }
+        previousNetworkBytes.put(networkKey, data.currentBytes);
+
+        // Format network usage description
+        double receivedMB = totalBytesReceived / (1024.0 * 1024.0);
+        double sentMB = totalBytesSent / (1024.0 * 1024.0);
+        data.description = String.format("Recv: %.2f MB | Sent: %.2f MB", receivedMB, sentMB);
+
+        return data;
+    }
+
+    // Update all UI components with the processed data
+    private void updateAllTiles(ProcessedData data) {
+        // Update CPU tile
+        cpuTile.setValue(data.cpuUsage);
+        cpuTile.setDescription(data.cpuDescription);
+
+        // Update Memory tile
+        memoryTile.setValue(data.memoryUsage);
+        memoryTile.setDescription(data.memoryDescription);
+
+        // Update Storage tile
+        storageTile.setValue(data.storagePercentage);
+        storageTile.setDescription(data.storageDescription);
+
+        // Update Network tile
+        if (data.networkData.kbPerSecond > 0) { // Only add data if we have a valid rate
+            ChartData chartData = new ChartData("Network", data.networkData.kbPerSecond, Tile.BLUE);
+            networkTile.addChartData(chartData);
+
+            // Keep only the most recent data points
+            if (networkTile.getChartData().size() > 15) {
+                networkTile.getChartData().remove(0);
+            }
+        }
+        networkTile.setDescription(data.networkData.description);
+
+        // Update System Status tile
+        systemStatusTile.setValue(data.systemHealth);
+        systemStatusTile.setDescription(data.systemHealthDescription);
+
+        // Update Docker Status tile
+        dockerStatusTile.setValue(data.dockerUsage);
+        dockerStatusTile.setDescription(data.dockerDescription);
+
+        // Update Temperature tile
+        temperatureTile.setValue(data.temperature);
+        temperatureTile.setDescription(data.temperatureDescription);
+
+        // Update Jellyfin Status tile
+        jellyfinStatusTile.setActive(data.jellyfinActive);
+        if (data.jellyfinActive) {
+            statusLabel.setText("server is running healthy");
+            statusLabel.setTextFill(Color.web("#28a745"));
+        } else {
+            statusLabel.setText("there is problem with server");
+            statusLabel.setTextFill(Color.web("#dc3545"));
         }
     }
 
@@ -222,176 +349,162 @@ public class DashboardController {
     }
 
     private void updateCpuTile(JSONObject cpuData) {
-        javafx.application.Platform.runLater(() -> {
-            double systemCpuLoad = cpuData.getDouble("systemCpuLoad");
-            // Convert from 0-1 to 0-100 if needed
-            if (systemCpuLoad <= 1.0) {
-                systemCpuLoad *= 100;
-            }
+        double systemCpuLoad = cpuData.getDouble("systemCpuLoad");
+        // Convert from 0-1 to 0-100 if needed
+        if (systemCpuLoad <= 1.0) {
+            systemCpuLoad *= 100;
             cpuTile.setValue(systemCpuLoad);
             cpuTile.setDescription("System CPU Load: " + String.format("%.2f", systemCpuLoad) + "%");
-        });
+        }
     }
 
     private void updateMemoryTile(JSONObject memoryData) {
-        javafx.application.Platform.runLater(() -> {
-            double memoryUsagePercentage = memoryData.getDouble("memoryUsagePercentage");
-            memoryTile.setValue(memoryUsagePercentage);
 
-            // Convert bytes to GB for more readable values
-            double totalMemoryGB = memoryData.getDouble("totalMemory") / (1024 * 1024 * 1024);
-            double usedMemoryGB = memoryData.getDouble("usedMemory") / (1024 * 1024 * 1024);
+        double memoryUsagePercentage = memoryData.getDouble("memoryUsagePercentage");
+        memoryTile.setValue(memoryUsagePercentage);
 
-            memoryTile.setDescription(String.format("%.2f GB / %.2f GB (%.1f%%)",
-                    usedMemoryGB, totalMemoryGB, memoryUsagePercentage));
-        });
+        // Convert bytes to GB for more readable values
+        double totalMemoryGB = memoryData.getDouble("totalMemory") / (1024 * 1024 * 1024);
+        double usedMemoryGB = memoryData.getDouble("usedMemory") / (1024 * 1024 * 1024);
+
+        memoryTile.setDescription(String.format("%.2f GB / %.2f GB (%.1f%%)",
+                usedMemoryGB, totalMemoryGB, memoryUsagePercentage));
     }
 
     private void updateStorageTile(JSONArray disksData) {
-        javafx.application.Platform.runLater(() -> {
-            double totalSpace = 0;
-            double usedSpace = 0;
+        double totalSpace = 0;
+        double usedSpace = 0;
 
-            for (int i = 0; i < disksData.length(); i++) {
-                JSONObject disk = disksData.getJSONObject(i);
-                totalSpace += disk.getDouble("totalSpace");
-                usedSpace += disk.getDouble("usedSpace");
-            }
+        for (int i = 0; i < disksData.length(); i++) {
+            JSONObject disk = disksData.getJSONObject(i);
+            totalSpace += disk.getDouble("totalSpace");
+            usedSpace += disk.getDouble("usedSpace");
+        }
 
-            double usagePercentage = (usedSpace / totalSpace) * 100;
-            storageTile.setValue(usagePercentage);
+        double usagePercentage = (usedSpace / totalSpace) * 100;
+        storageTile.setValue(usagePercentage);
 
-            // Convert to GB for more readable values
-            double totalSpaceGB = totalSpace / (1024 * 1024 * 1024);
-            double usedSpaceGB = usedSpace / (1024 * 1024 * 1024);
+        // Convert to GB for more readable values
+        double totalSpaceGB = totalSpace / (1024 * 1024 * 1024);
+        double usedSpaceGB = usedSpace / (1024 * 1024 * 1024);
 
-            storageTile.setDescription(String.format("%.2f GB / %.2f GB (%.1f%%)",
-                    usedSpaceGB, totalSpaceGB, usagePercentage));
-        });
+        storageTile.setDescription(String.format("%.2f GB / %.2f GB (%.1f%%)",
+                usedSpaceGB, totalSpaceGB, usagePercentage));
     }
 
     private void updateNetworkTile(JSONObject networkData) {
-        javafx.application.Platform.runLater(() -> {
-            JSONObject interfaces = networkData.getJSONObject("interfaces");
-            long totalBytesReceived = 0;
-            long totalBytesSent = 0;
+        JSONObject interfaces = networkData.getJSONObject("interfaces");
+        long totalBytesReceived = 0;
+        long totalBytesSent = 0;
 
-            for (String interfaceName : interfaces.keySet()) {
-                JSONObject networkInterface = interfaces.getJSONObject(interfaceName);
-                totalBytesReceived += networkInterface.getLong("bytesReceived");
-                totalBytesSent += networkInterface.getLong("bytesSent");
+        for (String interfaceName : interfaces.keySet()) {
+            JSONObject networkInterface = interfaces.getJSONObject(interfaceName);
+            totalBytesReceived += networkInterface.getLong("bytesReceived");
+            totalBytesSent += networkInterface.getLong("bytesSent");
+        }
+
+        // Calculate network traffic rate
+        String networkKey = "total";
+        if (!previousNetworkBytes.containsKey(networkKey)) {
+            previousNetworkBytes.put(networkKey, totalBytesReceived + totalBytesSent);
+        } else {
+            long previousBytes = previousNetworkBytes.get(networkKey);
+            long currentBytes = totalBytesReceived + totalBytesSent;
+            long bytesDifference = currentBytes - previousBytes;
+
+            // Convert to KB/s (divided by 3 seconds between updates)
+            double kbPerSecond = bytesDifference / 1024.0 / 3;
+
+            // Add data point to chart
+            ChartData chartData = new ChartData("Network", kbPerSecond, Tile.BLUE);
+            networkTile.addChartData(chartData);
+
+            // Keep only the last 15 data points
+            if (networkTile.getChartData().size() > 15) {
+                networkTile.getChartData().remove(0);
             }
 
-            // Calculate network traffic rate
-            String networkKey = "total";
-            if (!previousNetworkBytes.containsKey(networkKey)) {
-                previousNetworkBytes.put(networkKey, totalBytesReceived + totalBytesSent);
-            } else {
-                long previousBytes = previousNetworkBytes.get(networkKey);
-                long currentBytes = totalBytesReceived + totalBytesSent;
-                long bytesDifference = currentBytes - previousBytes;
+            // Update previous bytes for next calculation
+            previousNetworkBytes.put(networkKey, currentBytes);
+        }
 
-                // Convert to KB/s (divided by 3 seconds between updates)
-                double kbPerSecond = bytesDifference / 1024.0 / 3;
-
-                // Add data point to chart
-                ChartData chartData = new ChartData("Network", kbPerSecond, Tile.BLUE);
-                networkTile.addChartData(chartData);
-
-                // Keep only the last 15 data points
-                if (networkTile.getChartData().size() > 15) {
-                    networkTile.getChartData().subList(0, 5).clear();
-                }
-
-                // Update previous bytes for next calculation
-                previousNetworkBytes.put(networkKey, currentBytes);
-            }
-
-            // Format network usage description
-            double receivedMB = totalBytesReceived / (1024.0 * 1024.0);
-            double sentMB = totalBytesSent / (1024.0 * 1024.0);
-            networkTile.setDescription(String.format("Recv: %.2f MB | Sent: %.2f MB", receivedMB, sentMB));
-        });
+        // Format network usage description
+        double receivedMB = totalBytesReceived / (1024.0 * 1024.0);
+        double sentMB = totalBytesSent / (1024.0 * 1024.0);
+        networkTile.setDescription(String.format("Recv: %.2f MB | Sent: %.2f MB", receivedMB, sentMB));
     }
 
     private void updateSystemStatusTile(JSONObject systemData) {
-        javafx.application.Platform.runLater(() -> {
-            // Calculate overall system health based on CPU and memory
-            JSONObject cpuData = systemData.getJSONObject("cpu");
-            JSONObject memoryData = systemData.getJSONObject("memory");
+        // Calculate overall system health based on CPU and memory
+        JSONObject cpuData = systemData.getJSONObject("cpu");
+        JSONObject memoryData = systemData.getJSONObject("memory");
 
-            double cpuUsage = cpuData.getDouble("systemCpuLoad");
-            if (cpuUsage <= 1.0) cpuUsage *= 100;
+        double cpuUsage = cpuData.getDouble("systemCpuLoad");
+        if (cpuUsage <= 1.0) cpuUsage *= 100;
 
-            double memoryUsage = memoryData.getDouble("memoryUsagePercentage");
+        double memoryUsage = memoryData.getDouble("memoryUsagePercentage");
 
-            // Simple algorithm for system health: average of CPU and memory usage
-            // Lower percentage means better health
-            double systemHealth = 100 - ((cpuUsage + memoryUsage) / 2);
-            systemStatusTile.setValue(systemHealth);
+        // Simple algorithm for system health: average of CPU and memory usage
+        // Lower percentage means better health
+        double systemHealth = 100 - ((cpuUsage + memoryUsage) / 2);
+        systemStatusTile.setValue(systemHealth);
 
-            // Set description based on health
-            if (systemHealth > 75) {
-                systemStatusTile.setDescription("System Health: Excellent");
-            } else if (systemHealth > 50) {
-                systemStatusTile.setDescription("System Health: Good");
-            } else if (systemHealth > 25) {
-                systemStatusTile.setDescription("System Health: Fair");
-            } else {
-                systemStatusTile.setDescription("System Health: Poor");
-            }
-        });
+        // Set description based on health
+        if (systemHealth > 75) {
+            systemStatusTile.setDescription("System Health: Excellent");
+        } else if (systemHealth > 50) {
+            systemStatusTile.setDescription("System Health: Good");
+        } else if (systemHealth > 25) {
+            systemStatusTile.setDescription("System Health: Fair");
+        } else {
+            systemStatusTile.setDescription("System Health: Poor");
+        }
     }
 
     private void updateJellyfinStatusTile() {
-        javafx.application.Platform.runLater(() -> {
-            // Toggle status for demonstration (in a real app, you would check the actual status)
-            jellyfinStatusTile.setActive(!jellyfinStatusTile.isActive());
+        // Toggle status for demonstration (in a real app, you would check the actual status)
+        jellyfinStatusTile.setActive(!jellyfinStatusTile.isActive());
 
-            if (jellyfinStatusTile.isActive()) {
-                statusLabel.setText("server is running healthy");
-                statusLabel.setTextFill(Color.web("#28a745"));
-            } else {
-                statusLabel.setText("there is problem with server");
-                statusLabel.setTextFill(Color.web("#dc3545"));
-            }
-        });
+        if (jellyfinStatusTile.isActive()) {
+            statusLabel.setText("server is running healthy");
+            statusLabel.setTextFill(Color.web("#28a745"));
+        } else {
+            statusLabel.setText("there is problem with server");
+            statusLabel.setTextFill(Color.web("#dc3545"));
+        }
     }
 
     private void updateDockerStatusTile(JSONObject cpuData) {
-        javafx.application.Platform.runLater(() -> {
-            // For demonstration, we'll base Docker status on CPU load
-            // In a real application, you'd check actual Docker metrics
-            double cpuLoad = cpuData.getDouble("systemCpuLoad");
-            if (cpuLoad <= 1.0) cpuLoad *= 100;
+        // For demonstration, we'll base Docker status on CPU load
+        // In a real application, you'd check actual Docker metrics
+        double cpuLoad = cpuData.getDouble("systemCpuLoad");
+        if (cpuLoad <= 1.0) cpuLoad *= 100;
 
-            // Scale to a reasonable Docker usage percentage
-            double dockerUsage = cpuLoad * 0.8; // Assuming Docker uses 80% of CPU
-            dockerStatusTile.setValue(dockerUsage);
-            dockerStatusTile.setDescription("Docker CPU Usage: " + String.format("%.2f", dockerUsage) + "%");
-        });
+        // Scale to a reasonable Docker usage percentage
+        double dockerUsage = cpuLoad * 0.8; // Assuming Docker uses 80% of CPU
+        dockerStatusTile.setValue(dockerUsage);
+        dockerStatusTile.setDescription("Docker CPU Usage: " + String.format("%.2f", dockerUsage) + "%");
     }
 
     private void updateTemperatureTile() {
-        javafx.application.Platform.runLater(() -> {
-            // Since we don't have actual temperature data, we'll simulate it based on CPU load
-            try {
-                JSONObject cpuData = fetchJsonData(CPU_URL).getJSONObject("cpu");
-                double cpuLoad = cpuData.getDouble("systemCpuLoad");
-                if (cpuLoad <= 1.0) cpuLoad *= 100;
+        // Since we don't have actual temperature data, we'll simulate it based on CPU load
+        try {
+            JSONObject cpuData = fetchJsonData(CPU_URL).getJSONObject("cpu");
+            double cpuLoad = cpuData.getDouble("systemCpuLoad");
+            if (cpuLoad <= 1.0) cpuLoad *= 100;
 
-                // Simulate temperature: base 40°C + CPU load influence
-                double simulatedTemp = 40 + (cpuLoad * 0.6);
-                temperatureTile.setValue(simulatedTemp);
-                temperatureTile.setDescription("CPU Temperature: " + String.format("%.1f", simulatedTemp) + "°C");
-            } catch (Exception e) {
-                // Fallback to random temperature if API call fails
-                double simulatedTemp = 40 + Math.random() * 30;
-                temperatureTile.setValue(simulatedTemp);
-                temperatureTile.setDescription("CPU Temperature: " + String.format("%.1f", simulatedTemp) + "°C");
-            }
-        });
+            // Simulate temperature: base 40°C + CPU load influence
+            double simulatedTemp = 40 + (cpuLoad * 0.6);
+            temperatureTile.setValue(simulatedTemp);
+            temperatureTile.setDescription("CPU Temperature: " + String.format("%.1f", simulatedTemp) + "°C");
+        } catch (Exception e) {
+            // Fallback to random temperature if API call fails
+            double simulatedTemp = 40 + Math.random() * 30;
+            temperatureTile.setValue(simulatedTemp);
+            temperatureTile.setDescription("CPU Temperature: " + String.format("%.1f", simulatedTemp) + "°C");
+        }
     }
+
     public void ondrag(MouseEvent mouseEvent) {
         System.out.println(mouseEvent.getClass());
         System.out.println("ondrag");
@@ -422,6 +535,7 @@ public class DashboardController {
 //            test++;
 //        }
     }
+
     @FXML
     public void onclicktile(MouseEvent event) {
         // Get the clicked tile

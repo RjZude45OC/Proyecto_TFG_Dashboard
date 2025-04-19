@@ -110,6 +110,10 @@
     -fx-font-weight: bold;
 }
 
+.dark-theme .login-prompt{
+    -fx-prompt-text-fill: -terminal-brightWhite;
+    -fx-text-fill: -terminal-brightWhite;
+}
 .dark-theme .history-box {
     -fx-background-color: -terminal-brightWhite;
     -fx-text-fill: -terminal-black;
@@ -179,6 +183,11 @@
     -fx-prompt-text-fill: -terminal-brightBlack;
     -fx-text-fill: -terminal-foreground;
     -fx-font-weight: bold;
+}
+
+.light-theme .login-prompt {
+    -fx-prompt-text-fill: -terminal-brightBlack;
+    -fx-text-fill: -terminal-foreground;
 }
 
 .light-theme .history-box {

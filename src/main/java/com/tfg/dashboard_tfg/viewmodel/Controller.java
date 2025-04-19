@@ -26,6 +26,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.prefs.Preferences;
 
+import static javafx.scene.Cursor.*;
+
 public class Controller {
 
     @FXML
@@ -116,6 +118,7 @@ public class Controller {
     public BooleanProperty darkModeProperty() {
         return darkMode;
     }
+    private Cursor currentCursor;
 
     @FXML
     public void initialize() {
@@ -470,13 +473,13 @@ public class Controller {
             } else if (x > width - RESIZE_MARGIN && y > height - RESIZE_MARGIN) {
                 cursor = Cursor.SE_RESIZE;
             } else if (x < RESIZE_MARGIN) {
-                cursor = Cursor.W_RESIZE;
+                cursor = W_RESIZE;
             } else if (x > width - RESIZE_MARGIN) {
-                cursor = Cursor.E_RESIZE;
+                cursor = E_RESIZE;
             } else if (y < RESIZE_MARGIN) {
                 cursor = Cursor.N_RESIZE;
             } else if (y > height - RESIZE_MARGIN) {
-                cursor = Cursor.S_RESIZE;
+                cursor = S_RESIZE;
             }
 
             rootPane.setCursor(cursor);
@@ -485,6 +488,8 @@ public class Controller {
         rootPane.setOnMousePressed(event -> {
             mouseX = event.getScreenX();
             mouseY = event.getScreenY();
+
+            currentCursor = rootPane.getCursor();
         });
 
         rootPane.setOnMouseDragged(event -> {
@@ -495,27 +500,62 @@ public class Controller {
 
             Cursor cursor = rootPane.getCursor();
 
-            if (cursor == Cursor.E_RESIZE || cursor == Cursor.SE_RESIZE || cursor == Cursor.NE_RESIZE) {
+            if (cursor.equals(E_RESIZE)) {
                 stage.setWidth(stage.getWidth() + dx);
                 mouseX = event.getScreenX();
-            }
-            if (cursor == Cursor.S_RESIZE || cursor == Cursor.SE_RESIZE || cursor == Cursor.SW_RESIZE) {
-                stage.setHeight(stage.getHeight() + dy);
-                mouseY = event.getScreenY();
-            }
-            if (cursor == Cursor.W_RESIZE || cursor == Cursor.SW_RESIZE || cursor == Cursor.NW_RESIZE) {
-                double newWidth = stage.getWidth() - dx;
-                if (newWidth > stage.getMinWidth()) {
+            } else if (cursor.equals(W_RESIZE)) {
+                double newWidthW = stage.getWidth() - dx;
+                if (newWidthW > stage.getMinWidth()) {
                     stage.setX(stage.getX() + dx);
-                    stage.setWidth(newWidth);
+                    stage.setWidth(newWidthW);
                     mouseX = event.getScreenX();
                 }
-            }
-            if (cursor == Cursor.N_RESIZE || cursor == Cursor.NW_RESIZE || cursor == Cursor.NE_RESIZE) {
-                double newHeight = stage.getHeight() - dy;
-                if (newHeight > stage.getMinHeight()) {
+            } else if (cursor.equals(S_RESIZE)) {
+                stage.setHeight(stage.getHeight() + dy);
+                mouseY = event.getScreenY();
+            } else if (cursor.equals(N_RESIZE)) {
+                double newHeightN = stage.getHeight() - dy;
+                if (newHeightN > stage.getMinHeight()) {
                     stage.setY(stage.getY() + dy);
-                    stage.setHeight(newHeight);
+                    stage.setHeight(newHeightN);
+                    mouseY = event.getScreenY();
+                }
+            } else if (cursor.equals(SE_RESIZE)) {
+                stage.setWidth(stage.getWidth() + dx);
+                stage.setHeight(stage.getHeight() + dy);
+                mouseX = event.getScreenX();
+                mouseY = event.getScreenY();
+            } else if (cursor.equals(SW_RESIZE)) {
+                double newWidthSW = stage.getWidth() - dx;
+                double newHeightSW = stage.getHeight() + dy;
+                if (newWidthSW > stage.getMinWidth()) {
+                    stage.setX(stage.getX() + dx);
+                    stage.setWidth(newWidthSW);
+                    mouseX = event.getScreenX();
+                }
+                stage.setHeight(newHeightSW);
+                mouseY = event.getScreenY();
+            } else if (cursor.equals(NE_RESIZE)) {
+                double newWidthNE = stage.getWidth() + dx;
+                double newHeightNE = stage.getHeight() - dy;
+                stage.setWidth(newWidthNE);
+                if (newHeightNE > stage.getMinHeight()) {
+                    stage.setY(stage.getY() + dy);
+                    stage.setHeight(newHeightNE);
+                    mouseY = event.getScreenY();
+                }
+                mouseX = event.getScreenX();
+            } else if (cursor.equals(NW_RESIZE)) {
+                double newWidthNW = stage.getWidth() - dx;
+                double newHeightNW = stage.getHeight() - dy;
+                if (newWidthNW > stage.getMinWidth()) {
+                    stage.setX(stage.getX() + dx);
+                    stage.setWidth(newWidthNW);
+                    mouseX = event.getScreenX();
+                }
+                if (newHeightNW > stage.getMinHeight()) {
+                    stage.setY(stage.getY() + dy);
+                    stage.setHeight(newHeightNW);
                     mouseY = event.getScreenY();
                 }
             }

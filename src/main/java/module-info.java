@@ -13,9 +13,12 @@ module com.tfg.dashboard_tfg {
     requires eu.hansolo.tilesfx;
     requires java.prefs;
     requires org.json;
+    requires java.net.http;
+    requires com.fasterxml.jackson.databind;
 
     opens com.tfg.dashboard_tfg to javafx.fxml;
     exports com.tfg.dashboard_tfg;
     exports com.tfg.dashboard_tfg.viewmodel;
     opens com.tfg.dashboard_tfg.viewmodel to javafx.fxml;
+    exports com.tfg.dashboard_tfg.services to com.fasterxml.jackson.databind;
 }

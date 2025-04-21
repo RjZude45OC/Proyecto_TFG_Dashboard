@@ -15,17 +15,15 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.tfg.dashboard_tfg.services.LoginStatus;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.ProgressIndicator;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class LoginViewModel {
 
+    public Hyperlink registerLink;
     // FXML Injected Login Components
     @FXML
     private TextField usernameField;
@@ -44,9 +42,6 @@ public class LoginViewModel {
 
     @FXML
     private ProgressIndicator loginProgress;
-
-    @FXML
-    private VBox loginFormContainer;
 
     private Controller mainController;
     private final HttpClient httpClient;
@@ -98,7 +93,15 @@ public class LoginViewModel {
         Task<Boolean> loginTask = new Task<>() {
             @Override
             protected Boolean call() throws Exception {
-                return authenticateUser(username, password);
+                // First authenticate the user
+                boolean isAuthenticated = authenticateUser(username, password);
+
+                if (isAuthenticated) {
+                    // Then create the session if authentication succeeded
+                    return createUserSession(username, password);
+                }
+
+                return false;
             }
 
             @Override
@@ -106,8 +109,16 @@ public class LoginViewModel {
                 Platform.runLater(() -> {
                     boolean success = getValue();
                     if (success) {
+                        // Update login status in controller
+                        mainController.setIsLoggedIn(true);
+                        mainController.setCurrentUsername(username); // Add this line
+                        mainController.updateLoginButtonText(); // Add this line
+
+                        // Clear form and navigate to dashboard
                         loginErrorLabel.setVisible(false);
-                        createUserSession(username, password,loginErrorLabel);
+                        usernameField.clear();
+                        passwordField.clear();
+                        setLoginInProgress(false);
                         mainController.showDashboardView();
                     } else {
                         loginErrorLabel.setText("Invalid username or password");
@@ -120,9 +131,11 @@ public class LoginViewModel {
             @Override
             protected void failed() {
                 Platform.runLater(() -> {
-                    loginErrorLabel.setText("Connection error: " + getException().getMessage());
+                    Throwable exception = getException();
+                    loginErrorLabel.setText("Connection error: " + exception.getMessage());
                     loginErrorLabel.setVisible(true);
                     setLoginInProgress(false);
+                    exception.printStackTrace();
                 });
             }
         };
@@ -153,28 +166,27 @@ public class LoginViewModel {
 
             // 200 OK means successful login
             if (statusCode == 200) {
-                System.out.println("200");
+                System.out.println("Authentication successful (200 OK)");
                 return true;
             } else if (statusCode == 403) {
                 // Account not activated
-                System.out.println("403");
+                System.out.println("Account not activated (403 Forbidden)");
                 Platform.runLater(() -> loginErrorLabel.setText("Account not activated. Please check your email."));
                 return false;
             } else {
                 // Other errors (401 for invalid credentials, etc.)
-                System.out.println("invalid");
+                System.out.println("Authentication failed with status code: " + statusCode);
                 return false;
             }
         } catch (IOException | InterruptedException e) {
+            System.err.println("Authentication error: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
     }
 
-    private void createUserSession(String username, String password, Label errorLabel) {
+    private boolean createUserSession(String username, String password) {
         try {
-            HttpClient client = HttpClient.newHttpClient();
-
             ObjectNode sessionData = objectMapper.createObjectNode();
             sessionData.put("usuario", username);
             sessionData.put("password", password);
@@ -185,24 +197,23 @@ public class LoginViewModel {
                     .POST(HttpRequest.BodyPublishers.ofString(sessionData.toString()))
                     .build();
 
-            client.sendAsync(sessionRequest, HttpResponse.BodyHandlers.ofString())
-                    .thenAccept(response -> {
-                        if (response.statusCode() == 200) {
-                            // Replace this with loading another scene
-                            System.out.println("Login successful! Redirecting...");
-                            mainController.showDashboardView();
-                        } else {
-                            errorLabel.setText("Session creation failed.");
-                        }
-                    })
-                    .exceptionally(e -> {
-                        errorLabel.setText("Session error.");
-                        e.printStackTrace();
-                        return null;
-                    });
+            // Use synchronous call for the task
+            HttpResponse<String> response = httpClient.send(sessionRequest, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                System.out.println("Session created successfully (200 OK)");
+                // Here you could parse the session token if the server returns one
+                // and store it for future authenticated requests
+                return true;
+            } else {
+                System.out.println("Session creation failed with status code: " + response.statusCode());
+                System.out.println("Response body: " + response.body());
+                return false;
+            }
         } catch (Exception e) {
+            System.err.println("Session creation error: " + e.getMessage());
             e.printStackTrace();
-            errorLabel.setText("Unexpected error.");
+            return false;
         }
     }
 
@@ -220,5 +231,9 @@ public class LoginViewModel {
         passwordField.clear();
         loginErrorLabel.setVisible(false);
         mainController.showDashboardView(); // Return to dashboard
+    }
+    @FXML
+    public void switchToRegisterView() {
+        mainController.showRegisterForm();
     }
 }

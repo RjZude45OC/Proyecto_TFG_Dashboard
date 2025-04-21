@@ -57,6 +57,9 @@ public class Controller {
     public static BooleanProperty darkMode = new SimpleBooleanProperty(true);
     private final Preferences prefs = Preferences.userNodeForPackage(Controller.class);
 
+    // Authentication Property
+    private BooleanProperty isLoggedIn = new SimpleBooleanProperty(false);
+
     // FXML Injected Views
     @FXML
     private StackPane mainStackPane;
@@ -75,6 +78,9 @@ public class Controller {
 
     @FXML
     private AnchorPane loginView;
+
+    @FXML
+    private AnchorPane registerView; // Changed to lowercase for consistency
 
     @FXML
     private AnchorPane rssView;
@@ -145,9 +151,42 @@ public class Controller {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+        updateLoginButtonText();
+        isLoggedIn.addListener((obs, oldValue, newValue) -> {
+            updateLoginButtonText();
+        });
     }
 
+    // Authentication Methods
+    public BooleanProperty isLoggedInProperty() {
+        return isLoggedIn;
+    }
+
+    public boolean getIsLoggedIn() {
+        return isLoggedIn.get();
+    }
+
+    public void setIsLoggedIn(boolean value) {
+        isLoggedIn.set(value);
+    }
+    // Add this field to the Controller class
+    private String currentUsername = "";
+
+    // Add these methods to access and update the username
+    public String getCurrentUsername() {
+        return currentUsername;
+    }
+    // Add this method to update the login button text
+    public void updateLoginButtonText() {
+        if (isLoggedIn.get() && !currentUsername.isEmpty()) {
+            loginMenuBtn.setText(currentUsername);
+        } else {
+            loginMenuBtn.setText("Login");
+        }
+    }
+    public void setCurrentUsername(String username) {
+        this.currentUsername = username;
+    }
     // Theme Methods
     private void initializeThemeToggle() {
         // Load saved theme preference or use dark theme as default
@@ -285,6 +324,11 @@ public class Controller {
 
     @FXML
     public void showSonarrView() {
+        if (!isLoggedIn.get()) {
+            showLoginForm();
+            return;
+        }
+
         resetViewStyles();
         if (darkMode.get()) {
             sonarrBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: #CDD6F4;");
@@ -296,6 +340,11 @@ public class Controller {
 
     @FXML
     public void showJellyfinView() {
+        if (!isLoggedIn.get()) {
+            showLoginForm();
+            return;
+        }
+
         resetViewStyles();
         if (darkMode.get()) {
             jellyfinBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: #CDD6F4;");
@@ -307,6 +356,11 @@ public class Controller {
 
     @FXML
     public void showDockerView() {
+        if (!isLoggedIn.get()) {
+            showLoginForm();
+            return;
+        }
+
         resetViewStyles();
         if (darkMode.get()) {
             dockerBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: #CDD6F4;");
@@ -318,6 +372,11 @@ public class Controller {
 
     @FXML
     public void showRssView() {
+        if (!isLoggedIn.get()) {
+            showLoginForm();
+            return;
+        }
+
         resetViewStyles();
         if (darkMode.get()) {
             rssBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: #CDD6F4;");
@@ -329,17 +388,37 @@ public class Controller {
 
     @FXML
     public void showLoginForm() {
+        // If already logged in, this is a logout action
+        if (isLoggedIn.get()) {
+            // Log out the user
+            setIsLoggedIn(false);
+            setCurrentUsername("");
+            updateLoginButtonText();
+            // Now show the dashboard rather than the login form
+            showDashboardView();
+            return;
+        }
+
+        // If not logged in, proceed with normal login form display
         resetViewStyles();
         if (darkMode.get()) {
             loginMenuBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: #CDD6F4;");
         } else {
             loginMenuBtn.setStyle("-fx-background-color: #e0e0e0; -fx-text-fill: #333333;");
         }
-        // Reset login form
-//        usernameField.clear();
-//        passwordField.clear();
-//        loginErrorLabel.setVisible(false);
         setViewVisibility(loginView);
+    }
+
+    // Add method to show register form
+    @FXML
+    public void showRegisterForm() {
+        resetViewStyles();
+        if (darkMode.get()) {
+            loginMenuBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: #CDD6F4;");
+        } else {
+            loginMenuBtn.setStyle("-fx-background-color: #e0e0e0; -fx-text-fill: #333333;");
+        }
+        setViewVisibility(registerView);
     }
 
     // Utility Methods
@@ -369,6 +448,7 @@ public class Controller {
         jellyfinView.setVisible(false);
         dockerView.setVisible(false);
         loginView.setVisible(false);
+        registerView.setVisible(false);
         rssView.setVisible(false);
         // Show the active view
         activeView.setVisible(true);
@@ -401,6 +481,12 @@ public class Controller {
         PathCheck(path);
         loginView = loginLoader.load();
 
+        //load register view
+        path = "/com/tfg/dashboard_tfg/view/registerView.fxml";
+        FXMLLoader registerLoader = new FXMLLoader(getClass().getResource(path));
+        PathCheck(path);
+        registerView = registerLoader.load();
+
         //load rss view
         path = "/com/tfg/dashboard_tfg/view/rssView.fxml";
         FXMLLoader rssLoader = new FXMLLoader(getClass().getResource(path));
@@ -414,9 +500,14 @@ public class Controller {
         sonarrView = sonarrLoader.load();
 
         //add all child to main panel
-        mainStackPane.getChildren().addAll(dashboardView, dockerView, jellyfinView, loginView, rssView, sonarrView);
+        mainStackPane.getChildren().addAll(dashboardView, dockerView, jellyfinView, loginView, registerView, rssView, sonarrView);
+
+        // Set up controllers
         LoginViewModel loginController = loginLoader.getController();
         loginController.setMainController(this);
+
+        RegisterViewModel registerController = registerLoader.getController();
+        registerController.setMainController(this);
 
         // Initialize theme once all views are loaded and scene is available
         mainStackPane.sceneProperty().addListener((observable, oldScene, newScene) -> {

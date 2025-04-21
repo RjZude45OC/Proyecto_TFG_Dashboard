@@ -232,10 +232,13 @@ public class RegisterViewModel {
     }
 
     @FXML
-    private void backToLogin() {
-        clearForm();
-        registerErrorLabel.setVisible(false);
-        registerErrorLabel.setTextFill(javafx.scene.paint.Color.RED); // Reset color for future errors
+    public void backToLogin() {
         mainController.showLoginForm();
+    }
+
+    private void showError(String message) {
+        registerProgress.setVisible(false);
+        registerErrorLabel.setText(message);
+        registerErrorLabel.setVisible(true);
     }
 }

@@ -54,56 +54,11 @@
                         style="-fx-background-color: #dc3545; -fx-text-fill: white;"/>
             </HBox>
             <ProgressIndicator fx:id="loginProgress" prefHeight="25.0" prefWidth="25.0" visible="false"/>
+
+            <HBox alignment="CENTER" spacing="10.0">
+                <Label text="Don't have an account?" />
+                <Hyperlink fx:id="registerLink" onAction="#switchToRegisterView" text="Register" />
+            </HBox>
         </VBox>
     </VBox>
 </AnchorPane>
-
-<!--old work version-->
-<!--<AnchorPane xmlns="http://javafx.com/javafx"-->
-<!--            xmlns:fx="http://javafx.com/fxml"-->
-<!--            fx:controller="com.tfg.dashboard_tfg.viewmodel.LoginViewModel"-->
-<!--            prefHeight="400.0" prefWidth="600.0">-->
-
-<!--    <VBox spacing="20.0"-->
-<!--          AnchorPane.bottomAnchor="20.0"-->
-<!--          AnchorPane.leftAnchor="20.0"-->
-<!--          AnchorPane.rightAnchor="20.0"-->
-<!--          AnchorPane.topAnchor="20.0"-->
-<!--          style="-fx-border-width: 1;-->
-<!--                 -fx-padding: 20 40 0 40;"-->
-<!--          styleClass="view">-->
-
-<!--        <Label text="Login"-->
-<!--               style="-fx-font-size: 28px; -fx-font-weight: bold;"/>-->
-
-<!--        <VBox spacing="15.0"-->
-<!--              alignment="CENTER_LEFT"-->
-<!--              style="-fx-padding: 30px;-->
-<!--                     -fx-background-radius: 10;"-->
-<!--              styleClass="login-box">-->
-<!--            <Label text="Username"/>-->
-<!--            <TextField fx:id="usernameField"-->
-<!--                       promptText="Enter username"-->
-<!--                       prefWidth="300"/>-->
-
-<!--            <Label text="Password"/>-->
-<!--            <PasswordField fx:id="passwordField"-->
-<!--                           promptText="Enter password"-->
-<!--                           prefWidth="300"/>-->
-
-<!--            <Label fx:id="loginErrorLabel"-->
-<!--                   textFill="red"-->
-<!--                   visible="false"/>-->
-
-<!--            <HBox alignment="CENTER" spacing="10.0">-->
-<!--                <Button text="Login"-->
-<!--                        onAction="#handleLogin"-->
-<!--                        style="-fx-background-color: #28a745;-->
-<!--                                                       -fx-text-fill: white;"/>-->
-<!--                <Button text="Cancel"-->
-<!--                        onAction="#cancelLogin"-->
-<!--                        style="-fx-background-color: #dc3545; -fx-text-fill: white;"/>-->
-<!--            </HBox>-->
-<!--        </VBox>-->
-<!--    </VBox>-->
-<!--</AnchorPane>-->

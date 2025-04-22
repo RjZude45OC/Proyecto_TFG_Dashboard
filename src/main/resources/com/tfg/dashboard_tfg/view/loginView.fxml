@@ -40,7 +40,7 @@
                 </VBox.margin>
             </PasswordField>
             <Label fx:id="loginErrorLabel" styleClass="error-label" text="Invalid username or password"
-                   textFill="RED" visible="false">
+                   textFill="#dc3545" visible="false">
                 <VBox.margin>
                     <Insets/>
                 </VBox.margin>

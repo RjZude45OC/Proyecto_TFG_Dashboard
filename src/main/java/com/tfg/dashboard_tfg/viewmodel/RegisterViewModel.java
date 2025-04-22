@@ -46,9 +46,6 @@ public class RegisterViewModel {
     private Button registerButton;
 
     @FXML
-    private Button backToLoginButton;
-
-    @FXML
     private Hyperlink loginLink;
 
     @FXML
@@ -60,7 +57,7 @@ public class RegisterViewModel {
     private Controller mainController;
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
-    private static final String API_BASE_URL = "http://localhost:8080/api/user"; // Adjust the URL to match your API
+    private static final String API_BASE_URL = "http://localhost:8080/psp/api/user"; // Updated to match JSP API URL
 
     public RegisterViewModel() {
         this.httpClient = HttpClient.newBuilder()
@@ -135,12 +132,22 @@ public class RegisterViewModel {
             protected void succeeded() {
                 Platform.runLater(() -> {
                     int statusCode = getValue();
-                    if (statusCode == 201) {
+                    if (statusCode == 200 || statusCode == 201) {
                         registerErrorLabel.setVisible(false);
                         // Show success message or directly navigate to login
                         showRegistrationSuccess();
+
+                        // After 3 seconds, navigate to login (similar to JSP behavior)
+                        new Thread(() -> {
+                            try {
+                                Thread.sleep(3000);
+                                Platform.runLater(() -> backToLogin());
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }).start();
                     } else if (statusCode == 409) {
-                        registerErrorLabel.setText("Username or email already exists");
+                        registerErrorLabel.setText("Username already exists");
                         registerErrorLabel.setVisible(true);
                         setRegisterInProgress(false);
                     } else {
@@ -167,16 +174,17 @@ public class RegisterViewModel {
 
     private int registerUser(String fullName, String email, String username, String password) {
         try {
-            // Create JSON request body
+            // Create JSON request body matching JSP format
             ObjectNode requestBody = objectMapper.createObjectNode();
-            requestBody.put("fullName", fullName);
-            requestBody.put("email", email);
             requestBody.put("username", username);
+            requestBody.put("email", email);
+            requestBody.put("name", username); // Using username as name like in JSP
             requestBody.put("password", password);
+            requestBody.put("isActive", false);
 
             // Create HTTP request
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(API_BASE_URL + "/register"))
+                    .uri(URI.create(API_BASE_URL + "/create")) // Updated endpoint to match JSP
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(requestBody.toString()))
                     .build();
@@ -198,7 +206,7 @@ public class RegisterViewModel {
         clearForm();
 
         // Display success message
-        registerErrorLabel.setText("Registration successful! Please check your email to activate your account.");
+        registerErrorLabel.setText("Account created successfully! Redirecting to login...");
         registerErrorLabel.setTextFill(javafx.scene.paint.Color.GREEN);
         registerErrorLabel.setVisible(true);
 
@@ -217,7 +225,6 @@ public class RegisterViewModel {
     private void setRegisterInProgress(boolean inProgress) {
         registerProgress.setVisible(inProgress);
         registerButton.setDisable(inProgress);
-        backToLoginButton.setDisable(inProgress);
         fullNameField.setDisable(inProgress);
         emailField.setDisable(inProgress);
         usernameField.setDisable(inProgress);
@@ -234,11 +241,5 @@ public class RegisterViewModel {
     @FXML
     public void backToLogin() {
         mainController.showLoginForm();
-    }
-
-    private void showError(String message) {
-        registerProgress.setVisible(false);
-        registerErrorLabel.setText(message);
-        registerErrorLabel.setVisible(true);
     }
 }

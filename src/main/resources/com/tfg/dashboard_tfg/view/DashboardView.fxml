@@ -77,7 +77,7 @@
                           textSize="BIGGER"
                           animated="true"
                           skinType="SMOOTH_AREA_CHART"
-                          unit="Mbps"
+                          unit="Kbps"
                           alert="true"
                           alarmColor="red"
                           threshold="20"

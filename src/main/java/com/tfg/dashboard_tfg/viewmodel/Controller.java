@@ -591,65 +591,73 @@ public class Controller {
 
             Cursor cursor = rootPane.getCursor();
 
+            // Store initial values before any changes
+            double initialX = stage.getX();
+            double initialY = stage.getY();
+            double initialWidth = stage.getWidth();
+            double initialHeight = stage.getHeight();
+
+            // Calculate new values
+            double newX = initialX;
+            double newY = initialY;
+            double newWidth = initialWidth;
+            double newHeight = initialHeight;
+
             if (cursor.equals(E_RESIZE)) {
-                stage.setWidth(stage.getWidth() + dx);
-                mouseX = event.getScreenX();
+                newWidth = initialWidth + dx;
             } else if (cursor.equals(W_RESIZE)) {
-                double newWidthW = stage.getWidth() - dx;
-                if (newWidthW > stage.getMinWidth()) {
-                    stage.setX(stage.getX() + dx);
-                    stage.setWidth(newWidthW);
-                    mouseX = event.getScreenX();
+                double proposedWidth = initialWidth - dx;
+                if (proposedWidth > stage.getMinWidth()) {
+                    newX = initialX + dx;
+                    newWidth = proposedWidth;
                 }
             } else if (cursor.equals(S_RESIZE)) {
-                stage.setHeight(stage.getHeight() + dy);
-                mouseY = event.getScreenY();
+                newHeight = initialHeight + dy;
             } else if (cursor.equals(N_RESIZE)) {
-                double newHeightN = stage.getHeight() - dy;
-                if (newHeightN > stage.getMinHeight()) {
-                    stage.setY(stage.getY() + dy);
-                    stage.setHeight(newHeightN);
-                    mouseY = event.getScreenY();
+                double proposedHeight = initialHeight - dy;
+                if (proposedHeight > stage.getMinHeight()) {
+                    newY = initialY + dy;
+                    newHeight = proposedHeight;
                 }
             } else if (cursor.equals(SE_RESIZE)) {
-                stage.setWidth(stage.getWidth() + dx);
-                stage.setHeight(stage.getHeight() + dy);
-                mouseX = event.getScreenX();
-                mouseY = event.getScreenY();
+                newWidth = initialWidth + dx;
+                newHeight = initialHeight + dy;
             } else if (cursor.equals(SW_RESIZE)) {
-                double newWidthSW = stage.getWidth() - dx;
-                double newHeightSW = stage.getHeight() + dy;
-                if (newWidthSW > stage.getMinWidth()) {
-                    stage.setX(stage.getX() + dx);
-                    stage.setWidth(newWidthSW);
-                    mouseX = event.getScreenX();
+                double proposedWidth = initialWidth - dx;
+                if (proposedWidth > stage.getMinWidth()) {
+                    newX = initialX + dx;
+                    newWidth = proposedWidth;
                 }
-                stage.setHeight(newHeightSW);
-                mouseY = event.getScreenY();
+                newHeight = initialHeight + dy;
             } else if (cursor.equals(NE_RESIZE)) {
-                double newWidthNE = stage.getWidth() + dx;
-                double newHeightNE = stage.getHeight() - dy;
-                stage.setWidth(newWidthNE);
-                if (newHeightNE > stage.getMinHeight()) {
-                    stage.setY(stage.getY() + dy);
-                    stage.setHeight(newHeightNE);
-                    mouseY = event.getScreenY();
+                newWidth = initialWidth + dx;
+                double proposedHeight = initialHeight - dy;
+                if (proposedHeight > stage.getMinHeight()) {
+                    newY = initialY + dy;
+                    newHeight = proposedHeight;
                 }
-                mouseX = event.getScreenX();
             } else if (cursor.equals(NW_RESIZE)) {
-                double newWidthNW = stage.getWidth() - dx;
-                double newHeightNW = stage.getHeight() - dy;
-                if (newWidthNW > stage.getMinWidth()) {
-                    stage.setX(stage.getX() + dx);
-                    stage.setWidth(newWidthNW);
-                    mouseX = event.getScreenX();
+                double proposedWidth = initialWidth - dx;
+                double proposedHeight = initialHeight - dy;
+
+                if (proposedWidth > stage.getMinWidth()) {
+                    newX = initialX + dx;
+                    newWidth = proposedWidth;
                 }
-                if (newHeightNW > stage.getMinHeight()) {
-                    stage.setY(stage.getY() + dy);
-                    stage.setHeight(newHeightNW);
-                    mouseY = event.getScreenY();
+
+                if (proposedHeight > stage.getMinHeight()) {
+                    newY = initialY + dy;
+                    newHeight = proposedHeight;
                 }
             }
+
+            stage.setX(newX);
+            stage.setY(newY);
+            stage.setWidth(newWidth);
+            stage.setHeight(newHeight);
+
+            mouseX = event.getScreenX();
+            mouseY = event.getScreenY();
         });
     }
 }

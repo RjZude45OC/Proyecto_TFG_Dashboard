@@ -4,6 +4,7 @@
 <?import javafx.scene.layout.*?>
 <?import eu.hansolo.tilesfx.Tile?>
 
+<?import javafx.scene.paint.Stop?>
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.tfg.dashboard_tfg.viewmodel.DashboardController">
@@ -29,6 +30,145 @@
                 <Label text="System Status"
                        style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
                 <Label fx:id="statusLabel"/>
+<!--                <GridPane hgap="20.0" vgap="20.0">-->
+<!--                    <columnConstraints>-->
+<!--                        <ColumnConstraints percentWidth="25"/>-->
+<!--                        <ColumnConstraints percentWidth="25"/>-->
+<!--                        <ColumnConstraints percentWidth="25"/>-->
+<!--                        <ColumnConstraints percentWidth="25"/>-->
+<!--                    </columnConstraints>-->
+<!--                    <rowConstraints>-->
+<!--                        <RowConstraints percentHeight="50"/>-->
+<!--                        <RowConstraints percentHeight="50"/>-->
+<!--                    </rowConstraints>-->
+
+<!--                    <Tile fx:id="systemStatusTile"-->
+<!--                          GridPane.columnIndex="0"-->
+<!--                          GridPane.rowIndex="0"-->
+<!--                          title="Server Status"-->
+<!--                          description="Media Server Health"-->
+<!--                          textSize="BIGGER"-->
+<!--                          valueColor="GREEN"-->
+<!--                          animated="true"-->
+<!--                          skinType="BAR_GAUGE"-->
+<!--                          onMouseClicked="#onclicktile"-->
+<!--                    />-->
+
+<!--                    &lt;!&ndash; Storage Tile - Using a gauge tile for space usage &ndash;&gt;-->
+<!--                    <Tile fx:id="storageTile"-->
+<!--                          GridPane.columnIndex="1"-->
+<!--                          GridPane.rowIndex="0"-->
+<!--                          title="Storage"-->
+<!--                          description="Total Space"-->
+<!--                          textSize="BIGGER"-->
+<!--                          animated="true"-->
+<!--                          skinType="GAUGE"-->
+<!--                          unit="\%"-->
+<!--                          maxValue="100"-->
+<!--                          thresholdVisible="true"-->
+<!--                          onMouseClicked="#onclicktile"-->
+<!--                    />-->
+
+<!--                    &lt;!&ndash; Network Tile - Using a bar chart for bandwidth &ndash;&gt;-->
+<!--                    <Tile fx:id="networkTile"-->
+<!--                          GridPane.columnIndex="2"-->
+<!--                          GridPane.rowIndex="0"-->
+<!--                          title="Network"-->
+<!--                          description="Bandwidth"-->
+<!--                          textSize="BIGGER"-->
+<!--                          animated="true"-->
+<!--                          skinType="SMOOTH_AREA_CHART"-->
+<!--                          unit="Kbps"-->
+<!--                          alert="true"-->
+<!--                          alarmColor="red"-->
+<!--                          threshold="20"-->
+<!--                          onMouseClicked="#onclicktile"-->
+<!--                    />-->
+
+<!--                    &lt;!&ndash; CPU Usage Tile - Using a spark line chart &ndash;&gt;-->
+<!--                    <Tile fx:id="cpuTile"-->
+<!--                          GridPane.columnIndex="3"-->
+<!--                          GridPane.rowIndex="0"-->
+<!--                          title="CPU Usage"-->
+<!--                          description="Processing Load"-->
+<!--                          textSize="BIGGER"-->
+<!--                          animated="true"-->
+<!--                          animationDuration="1000"-->
+<!--                          skinType="GAUGE_SPARK_LINE"-->
+<!--                          unit="\%"-->
+<!--                          maxValue="100"-->
+<!--                          onMouseClicked="#onclicktile"-->
+<!--                          onScroll="#onscroll"-->
+<!--                    />-->
+
+<!--                    &lt;!&ndash; Memory Tile - Using a LED tile for RAM usage &ndash;&gt;-->
+<!--                    <Tile fx:id="memoryTile"-->
+<!--                          GridPane.columnIndex="0"-->
+<!--                          GridPane.rowIndex="1"-->
+<!--                          title="Memory"-->
+<!--                          description="RAM Usage"-->
+<!--                          textSize="BIGGER"-->
+<!--                          animated="true"-->
+<!--                          skinType="BAR_GAUGE"-->
+<!--                          value="20"-->
+<!--                          unit="\%"-->
+<!--                          onMouseClicked="#onclicktile"-->
+<!--                    />-->
+
+<!--                    &lt;!&ndash; Temperature Tile - Using a high/low tile &ndash;&gt;-->
+<!--                    <Tile fx:id="temperatureTile"-->
+<!--                          GridPane.columnIndex="1"-->
+<!--                          GridPane.rowIndex="1"-->
+<!--                          title="Server Temp"-->
+<!--                          description="Hardware Monitoring"-->
+<!--                          textSize="BIGGER"-->
+<!--                          unit="°C"-->
+<!--                          animated="true"-->
+<!--                          skinType="GAUGE"-->
+<!--                          maxValue="100"-->
+<!--                          minValue="0"-->
+<!--                          averagingPeriod="10"-->
+<!--                          activeColor="RED"-->
+<!--                          onMouseClicked="#onclicktile"-->
+<!--                          checkThreshold="true"-->
+<!--                          checkSectionsForValue="true"-->
+<!--                          alertMessage="Temperature Critical!"-->
+<!--                          sectionsVisible="true"-->
+<!--                          sectionIconsVisible="true"-->
+<!--                    />-->
+
+<!--                    &lt;!&ndash; Jellyfin Status Tile - Using a switch tile &ndash;&gt;-->
+<!--                    <Tile fx:id="jellyfinStatusTile"-->
+<!--                          GridPane.columnIndex="2"-->
+<!--                          GridPane.rowIndex="1"-->
+<!--                          title="Jellyfin"-->
+<!--                          description="Media Server"-->
+<!--                          textSize="BIGGER"-->
+<!--                          valueColor="green"-->
+<!--                          animated="true"-->
+<!--                          skinType="LED"-->
+<!--                          active="true"-->
+<!--                          onMouseClicked="#onclicktile"-->
+<!--                    />-->
+
+<!--                    &lt;!&ndash; Docker Status Tile - Using a smoothed chart for container metrics &ndash;&gt;-->
+<!--                    <Tile fx:id="dockerStatusTile"-->
+<!--                          GridPane.columnIndex="3"-->
+<!--                          GridPane.rowIndex="1"-->
+<!--                          title="Docker"-->
+<!--                          description="Containers"-->
+<!--                          textVisible="true"-->
+<!--                          strokeWithGradient="true"-->
+<!--                          unit="\%"-->
+<!--                          textSize="BIGGER"-->
+<!--                          animated="true"-->
+<!--                          skinType="GAUGE2"-->
+<!--                          value="100"-->
+<!--                          onMouseClicked="#onclicktile"-->
+<!--                          onDragDetected="#ondrag"-->
+<!--                          onDragDropped="#ondragdrop"-->
+<!--                    />-->
+<!--                </GridPane>-->
                 <GridPane hgap="20.0" vgap="20.0">
                     <columnConstraints>
                         <ColumnConstraints percentWidth="25"/>
@@ -46,29 +186,39 @@
                           GridPane.rowIndex="0"
                           title="Server Status"
                           description="Media Server Health"
+                          text=""
                           textSize="BIGGER"
-                          valueColor="GREEN"
+                          valueColor="#2ecc71"
                           animated="true"
-                          skinType="BAR_GAUGE"
+                          skinType="GAUGE"
+                          decimals="1"
+                          minValue="0"
+                          maxValue="100"
+                          startFromZero="false"
+                          threshold="25"
+                          thresholdVisible="true"
                           onMouseClicked="#onclicktile"
                     />
 
-                    <!-- Storage Tile - Using a gauge tile for space usage -->
                     <Tile fx:id="storageTile"
                           GridPane.columnIndex="1"
                           GridPane.rowIndex="0"
                           title="Storage"
                           description="Total Space"
+                          text=""
                           textSize="BIGGER"
                           animated="true"
                           skinType="GAUGE"
                           unit="\%"
+                          decimals="1"
+                          minValue="0"
                           maxValue="100"
                           thresholdVisible="true"
+                          threshold="85"
+                          shadowsEnabled="true"
                           onMouseClicked="#onclicktile"
                     />
 
-                    <!-- Network Tile - Using a bar chart for bandwidth -->
                     <Tile fx:id="networkTile"
                           GridPane.columnIndex="2"
                           GridPane.rowIndex="0"
@@ -78,13 +228,14 @@
                           animated="true"
                           skinType="SMOOTH_AREA_CHART"
                           unit="Kbps"
-                          alert="true"
-                          alarmColor="red"
-                          threshold="20"
+                          smoothing="true"
+                          chartGridColor="rgba(255,255,255,0.1)"
+                          decimals="1"
+                          minValue="0"
+                          maxValue="100"
                           onMouseClicked="#onclicktile"
                     />
 
-                    <!-- CPU Usage Tile - Using a spark line chart -->
                     <Tile fx:id="cpuTile"
                           GridPane.columnIndex="3"
                           GridPane.rowIndex="0"
@@ -95,12 +246,16 @@
                           animationDuration="1000"
                           skinType="GAUGE_SPARK_LINE"
                           unit="\%"
+                          decimals="1"
+                          minValue="0"
                           maxValue="100"
+                          averagingPeriod="10"
+                          startFromZero="false"
+                          threshold="80"
+                          thresholdVisible="true"
                           onMouseClicked="#onclicktile"
-                          onScroll="#onscroll"
                     />
 
-                    <!-- Memory Tile - Using a LED tile for RAM usage -->
                     <Tile fx:id="memoryTile"
                           GridPane.columnIndex="0"
                           GridPane.rowIndex="1"
@@ -108,13 +263,18 @@
                           description="RAM Usage"
                           textSize="BIGGER"
                           animated="true"
-                          skinType="BAR_GAUGE"
-                          value="20"
+                          animationDuration="1000"
+                          skinType="CIRCULAR_PROGRESS"
                           unit="\%"
+                          decimals="1"
+                          minValue="0"
+                          maxValue="100"
+                          barBackgroundColor="rgba(200,200,200,0.1)"
+                          threshold="90"
+                          thresholdVisible="true"
                           onMouseClicked="#onclicktile"
                     />
 
-                    <!-- Temperature Tile - Using a high/low tile -->
                     <Tile fx:id="temperatureTile"
                           GridPane.columnIndex="1"
                           GridPane.rowIndex="1"
@@ -123,50 +283,57 @@
                           textSize="BIGGER"
                           unit="°C"
                           animated="true"
+                          animationDuration="1000"
                           skinType="GAUGE"
-                          maxValue="100"
+                          decimals="1"
                           minValue="0"
+                          maxValue="100"
                           averagingPeriod="10"
-                          activeColor="RED"
-                          onMouseClicked="#onclicktile"
-                          checkThreshold="true"
-                          checkSectionsForValue="true"
-                          alertMessage="Temperature Critical!"
+                          threshold="80"
+                          thresholdVisible="true"
                           sectionsVisible="true"
                           sectionIconsVisible="true"
+                          shadowsEnabled="true"
+                          onMouseClicked="#onclicktile"
                     />
 
-                    <!-- Jellyfin Status Tile - Using a switch tile -->
                     <Tile fx:id="jellyfinStatusTile"
                           GridPane.columnIndex="2"
                           GridPane.rowIndex="1"
                           title="Jellyfin"
                           description="Media Server"
                           textSize="BIGGER"
-                          valueColor="green"
                           animated="true"
-                          skinType="LED"
-                          active="true"
+                          skinType="SWITCH"
+                          text=""
+                          shadowsEnabled="true"
                           onMouseClicked="#onclicktile"
                     />
 
-                    <!-- Docker Status Tile - Using a smoothed chart for container metrics -->
                     <Tile fx:id="dockerStatusTile"
                           GridPane.columnIndex="3"
                           GridPane.rowIndex="1"
                           title="Docker"
                           description="Containers"
-                          textVisible="true"
-                          strokeWithGradient="true"
-                          unit="\%"
                           textSize="BIGGER"
                           animated="true"
-                          skinType="GAUGE2"
-                          value="100"
+                          animationDuration="1000"
+                          skinType="RADAR_CHART"
+                          unit="\%"
+                          decimals="1"
+                          minValue="0"
+                          maxValue="100"
+                          thresholdVisible="true"
+                          threshold="85"
+                          shadowsEnabled="true"
                           onMouseClicked="#onclicktile"
-                          onDragDetected="#ondrag"
-                          onDragDropped="#ondragdrop"
-                    />
+                    >
+                        <gradientStops>
+                            <Stop color="#3498db" />
+                            <Stop offset="0.5" color="#2ecc71" />
+                            <Stop offset="1.0" color="#e74c3c" />
+                        </gradientStops>
+                    </Tile>
                 </GridPane>
             </VBox>
         </HBox>

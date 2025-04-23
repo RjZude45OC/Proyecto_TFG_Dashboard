@@ -1,4 +1,4 @@
 package com.tfg.dashboard_tfg.viewmodel;
 
-public class rssViewModel {
+public class RssViewModel {
 }

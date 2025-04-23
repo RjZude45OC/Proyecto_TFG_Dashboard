@@ -1,4 +1,4 @@
 package com.tfg.dashboard_tfg.viewmodel;
 
-public class sonarrViewModel {
+public class JellyFinViewModel {
 }

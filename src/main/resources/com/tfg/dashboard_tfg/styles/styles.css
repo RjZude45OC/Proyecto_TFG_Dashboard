@@ -210,6 +210,13 @@
     -fx-text-fill: -terminal-green;
 }
 
+.tile {
+    -fx-border-radius: 8px; /* Added unit */
+}
+
+.tile:hover {
+    -fx-border-color: #61afef;
+}
 
 /* global css*/
 

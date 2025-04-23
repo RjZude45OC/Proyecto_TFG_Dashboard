@@ -3,14 +3,12 @@ package com.tfg.dashboard_tfg.viewmodel;
 import eu.hansolo.tilesfx.Tile;
 import eu.hansolo.tilesfx.TileBuilder;
 import javafx.application.Platform;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Stop;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -48,7 +46,7 @@ public class DockerViewModel {
     private ScheduledExecutorService scheduler;
 
     // Container tile class to store container data and current display metric
-    private class ContainerTile {
+    private static class ContainerTile {
         String id;
         String name;
         Tile tile;
@@ -166,40 +164,9 @@ public class DockerViewModel {
         new Thread(() -> {
             try {
                 // Get list of containers with docker command
-                String cmd = "ps -a --format \"{{.ID}}\\t{{.Names}}\\t{{.Image}}\\t{{.Status}}\\t{{.RunningFor}}\\t{{.Size}}\"";
+                Process process = getProcess(finalFilter);
 
-                if ("Running Only".equals(finalFilter)) {
-                    cmd = "ps --format \"{{.ID}}\\t{{.Names}}\\t{{.Image}}\\t{{.Status}}\\t{{.RunningFor}}\\t{{.Size}}\"";
-                } else if ("Stopped Only".equals(finalFilter)) {
-                    cmd = "ps -f status=exited --format \"{{.ID}}\\t{{.Names}}\\t{{.Image}}\\t{{.Status}}\\t{{.RunningFor}}\\t{{.Size}}\"";
-                }
-
-                ProcessBuilder processBuilder = new ProcessBuilder();
-                processBuilder.command("docker", Arrays.toString(cmd.split("\\s+")));
-                processBuilder.redirectErrorStream(true);
-
-                Process process = processBuilder.start();
-
-                List<Map<String, String>> containers = new ArrayList<>();
-
-                try (BufferedReader reader = new BufferedReader(
-                        new InputStreamReader(process.getInputStream()))) {
-
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        String[] parts = line.split("\\t");
-                        if (parts.length >= 6) {
-                            Map<String, String> container = new HashMap<>();
-                            container.put("id", parts[0]);
-                            container.put("name", parts[1]);
-                            container.put("image", parts[2]);
-                            container.put("status", parts[3]);
-                            container.put("runningFor", parts[4]);
-                            container.put("size", parts[5]);
-                            containers.add(container);
-                        }
-                    }
-                }
+                List<Map<String, String>> containers = getMaps(process);
 
                 // Clear existing tiles map
                 containerTiles.clear();
@@ -227,11 +194,48 @@ public class DockerViewModel {
                 });
 
             } catch (IOException e) {
-                Platform.runLater(() -> {
-                    statusLabel.setText("Error: " + e.getMessage());
-                });
+                Platform.runLater(() -> statusLabel.setText("Error: " + e.getMessage()));
             }
         }).start();
+    }
+
+    private static List<Map<String, String>> getMaps(Process process) throws IOException {
+        List<Map<String, String>> containers = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(process.getInputStream()))) {
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split("\\t");
+                if (parts.length >= 6) {
+                    Map<String, String> container = new HashMap<>();
+                    container.put("id", parts[0]);
+                    container.put("name", parts[1]);
+                    container.put("image", parts[2]);
+                    container.put("status", parts[3]);
+                    container.put("runningFor", parts[4]);
+                    container.put("size", parts[5]);
+                    containers.add(container);
+                }
+            }
+        }
+        return containers;
+    }
+
+    private static Process getProcess(String finalFilter) throws IOException {
+        String cmd = "docker ps -a --format \"{{.ID}}\\t{{.Names}}\\t{{.Image}}\\t{{.Status}}\\t{{.RunningFor}}\\t{{.Size}}\"";
+
+        if ("Running Only".equals(finalFilter)) {
+            cmd = "docker ps --format \"{{.ID}}\\t{{.Names}}\\t{{.Image}}\\t{{.Status}}\\t{{.RunningFor}}\\t{{.Size}}\"";
+        } else if ("Stopped Only".equals(finalFilter)) {
+            cmd = "docker ps -f status=exited --format \"{{.ID}}\\t{{.Names}}\\t{{.Image}}\\t{{.Status}}\\t{{.RunningFor}}\\t{{.Size}}\"";
+        }
+
+        ProcessBuilder processBuilder = new ProcessBuilder();
+        processBuilder.command(cmd.split("\\s"));
+        processBuilder.redirectErrorStream(true);
+
+        return processBuilder.start();
     }
 
     private Tile createContainerTile(Map<String, String> container) {
@@ -245,7 +249,7 @@ public class DockerViewModel {
         Color tileColor = isRunning ? Color.valueOf("#2ecc71") : Color.valueOf("#e74c3c");
 
         Tile tile = TileBuilder.create()
-                .skinType(Tile.SkinType.CHARACTER)
+                .skinType(Tile.SkinType.GAUGE)
                 .prefSize(150, 150)
                 .title(name)
                 .description(image)
@@ -504,14 +508,7 @@ public class DockerViewModel {
                             if (line != null) {
                                 String[] parts = line.split("\\t");
                                 if (parts.length >= 4) {
-                                    Map<String, String> container = new HashMap<>();
-                                    container.put("id", id);
-                                    container.put("name", name);
-                                    container.put("status", parts[0]);
-                                    container.put("running", parts[1]);
-                                    container.put("image", parts[2]);
-                                    container.put("startedAt", parts[3]);
-                                    container.put("runningFor", "");
+                                    Map<String, String> container = getStringStringMap(id, name, parts);
 
                                     // Update the tile on JavaFX thread
                                     Platform.runLater(() -> updateTileWithMetric(containerTile, container));
@@ -529,6 +526,18 @@ public class DockerViewModel {
         statusLabel.setText("Auto-refresh enabled");
     }
 
+    private static Map<String, String> getStringStringMap(String id, String name, String[] parts) {
+        Map<String, String> container = new HashMap<>();
+        container.put("id", id);
+        container.put("name", name);
+        container.put("status", parts[0]);
+        container.put("running", parts[1]);
+        container.put("image", parts[2]);
+        container.put("startedAt", parts[3]);
+        container.put("runningFor", "");
+        return container;
+    }
+
     private void stopAutoRefresh() {
         if (scheduler != null && !scheduler.isShutdown()) {
             scheduler.shutdown();
@@ -537,8 +546,4 @@ public class DockerViewModel {
         statusLabel.setText("Auto-refresh disabled");
     }
 
-    public void shutdown() {
-        // Clean up resources
-        stopAutoRefresh();
-    }
 }

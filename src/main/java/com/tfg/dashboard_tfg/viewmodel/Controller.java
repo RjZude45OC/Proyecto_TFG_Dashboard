@@ -356,10 +356,10 @@ public class Controller {
 
     @FXML
     public void showDockerView() {
-        if (!isLoggedIn.get()) {
-            showLoginForm();
-            return;
-        }
+//        if (!isLoggedIn.get()) {
+//            showLoginForm();
+//            return;
+//        }
 
         resetViewStyles();
         if (darkMode.get()) {

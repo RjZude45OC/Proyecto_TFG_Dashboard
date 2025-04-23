@@ -109,7 +109,13 @@
     -fx-text-fill: -terminal-brightWhite;
     -fx-font-weight: bold;
 }
-
+.dark-theme .titled-pane{
+    -fx-background-color: #303042;
+    -fx-border-color: #484b6a;
+    -fx-border-radius: 6;
+    -fx-padding: 10 15 10 15;
+}
+/* login dark theme */
 .dark-theme .login-prompt{
     -fx-prompt-text-fill: -terminal-brightWhite;
     -fx-text-fill: -terminal-brightWhite;
@@ -185,6 +191,10 @@
     -fx-font-weight: bold;
 }
 
+.light-theme .titled-pane{
+    -fx-background: #f0f1fc;
+}
+/* login */
 .light-theme .login-prompt {
     -fx-prompt-text-fill: -terminal-brightBlack;
     -fx-text-fill: -terminal-foreground;
@@ -211,7 +221,7 @@
 }
 
 .tile {
-    -fx-border-radius: 8px; /* Added unit */
+    -fx-border-radius: 8px;
 }
 
 .tile:hover {

@@ -13,7 +13,7 @@
             fx:controller="com.tfg.dashboard_tfg.viewmodel.DockerViewModel"
             prefHeight="600.0" prefWidth="800.0">
 
-    <VBox spacing="15.0"
+    <VBox spacing="10.0"
           AnchorPane.bottomAnchor="20.0"
           AnchorPane.leftAnchor="20.0"
           AnchorPane.rightAnchor="20.0"
@@ -22,60 +22,71 @@
                  -fx-padding: 20 20 20 20;"
           styleClass="view">
 
-        <HBox alignment="CENTER_LEFT" spacing="10.0" >
+        <HBox alignment="CENTER_LEFT" spacing="5.0" >
             <Label text="Docker Manager" style="-fx-font-size: 28px; -fx-font-weight: bold;"/>
             <Region HBox.hgrow="ALWAYS"/>
             <Button text="Refresh Containers" onAction="#refreshContainers" styleClass="console-button"/>
-            <ToggleButton fx:id="autoRefreshToggle" text="Auto Refresh" onAction="#toggleAutoRefresh" styleClass="console-button"/>
+            <ToggleButton fx:id="autoRefreshToggle" text="Auto Refresh" onAction="#toggleAutoRefresh" styleClass=" console-button"/>
         </HBox>
 
-        <TitledPane text="Container Monitoring" styleClass="titled-pane">
-            <VBox spacing="10">
-                <HBox spacing="10" alignment="CENTER_LEFT">
-                    <Label text="Filter:" />
-                    <ComboBox fx:id="containerFilter" promptText="All Containers" prefWidth="150.0" onAction="#applyContainerFilter">
-                        <items>
-                            <FXCollections fx:factory="observableArrayList">
-                                <String fx:value="All Containers" />
-                                <String fx:value="Running Only" />
-                                <String fx:value="Stopped Only" />
-                            </FXCollections>
-                        </items>
-                    </ComboBox>
+        <TitledPane text="Container Monitoring" styleClass="titled-pane, container-monitoring-pane">
+            <VBox spacing="5" styleClass="monitoring-container">
+                <HBox spacing="5" alignment="CENTER_LEFT" styleClass="monitoring-toolbar">
+                    <Label text="Container Monitoring" styleClass="monitoring-title"/>
                     <Region HBox.hgrow="ALWAYS" />
-                    <Label text="Containers:" />
-                    <Label fx:id="containerCountLabel" text="0" style="-fx-font-weight: bold;" />
-                    <Label text="Scroll on tiles to cycle through metrics" />
+                    <StackPane styleClass="filter-container">
+                        <HBox spacing="8" alignment="CENTER_LEFT">
+                            <Label text="Filter:" styleClass="filter-label"/>
+                            <ComboBox fx:id="containerFilter" promptText="All Containers" prefWidth="150.0"
+                                      onAction="#applyContainerFilter" styleClass="filter-combo">
+                                <items>
+                                    <FXCollections fx:factory="observableArrayList">
+                                        <String fx:value="All Containers" />
+                                        <String fx:value="Running Only" />
+                                        <String fx:value="Stopped Only" />
+                                    </FXCollections>
+                                </items>
+                            </ComboBox>
+                        </HBox>
+                    </StackPane>
+                    <HBox spacing="3" alignment="CENTER" styleClass="container-count">
+                        <Label text="Containers:" styleClass="count-label"/>
+                        <Label fx:id="containerCountLabel" text="0" styleClass="count-value"/>
+                    </HBox>
                 </HBox>
 
-                <ScrollPane fitToWidth="true" prefHeight="180.0" styleClass="container-scroll">
-                    <FlowPane fx:id="containerTilesPane" hgap="10" vgap="10">
-                        <padding><Insets top="5" right="5" bottom="5" left="5"/></padding>
+                <Label text="Scroll on tiles to cycle through metrics" styleClass="help-text"/>
+
+                <ScrollPane fitToWidth="true" prefHeight="300.0" styleClass="container-scroll">
+                    <FlowPane fx:id="containerTilesPane" hgap="10" vgap="10" styleClass="tiles-pane"
+                              prefWidth="Infinity" maxWidth="Infinity">
+                        <padding><Insets top="3" right="3" bottom="3" left="3"/></padding>
                     </FlowPane>
                 </ScrollPane>
             </VBox>
         </TitledPane>
 
-        <TitledPane text="Docker Terminal" VBox.vgrow="ALWAYS"  styleClass="titled-pane">
-            <VBox spacing="10">
-                <HBox alignment="CENTER_LEFT" spacing="10.0">
+        <TitledPane text="Docker Terminal" VBox.vgrow="ALWAYS" styleClass="titled-pane, docker-terminal-pane">
+            <VBox spacing="15" styleClass="terminal-container">
+                <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="terminal-toolbar">
+                    <Label text="Docker Terminal" styleClass="terminal-title"/>
                     <Region HBox.hgrow="ALWAYS"/>
                     <Button text="Clear Output" onAction="#clearTerminal" styleClass="console-button"/>
                 </HBox>
 
                 <TextArea fx:id="cliOutput" prefHeight="250.0" wrapText="true" editable="false"
-                          style="-fx-font-weight:bold;" styleClass="command-prompt" VBox.vgrow="ALWAYS"/>
+                          styleClass="command-prompt, terminal-output" VBox.vgrow="ALWAYS"/>
 
-                <HBox spacing="10.0" alignment="CENTER_LEFT">
-                    <Label text="\$" />
+                <HBox spacing="10.0" alignment="CENTER_LEFT" styleClass="command-input-container">
+                    <Label text="\$" styleClass="prompt-symbol"/>
                     <TextField fx:id="cliInput" HBox.hgrow="ALWAYS" prefHeight="40.0"
-                               promptText="Enter docker command..." styleClass="input-prompt"/>
-                    <Button text="Execute Command" prefHeight="40.0" onAction="#executeCommand"
-                            styleClass="console-button"/>
+                               promptText="Enter docker command..." styleClass="input-prompt, terminal-input"/>
+                    <Button text="Execute" prefHeight="40.0" onAction="#executeCommand"
+                            styleClass="console-button, execute-button"/>
                 </HBox>
 
-                <HBox spacing="10.0" alignment="CENTER_LEFT">
-                    <Label text="History:"/>
+                <HBox spacing="5.0" alignment="CENTER_LEFT" styleClass="history-container">
+                    <Label text="History:" styleClass="history-label"/>
                     <ComboBox fx:id="commandHistory" prefWidth="400.0" styleClass="history-box" />
                     <Region HBox.hgrow="ALWAYS"/>
                     <Label fx:id="statusLabel" text="Ready" styleClass="status-label"/>

@@ -111,9 +111,6 @@
 }
 .dark-theme .titled-pane{
     -fx-background-color: #303042;
-    -fx-border-color: #484b6a;
-    -fx-border-radius: 6;
-    -fx-padding: 10 15 10 15;
 }
 /* login dark theme */
 .dark-theme .login-prompt{
@@ -227,6 +224,499 @@
 .tile:hover {
     -fx-border-color: #61afef;
 }
+/* Modern Docker Terminal styles - to be added to your existing CSS */
 
+/* Global styles for the terminal pane */
+.docker-terminal-pane {
+    -fx-background-radius: 8px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0, 0, 2);
+}
+
+.dark-theme .docker-terminal-pane {
+    -fx-background-color: #252537;
+    -fx-border-color: #3d3d56;
+    -fx-border-width: 1;
+    -fx-border-radius: 8px;
+}
+
+.light-theme .docker-terminal-pane {
+    -fx-background-color: #f6f7fb;
+    -fx-border-color: #d2d3db;
+    -fx-border-width: 1;
+    -fx-border-radius: 8px;
+}
+
+/* Terminal container - better padding and layout */
+.terminal-container {
+    -fx-padding: 15;
+    -fx-spacing: 12;
+}
+
+/* Terminal toolbar with title */
+.terminal-toolbar {
+    -fx-padding: 5 0 10 0;
+    -fx-border-width: 0 0 1 0;
+}
+
+.dark-theme .terminal-toolbar {
+    -fx-border-color: #3d3d56;
+}
+
+.light-theme .terminal-toolbar {
+    -fx-border-color: #e4e5f0;
+}
+
+.terminal-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.dark-theme .terminal-title {
+    -fx-text-fill: -terminal-brightWhite;
+}
+
+.light-theme .terminal-title {
+    -fx-text-fill: -terminal-foreground;
+}
+
+/* Terminal output area */
+.terminal-output {
+    -fx-background-radius: 6px;
+    -fx-border-radius:6px;
+    -fx-padding: 1;
+    -fx-font-family: "Monospace", "Consolas", "Monaco", monospace;
+}
+
+.dark-theme .terminal-output {
+    -fx-background-color: #1e1e2e;
+    -fx-border-color: #383847;
+}
+
+.light-theme .terminal-output {
+    -fx-background-color: #f0f1f5;
+    -fx-border-color: #e4e5f0;
+}
+
+/* Command input area */
+.command-input-container {
+    -fx-background-radius: 6px;
+    -fx-padding: 0 5 0 10;
+    -fx-alignment: center-left;
+}
+
+.dark-theme .command-input-container {
+    -fx-background-color: #1e1e2e;
+    -fx-border-color: #383847;
+    -fx-border-width: 1;
+    -fx-border-radius: 6px;
+}
+
+.light-theme .command-input-container {
+    -fx-background-color: #f0f1f5;
+    -fx-border-color: #e4e5f0;
+    -fx-border-width: 1;
+    -fx-border-radius: 6px;
+}
+
+.prompt-symbol {
+    -fx-font-weight: bold;
+    -fx-font-family: "Monospace", "Consolas", "Monaco", monospace;
+    -fx-font-size: 16px;
+}
+
+.dark-theme .prompt-symbol {
+    -fx-text-fill: -terminal-green;
+}
+
+.light-theme .prompt-symbol {
+    -fx-text-fill: -terminal-green;
+}
+
+/* Input field styling */
+.terminal-input {
+    -fx-background-color: transparent;
+    -fx-border-width: 0;
+    -fx-border-color: transparent;
+    -fx-padding: 8 4;
+    -fx-font-family: "Monospace", "Consolas", "Monaco", monospace;
+}
+
+.dark-theme .terminal-input {
+    -fx-text-fill: -terminal-foreground;
+}
+
+.light-theme .terminal-input {
+    -fx-text-fill: -terminal-foreground;
+}
+
+/* Button styling */
+.console-button {
+    -fx-background-radius: 4px;
+    -fx-padding: 8 15;
+    -fx-cursor: hand;
+    -fx-font-weight: bold;
+    -fx-transition: all 0.2s ease;
+}
+
+.console-button:hover {
+    -fx-opacity: 0.85;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 5, 0, 0, 1);
+}
+
+.dark-theme .console-button {
+    -fx-background-color: -terminal-blue;
+    -fx-text-fill: #1a1b26;
+}
+
+.dark-theme .console-button:selected {
+    -fx-background-color: derive(-terminal-blue, -40%);
+    -fx-text-fill: #ffffff;
+}
+
+.light-theme .console-button {
+    -fx-background-color: -terminal-blue;
+    -fx-text-fill: white;
+}
+
+.light-theme .console-button:selected {
+    -fx-background-color: derive(-terminal-blue, 40%);
+    -fx-text-fill: #1a1b26;
+}
+
+
+.execute-button {
+    -fx-font-size: 13px;
+}
+
+/* History section */
+.history-container {
+    -fx-padding: 8 0 0 0;
+}
+
+.history-label {
+    -fx-font-weight: bold;
+}
+
+.dark-theme .history-label {
+    -fx-text-fill: -terminal-brightWhite;
+}
+
+.light-theme .history-label {
+    -fx-text-fill: -terminal-foreground;
+}
+
+/* ComboBox styling */
+.history-box {
+    -fx-background-radius: 4px;
+    -fx-border-radius: 4px;
+}
+
+.dark-theme .history-box {
+    -fx-background-color: #2e2e42;
+    -fx-border-color: #383847;
+    -fx-text-fill: -terminal-foreground;
+}
+
+.light-theme .history-box {
+    -fx-background-color: white;
+    -fx-border-color: #e4e5f0;
+    -fx-text-fill: -terminal-foreground;
+}
+
+/* Status label */
+.status-label {
+    -fx-font-weight: bold;
+    -fx-padding: 0 10;
+}
+
+/* TitledPane header improvements */
+.titled-pane > .title {
+    -fx-background-radius: 8px 8px 0 0;
+    -fx-padding: 10 15;
+}
+
+.dark-theme .titled-pane > .title {
+    -fx-background-color: #303042;
+}
+
+.light-theme .titled-pane > .title {
+    -fx-background-color: #e4e5f0;
+}
+
+/* TitledPane arrow styling */
+.titled-pane > .title > .arrow-button > .arrow {
+    -fx-background-color: -fx-mark-highlight-color, -fx-mark-color;
+    -fx-background-insets: 1 0 -1 0, 0;
+    -fx-shape: "M 0 0 h 7 l -3.5 4 z";
+}
+
+.dark-theme .titled-pane > .title > .arrow-button > .arrow {
+    -fx-background-color: -terminal-foreground;
+}
+
+.light-theme .titled-pane > .title > .arrow-button > .arrow {
+    -fx-background-color: -terminal-foreground;
+}
+/* Container Monitoring styles */
+
+/* Container monitoring pane */
+.container-monitoring-pane {
+    -fx-background-radius: 8px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0, 0, 2);
+}
+
+.dark-theme .container-monitoring-pane {
+    -fx-background-color: #252537;
+    -fx-border-color: #3d3d56;
+    -fx-border-width: 1;
+    -fx-border-radius: 8px;
+}
+
+.light-theme .container-monitoring-pane {
+    -fx-background-color: #f6f7fb;
+    -fx-border-color: #d2d3db;
+    -fx-border-width: 1;
+    -fx-border-radius: 8px;
+}
+
+/* Monitoring container */
+.monitoring-container {
+    -fx-padding: 15;
+    -fx-spacing: 12;
+}
+
+/* Monitoring toolbar */
+.monitoring-toolbar {
+    -fx-padding: 5 0 10 0;
+    -fx-border-width: 0 0 1 0;
+    -fx-alignment: center-left;
+}
+
+.dark-theme .monitoring-toolbar {
+    -fx-border-color: #3d3d56;
+}
+
+.light-theme .monitoring-toolbar {
+    -fx-border-color: #e4e5f0;
+}
+
+.monitoring-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.dark-theme .monitoring-title {
+    -fx-text-fill: -terminal-brightWhite;
+}
+
+.light-theme .monitoring-title {
+    -fx-text-fill: -terminal-foreground;
+}
+
+/* Filter container */
+.filter-container {
+    -fx-background-radius: 5px;
+    -fx-padding: 5 10;
+}
+
+.dark-theme .filter-container {
+    -fx-background-color: #2e2e42;
+}
+
+.light-theme .filter-container {
+    -fx-background-color: #e9eaf3;
+}
+
+.filter-label {
+    -fx-font-weight: bold;
+}
+
+.dark-theme .filter-label {
+    -fx-text-fill: -terminal-brightWhite;
+}
+
+.light-theme .filter-label {
+    -fx-text-fill: -terminal-foreground;
+}
+
+/* Filter ComboBox */
+.filter-combo {
+    -fx-background-radius: 4px;
+}
+
+.dark-theme .filter-combo {
+    -fx-background-color: #383847;
+    -fx-text-fill: -terminal-foreground;
+    -fx-prompt-text-fill: -terminal-brightWhite;
+}
+
+.light-theme .filter-combo {
+    -fx-background-color: white;
+    -fx-text-fill: -terminal-foreground;
+    -fx-prompt-text-fill: -terminal-brightBlack;
+}
+
+/* Container count */
+.container-count {
+    -fx-background-radius: 16px;
+    -fx-padding: 3 12;
+}
+
+.dark-theme .container-count {
+    -fx-background-color: #383847;
+}
+
+.light-theme .container-count {
+    -fx-background-color: #e9eaf3;
+}
+
+.count-label {
+    -fx-font-size: 12px;
+}
+
+.dark-theme .count-label {
+    -fx-text-fill: -terminal-brightWhite;
+}
+
+.light-theme .count-label {
+    -fx-text-fill: -terminal-foreground;
+}
+
+.count-value {
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+}
+
+.dark-theme .count-value {
+    -fx-text-fill: -terminal-green;
+}
+
+.light-theme .count-value {
+    -fx-text-fill: -terminal-green;
+}
+
+/* Help text */
+.help-text {
+    -fx-font-style: italic;
+    -fx-font-size: 11px;
+    -fx-padding: 0 0 2 0;
+}
+
+.dark-theme .help-text {
+    -fx-text-fill: -terminal-brightWhite;
+    -fx-opacity: 0.7;
+}
+
+.light-theme .help-text {
+    -fx-text-fill: -terminal-black;
+    -fx-opacity: 0.7;
+}
+
+/* Container scroll pane */
+.container-scroll {
+    -fx-background: transparent;
+    -fx-border-width: 1;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 2;
+}
+
+.dark-theme .container-scroll {
+    -fx-border-color: #3d3d56;
+        -fx-background-color: #1e1e2e;
+        -fx-border-color: #383847;
+}
+
+.light-theme .container-scroll {
+    -fx-border-color: #d2d3db;
+        -fx-background-color: #f0f1f5;
+        -fx-border-color: #e4e5f0;
+}
+
+.dark-theme .container-scroll > .viewport {
+    -fx-background-color: #1e1e2e;
+}
+
+.light-theme .container-scroll > .viewport {
+    -fx-background-color: #f0f1f5;
+}
+
+/* Tiles pane */
+.tiles-pane {
+    -fx-background-color: transparent;
+}
+
+/* Styling for running and stopped containers */
+.container-running {
+    -fx-border-color: -terminal-green !important;
+    -fx-border-width: 1 1 1 4 !important;
+}
+
+.container-stopped {
+    -fx-border-color: -terminal-red !important;
+    -fx-border-width: 1 1 1 4 !important;
+}
+
+/* TitledPane customization */
+.titled-pane > .title {
+    -fx-background-radius: 8px 8px 0 0;
+    -fx-padding: 10 15;
+}
+
+.dark-theme .titled-pane > .title {
+    -fx-background-color: #576176;
+}
+
+.light-theme .titled-pane > .title {
+    -fx-background-color: #ADB0BB;
+}
+
+/* TitledPane arrow styling */
+.titled-pane > .title > .arrow-button > .arrow {
+    -fx-background-color: -fx-mark-highlight-color, -fx-mark-color;
+    -fx-background-insets: 1 0 -1 0, 0;
+    -fx-shape: "M 0 0 h 7 l -3.5 4 z";
+}
+
+.dark-theme .titled-pane > .title > .arrow-button > .arrow {
+    -fx-background-color: -terminal-foreground;
+}
+
+.light-theme .titled-pane > .title > .arrow-button > .arrow {
+    -fx-background-color: -terminal-foreground;
+}
+
+/* ScrollPane scrollbar styling */
+.scroll-bar:vertical {
+    -fx-pref-width: 10;
+}
+
+.scroll-bar:horizontal {
+    -fx-pref-height: 10;
+}
+
+.dark-theme .scroll-bar {
+    -fx-background-color: #1e1e2e;
+}
+
+.light-theme .scroll-bar {
+    -fx-background-color: #f0f1f5;
+}
+
+.dark-theme .scroll-bar .thumb {
+    -fx-background-color: #383847;
+}
+
+.light-theme .scroll-bar .thumb {
+    -fx-background-color: #d2d3db;
+}
+
+.dark-theme .scroll-bar .thumb:hover {
+    -fx-background-color: #484b6a;
+}
+
+.light-theme .scroll-bar .thumb:hover {
+    -fx-background-color: #bcc0cc;
+}
 /* global css*/
 

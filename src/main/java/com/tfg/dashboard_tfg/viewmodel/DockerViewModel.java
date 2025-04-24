@@ -7,6 +7,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.paint.Color;
 
@@ -29,6 +30,7 @@ public class DockerViewModel {
     private ComboBox<String> commandHistory;
     @FXML
     private Label statusLabel;
+
 
     // Container Tiles Components
     @FXML
@@ -71,6 +73,12 @@ public class DockerViewModel {
 
         // Load initial container data
         refreshContainers();
+
+        cliInput.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                executeCommand();
+            }
+        });
     }
 
     @FXML
@@ -104,12 +112,12 @@ public class DockerViewModel {
             try {
                 ProcessBuilder processBuilder = new ProcessBuilder();
 
-                // Format command
-                List<String> commandParts = new ArrayList<>();
-                commandParts.add("docker");
-                commandParts.addAll(Arrays.asList(command.split("\\s+")));
-
-                processBuilder.command(commandParts);
+                if (command.startsWith("docker")) {
+                    List<String> commandParts = new ArrayList<>(Arrays.asList(command.split("\\s+")));
+                    processBuilder.command(commandParts);
+                } else {
+                    processBuilder.command("cmd", "/c", command);
+                }
                 processBuilder.redirectErrorStream(true);
 
                 Process process = processBuilder.start();
@@ -134,6 +142,9 @@ public class DockerViewModel {
                                 command.contains("start") || command.contains("stop") ||
                                 command.contains("kill") || command.contains("rm")) {
                             refreshContainers();
+                        }
+                        if (command.startsWith("cls")){
+                            clearTerminal();
                         }
                     });
 
@@ -245,12 +256,21 @@ public class DockerViewModel {
         String status = container.get("status");
         boolean isRunning = status.toLowerCase().contains("up");
 
+
+        final ContextMenu contextMenu = new ContextMenu();
+        final MenuItem item1 = new MenuItem("open a file");
+        final MenuItem item2 = new MenuItem("quit");
+
+        contextMenu.getItems().addAll(item1, item2);
+
         // Set tile color based on container status
         Color tileColor = isRunning ? Color.valueOf("#2ecc71") : Color.valueOf("#e74c3c");
 
         Tile tile = TileBuilder.create()
                 .skinType(Tile.SkinType.GAUGE)
-                .prefSize(150, 150)
+                .prefSize(120, 120)
+                .maxWidth(Double.MAX_VALUE)
+                .maxHeight(Double.MAX_VALUE)
                 .title(name)
                 .description(image)
                 .text(status)
@@ -267,13 +287,14 @@ public class DockerViewModel {
             }
         });
 
-        // Add mouse click handler to focus on container
-        tile.setOnMouseClicked(event -> {
-            String id = container.get("id");
-            cliInput.setText("inspect " + id);
-            executeCommand();
-        });
-
+//        // Add mouse click handler to focus on container
+//        tile.setOnMouseClicked(event -> {
+//            String id = container.get("id");
+//            cliInput.setText("docker inspect " + id);
+//            executeCommand();
+//        });
+        tile.setOnContextMenuRequested(e ->
+                contextMenu.show(tile, e.getScreenX(), e.getScreenY()));
         return tile;
     }
 

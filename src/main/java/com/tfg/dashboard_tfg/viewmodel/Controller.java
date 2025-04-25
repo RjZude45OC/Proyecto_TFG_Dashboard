@@ -372,10 +372,10 @@ public class Controller {
 
     @FXML
     public void showRssView() {
-        if (!isLoggedIn.get()) {
-            showLoginForm();
-            return;
-        }
+//        if (!isLoggedIn.get()) {
+//            showLoginForm();
+//            return;
+//        }
 
         resetViewStyles();
         if (darkMode.get()) {

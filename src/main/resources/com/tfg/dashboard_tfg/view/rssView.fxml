@@ -24,7 +24,7 @@
                  -fx-background-radius: 8px;
                  -fx-border-radius: 8px;">
 
-        <Label text="Prowlarr Indexer Management"
+        <Label text="RSS Controller"
                styleClass="title"
                style="-fx-font-size: 28px; -fx-font-weight: bold;"/>
 

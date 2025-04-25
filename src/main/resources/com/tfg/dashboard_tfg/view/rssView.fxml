@@ -5,22 +5,161 @@
 <?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
 
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.tfg.dashboard_tfg.viewmodel.RssViewModel"
-            prefHeight="400.0" prefWidth="600.0">
+            prefHeight="600.0" prefWidth="800.0"
+            styleClass="view-box">
 
     <VBox spacing="20.0"
           AnchorPane.bottomAnchor="20.0"
           AnchorPane.leftAnchor="20.0"
           AnchorPane.rightAnchor="20.0"
           AnchorPane.topAnchor="20.0"
+          styleClass="view"
           style="-fx-border-width: 1;
-                 -fx-padding: 20 40 0 40;"
-          styleClass="view">
+                 -fx-padding: 20 40 0 40;
+                 -fx-background-radius: 8px;
+                 -fx-border-radius: 8px;">
 
-        <Label text="Indexer"
+        <Label text="Prowlarr Indexer Management"
+               styleClass="title"
                style="-fx-font-size: 28px; -fx-font-weight: bold;"/>
+
+        <HBox spacing="10.0" alignment="CENTER_LEFT" styleClass="filter-container">
+            <Label text="API URL:" styleClass="filter-label" />
+            <TextField fx:id="apiUrlField" promptText="http://localhost:9696"
+                       styleClass="terminal-input" HBox.hgrow="ALWAYS" />
+            <Label text="API Key:" styleClass="filter-label" />
+            <TextField fx:id="apiKeyField" promptText="Your API Key"
+                       styleClass="terminal-input" HBox.hgrow="ALWAYS" />
+            <Button text="Connect" onAction="#connectToProwlarr"
+                    styleClass="console-button" />
+        </HBox>
+
+        <TabPane VBox.vgrow="ALWAYS" styleClass="monitoring-container">
+            <tabs>
+                <!-- Indexers Tab -->
+                <Tab text="Indexers" closable="false">
+                    <VBox spacing="10.0" styleClass="terminal-container">
+                        <HBox spacing="10.0" alignment="CENTER_LEFT" styleClass="monitoring-toolbar">
+                            <Button text="Refresh Indexers" onAction="#refreshIndexers"
+                                    styleClass="console-button" />
+                            <Button text="Add Indexer" onAction="#showAddIndexerDialog"
+                                    styleClass="console-button" />
+                            <Button text="Test All" onAction="#testAllIndexers"
+                                    styleClass="console-button" />
+                            <Region HBox.hgrow="ALWAYS" />
+                            <TextField fx:id="indexerSearchField" promptText="Search indexers..."
+                                       styleClass="terminal-input" />
+                        </HBox>
+
+                        <TableView fx:id="indexersTableView" VBox.vgrow="ALWAYS"
+                                   styleClass="container-scroll">
+                            <columns>
+                                <TableColumn fx:id="indexerIdColumn" text="ID" />
+                                <TableColumn fx:id="indexerNameColumn" text="Name" />
+                                <TableColumn fx:id="indexerTypeColumn" text="Type" />
+                                <TableColumn fx:id="indexerEnabledColumn" text="Enabled" />
+                                <TableColumn fx:id="indexerPriorityColumn" text="Priority" />
+                                <TableColumn fx:id="indexerActionColumn" text="Actions" />
+                            </columns>
+                        </TableView>
+                    </VBox>
+                </Tab>
+
+                <!-- Tags Tab -->
+                <Tab text="Tags" closable="false">
+                    <VBox spacing="10.0" styleClass="terminal-container">
+                        <HBox spacing="10.0" alignment="CENTER_LEFT" styleClass="monitoring-toolbar">
+                            <Button text="Refresh Tags" onAction="#refreshTags"
+                                    styleClass="console-button" />
+                            <Button text="Add Tag" onAction="#showAddTagDialog"
+                                    styleClass="console-button" />
+                            <Region HBox.hgrow="ALWAYS" />
+                            <TextField fx:id="tagSearchField" promptText="Search tags..."
+                                       styleClass="terminal-input" />
+                        </HBox>
+
+                        <TableView fx:id="tagsTableView" VBox.vgrow="ALWAYS"
+                                   styleClass="container-scroll">
+                            <columns>
+                                <TableColumn fx:id="tagIdColumn" text="ID" />
+                                <TableColumn fx:id="tagLabelColumn" text="Label" />
+                                <TableColumn fx:id="tagActionColumn" text="Actions" />
+                            </columns>
+                        </TableView>
+                    </VBox>
+                </Tab>
+
+                <!-- Stats Tab -->
+                <Tab text="Stats" closable="false">
+                    <VBox spacing="10.0" styleClass="terminal-container">
+                        <HBox spacing="10.0" alignment="CENTER_LEFT" styleClass="monitoring-toolbar">
+                            <Button text="Refresh Stats" onAction="#refreshStats"
+                                    styleClass="console-button" />
+                        </HBox>
+
+                        <TitledPane text="System Status" expanded="true">
+                            <GridPane hgap="10" vgap="5" styleClass="filter-container">
+                                <Label text="Prowlarr Version:" styleClass="filter-label"
+                                       GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                                <Label fx:id="versionLabel" text="Unknown"
+                                       GridPane.columnIndex="1" GridPane.rowIndex="0" />
+
+                                <Label text="Indexers Count:" styleClass="filter-label"
+                                       GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                                <Label fx:id="indexersCountLabel" text="0"
+                                       GridPane.columnIndex="1" GridPane.rowIndex="1" />
+
+                                <Label text="Enabled Indexers:" styleClass="filter-label"
+                                       GridPane.columnIndex="0" GridPane.rowIndex="2" />
+                                <Label fx:id="enabledIndexersLabel" text="0"
+                                       GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                            </GridPane>
+                        </TitledPane>
+
+                        <TitledPane text="Indexer Stats" expanded="true" VBox.vgrow="ALWAYS">
+                            <TableView fx:id="indexerStatsTableView" styleClass="container-scroll">
+                                <columns>
+                                    <TableColumn fx:id="statsIndexerNameColumn" text="Indexer" />
+                                    <TableColumn fx:id="statsSuccessCountColumn" text="Success" />
+                                    <TableColumn fx:id="statsFailureCountColumn" text="Failures" />
+                                    <TableColumn fx:id="statsAvgResponseColumn" text="Avg Response" />
+                                </columns>
+                            </TableView>
+                        </TitledPane>
+                    </VBox>
+                </Tab>
+
+                <!-- Settings Tab -->
+                <Tab text="Settings" closable="false">
+                    <VBox spacing="10.0" styleClass="terminal-container">
+                        <TitledPane text="General Settings" expanded="true">
+                            <GridPane hgap="10" vgap="5" styleClass="filter-container">
+                                <Label text="Connection Timeout (sec):" styleClass="filter-label"
+                                       GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                                <TextField fx:id="timeoutField" promptText="30" styleClass="terminal-input"
+                                           GridPane.columnIndex="1" GridPane.rowIndex="0" />
+
+                                <Label text="Cache Duration (min):" styleClass="filter-label"
+                                       GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                                <TextField fx:id="cacheDurationField" promptText="10" styleClass="terminal-input"
+                                           GridPane.columnIndex="1" GridPane.rowIndex="1" />
+
+                                <Button text="Save Settings" onAction="#saveSettings" styleClass="console-button"
+                                        GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                            </GridPane>
+                        </TitledPane>
+                    </VBox>
+                </Tab>
+            </tabs>
+        </TabPane>
+
+        <HBox alignment="CENTER_RIGHT" spacing="10.0">
+            <Label fx:id="statusLabel" text="Not connected" styleClass="status-label" />
+        </HBox>
     </VBox>
 </AnchorPane>

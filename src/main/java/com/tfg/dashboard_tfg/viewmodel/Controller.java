@@ -44,6 +44,9 @@ public class Controller {
 
     @FXML
     public Button fullscreenButton;
+
+    @FXML
+    public Button DownloadBtn;
     // Theme Properties
     @FXML
     private ToggleButton themeToggle;
@@ -84,7 +87,8 @@ public class Controller {
 
     @FXML
     private AnchorPane rssView;
-
+    @FXML
+    private AnchorPane DownloaderClientView;
     // FXML Injected Buttons
     @FXML
     private Button dashboardBtn;
@@ -124,6 +128,7 @@ public class Controller {
     public BooleanProperty darkModeProperty() {
         return darkMode;
     }
+
     private Cursor currentCursor;
 
     @FXML
@@ -158,24 +163,14 @@ public class Controller {
     }
 
     // Authentication Methods
-    public BooleanProperty isLoggedInProperty() {
-        return isLoggedIn;
-    }
-
-    public boolean getIsLoggedIn() {
-        return isLoggedIn.get();
-    }
 
     public void setIsLoggedIn(boolean value) {
         isLoggedIn.set(value);
     }
+
     // Add this field to the Controller class
     private String currentUsername = "";
 
-    // Add these methods to access and update the username
-    public String getCurrentUsername() {
-        return currentUsername;
-    }
     // Add this method to update the login button text
     public void updateLoginButtonText() {
         if (isLoggedIn.get() && !currentUsername.isEmpty()) {
@@ -184,9 +179,11 @@ public class Controller {
             loginMenuBtn.setText("Login");
         }
     }
+
     public void setCurrentUsername(String username) {
         this.currentUsername = username;
     }
+
     // Theme Methods
     private void initializeThemeToggle() {
         // Load saved theme preference or use dark theme as default
@@ -283,6 +280,7 @@ public class Controller {
         dockerBtn.setStyle(activeButton == dockerBtn ? activeStyle : inactiveStyle);
         loginMenuBtn.setStyle(activeButton == loginMenuBtn ? activeStyle : inactiveStyle);
         rssBtn.setStyle(activeButton == rssBtn ? activeStyle : inactiveStyle);
+        DownloadBtn.setStyle(activeButton == DownloadBtn ? activeStyle : inactiveStyle);
     }
 
     private void applyLightThemeToButtons() {
@@ -298,6 +296,7 @@ public class Controller {
         dockerBtn.setStyle(activeButton == dockerBtn ? activeStyle : inactiveStyle);
         loginMenuBtn.setStyle(activeButton == loginMenuBtn ? activeStyle : inactiveStyle);
         rssBtn.setStyle(activeButton == rssBtn ? activeStyle : inactiveStyle);
+        DownloadBtn.setStyle(activeButton == DownloadBtn ? activeStyle : inactiveStyle);
     }
 
     private Button getActiveButton() {
@@ -307,6 +306,7 @@ public class Controller {
         if (dockerView != null && dockerView.isVisible()) return dockerBtn;
         if (loginView != null && loginView.isVisible()) return loginMenuBtn;
         if (rssView != null && rssView.isVisible()) return rssBtn;
+        if (DownloadBtn != null && DownloadBtn.isVisible()) return DownloadBtn;
         return dashboardBtn; // Default
     }
 
@@ -387,6 +387,22 @@ public class Controller {
     }
 
     @FXML
+    public void showDownloadView() {
+//        if (!isLoggedIn.get()) {
+//            showLoginForm();
+//            return;
+//        }
+
+        resetViewStyles();
+        if (darkMode.get()) {
+            DownloadBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: #CDD6F4;");
+        } else {
+            DownloadBtn.setStyle("-fx-background-color: #e0e0e0; -fx-text-fill: #333333;");
+        }
+        setViewVisibility(DownloaderClientView);
+    }
+
+    @FXML
     public void showLoginForm() {
         // If already logged in, this is a logout action
         if (isLoggedIn.get()) {
@@ -431,6 +447,7 @@ public class Controller {
             dockerBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #CDD6F4;");
             loginMenuBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #CDD6F4;");
             rssBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #CDD6F4;");
+            DownloadBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #CDD6F4;");
         } else {
             dashboardBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");
             sonarrBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");
@@ -438,6 +455,7 @@ public class Controller {
             dockerBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");
             loginMenuBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");
             rssBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");
+            DownloadBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");
         }
     }
 
@@ -450,6 +468,7 @@ public class Controller {
         loginView.setVisible(false);
         registerView.setVisible(false);
         rssView.setVisible(false);
+        DownloaderClientView.setVisible(false);
         // Show the active view
         activeView.setVisible(true);
     }
@@ -499,8 +518,13 @@ public class Controller {
         PathCheck(path);
         sonarrView = sonarrLoader.load();
 
+        //load DownloadClient view
+        path = "/com/tfg/dashboard_tfg/view/DownloaderClientView.fxml";
+        FXMLLoader downloadClientLoader = new FXMLLoader(getClass().getResource(path));
+        PathCheck(path);
+        DownloaderClientView = downloadClientLoader.load();
         //add all child to main panel
-        mainStackPane.getChildren().addAll(dashboardView, dockerView, jellyfinView, loginView, registerView, rssView, sonarrView);
+        mainStackPane.getChildren().addAll(dashboardView, dockerView, jellyfinView, loginView, registerView, rssView, sonarrView,DownloaderClientView);
 
         // Set up controllers
         LoginViewModel loginController = loginLoader.getController();

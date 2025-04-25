@@ -121,6 +121,19 @@
                             <Insets left="20.0"/>
                         </padding>
                     </Button>
+
+                    <Button fx:id="DownloadBtn" alignment="BASELINE_LEFT" graphicTextGap="15.0" onAction="#showDownloadView"
+                            prefHeight="50.0" prefWidth="250.0" text="Download">
+                        <graphic>
+                            <FontIcon iconLiteral="mdi2d-download-box" iconSize="22"/>
+                        </graphic>
+                        <font>
+                            <Font size="16.0"/>
+                        </font>
+                        <padding>
+                            <Insets left="20.0"/>
+                        </padding>
+                    </Button>
                 </VBox>
 
                 <VBox VBox.vgrow="NEVER">

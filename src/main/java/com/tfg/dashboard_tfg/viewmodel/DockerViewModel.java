@@ -10,6 +10,7 @@ import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.paint.Color;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -143,7 +144,7 @@ public class DockerViewModel {
                                 command.contains("kill") || command.contains("rm")) {
                             refreshContainers();
                         }
-                        if (command.startsWith("cls")){
+                        if (command.startsWith("cls")) {
                             clearTerminal();
                         }
                     });
@@ -252,16 +253,10 @@ public class DockerViewModel {
     private Tile createContainerTile(Map<String, String> container) {
         // Create a basic tile with container name
         String name = container.get("name");
+        String id = container.get("id");
         String image = container.get("image");
         String status = container.get("status");
         boolean isRunning = status.toLowerCase().contains("up");
-
-
-        final ContextMenu contextMenu = new ContextMenu();
-        final MenuItem item1 = new MenuItem("open a file");
-        final MenuItem item2 = new MenuItem("quit");
-
-        contextMenu.getItems().addAll(item1, item2);
 
         // Set tile color based on container status
         Color tileColor = isRunning ? Color.valueOf("#2ecc71") : Color.valueOf("#e74c3c");
@@ -279,41 +274,44 @@ public class DockerViewModel {
                 .animated(true)
                 .build();
 
-        // Add mouse scroll handler to cycle through metrics
-        tile.setOnScroll(event -> {
-            ContainerTile containerTile = containerTiles.get(container.get("id"));
-            if (containerTile != null) {
-                cycleMetricDisplay(containerTile, container, event.getDeltaY() > 0);
-            }
-        });
+        // Create context menu with view options
+        final ContextMenu contextMenu = new ContextMenu();
 
-//        // Add mouse click handler to focus on container
-//        tile.setOnMouseClicked(event -> {
-//            String id = container.get("id");
-//            cliInput.setText("docker inspect " + id);
-//            executeCommand();
-//        });
-        tile.setOnContextMenuRequested(e ->
-                contextMenu.show(tile, e.getScreenX(), e.getScreenY()));
-        return tile;
-    }
-
-    private void cycleMetricDisplay(ContainerTile containerTile, Map<String, String> container, boolean forward) {
-        // Get next or previous metric
-        MetricType[] metrics = MetricType.values();
-        int currentIndex = containerTile.currentMetric.ordinal();
-        int nextIndex;
-
-        if (forward) {
-            nextIndex = (currentIndex + 1) % metrics.length;
-        } else {
-            nextIndex = (currentIndex - 1 + metrics.length) % metrics.length;
+        // Add metric display options
+        Menu metricsMenu = new Menu("Switch Metric");
+        for (MetricType metricType : MetricType.values()) {
+            MenuItem metricMenuItem = new MenuItem(metricType.name());
+            metricMenuItem.setOnAction(event -> {
+                ContainerTile containerTile = containerTiles.get(id);
+                if (containerTile != null) {
+                    containerTile.currentMetric = metricType;
+                    updateTileWithMetric(containerTile, container);
+                }
+            });
+            metricsMenu.getItems().add(metricMenuItem);
         }
 
-        containerTile.currentMetric = metrics[nextIndex];
+        // Add inspect container option
+        MenuItem inspectItem = new MenuItem("Inspect Container");
+        inspectItem.setOnAction(event -> {
+            cliInput.setText("docker inspect " + id);
+            executeCommand();
+        });
 
-        // Update tile to show new metric
-        updateTileWithMetric(containerTile, container);
+        // Add logs container option
+        MenuItem logsItem = new MenuItem("View Container Logs");
+        logsItem.setOnAction(event -> {
+            cliInput.setText("docker logs " + id);
+            executeCommand();
+        });
+
+        contextMenu.getItems().addAll(metricsMenu, inspectItem, logsItem);
+
+        // Attach context menu to tile
+        tile.setOnContextMenuRequested(e ->
+                contextMenu.show(tile, e.getScreenX(), e.getScreenY()));
+
+        return tile;
     }
 
     private void updateTileWithMetric(ContainerTile containerTile, Map<String, String> container) {
@@ -362,12 +360,22 @@ public class DockerViewModel {
                 break;
 
             case NETWORK:
-                // Get real-time network stats
                 fetchContainerNetworkStats(id, (netIO) -> {
                     tile.setSkinType(Tile.SkinType.HIGH_LOW);
                     tile.setTitle("Network");
                     tile.setDescription(name);
-                    tile.setText(netIO + " MB/s");
+
+                    // Format with proper units
+                    String displayValue;
+                    if (netIO >= 1024) {
+                        displayValue = String.format("%.2f GB/s", netIO / 1024);
+                    } else if (netIO >= 1) {
+                        displayValue = String.format("%.2f MB/s", netIO);
+                    } else {
+                        displayValue = String.format("%.2f kB/s", netIO * 1024);
+                    }
+
+                    tile.setText(displayValue);
                 });
                 break;
 
@@ -401,12 +409,19 @@ public class DockerViewModel {
                         new InputStreamReader(process.getInputStream()))) {
 
                     String line = reader.readLine();
+                    System.out.println(line);
                     if (line != null) {
                         // Parse percentage (e.g., "10.5%")
-                        String cpuPerc = line.replace("%", "");
-                        double cpuUsage = Double.parseDouble(cpuPerc);
-
-                        Platform.runLater(() -> callback.accept(cpuUsage));
+                        String cpuPerc = line.trim().replace("%", "");
+                        try {
+                            double cpuUsage = Double.parseDouble(cpuPerc);
+                            Platform.runLater(() -> callback.accept(cpuUsage));
+                        } catch (NumberFormatException e) {
+                            Platform.runLater(() -> {
+                                statusLabel.setText("Error parsing CPU stats: " + e.getMessage());
+                                callback.accept(0.0);
+                            });
+                        }
                     }
                 }
 
@@ -432,12 +447,19 @@ public class DockerViewModel {
                         new InputStreamReader(process.getInputStream()))) {
 
                     String line = reader.readLine();
+                    System.out.println(line);
                     if (line != null) {
                         // Parse percentage (e.g., "10.5%")
-                        String memPerc = line.replace("%", "");
-                        double memUsage = Double.parseDouble(memPerc);
-
-                        Platform.runLater(() -> callback.accept(memUsage));
+                        String memPerc = line.trim().replace("%", "");
+                        try {
+                            double memUsage = Double.parseDouble(memPerc);
+                            Platform.runLater(() -> callback.accept(memUsage));
+                        } catch (NumberFormatException e) {
+                            Platform.runLater(() -> {
+                                statusLabel.setText("Error parsing memory stats: " + e.getMessage());
+                                callback.accept(0.0);
+                            });
+                        }
                     }
                 }
 
@@ -463,17 +485,30 @@ public class DockerViewModel {
                         new InputStreamReader(process.getInputStream()))) {
 
                     String line = reader.readLine();
-                    if (line != null) {
+                    System.out.println(line);
+                    if (line != null && !line.isEmpty()) {
                         // Parse network I/O (e.g., "10MB / 5MB")
-                        double netIO = 0.0;
-                        if (line.contains("MB")) {
-                            netIO = Double.parseDouble(line.split("MB")[0].trim());
-                        } else if (line.contains("kB")) {
-                            netIO = Double.parseDouble(line.split("kB")[0].trim()) / 1024.0;
-                        }
+                        try {
+                            // Split into received and sent
+                            String[] parts = line.split("/");
+                            if (parts.length >= 1) {
+                                String received = parts[0].trim();
 
-                        double finalNetIO = netIO;
-                        Platform.runLater(() -> callback.accept(finalNetIO));
+                                // Parse the numeric value
+                                double value = parseValueWithUnit(received);
+
+                                Platform.runLater(() -> callback.accept(value));
+                            } else {
+                                Platform.runLater(() -> callback.accept(0.0));
+                            }
+                        } catch (Exception e) {
+                            Platform.runLater(() -> {
+                                statusLabel.setText("Error parsing network stats: " + e.getMessage());
+                                callback.accept(0.0);
+                            });
+                        }
+                    } else {
+                        Platform.runLater(() -> callback.accept(0.0));
                     }
                 }
 
@@ -486,6 +521,24 @@ public class DockerViewModel {
         }).start();
     }
 
+    // Helper method to parse values with units (MB, GB, kB, etc.)
+    private double parseValueWithUnit(String value) {
+        // Remove non-numeric parts to get just the value and unit
+        String numericPart = value.replaceAll("[^0-9\\.].*$", "").trim();
+        double numericValue = Double.parseDouble(numericPart);
+
+        // Determine unit and convert to MB
+        if (value.contains("GB")) {
+            return numericValue * 1024;  // Convert GB to MB
+        } else if (value.contains("kB")) {
+            return numericValue / 1024;  // Convert kB to MB
+        } else if (value.contains("B") && !value.contains("kB") && !value.contains("MB") && !value.contains("GB")) {
+            return numericValue / (1024 * 1024);  // Convert B to MB
+        } else {
+            // Assume MB or default
+            return numericValue;
+        }
+    }
     @FXML
     public void applyContainerFilter() {
         refreshContainers();
@@ -499,7 +552,6 @@ public class DockerViewModel {
             stopAutoRefresh();
         }
     }
-
     private void startAutoRefresh() {
         if (scheduler != null && !scheduler.isShutdown()) {
             scheduler.shutdown();
@@ -507,57 +559,103 @@ public class DockerViewModel {
 
         scheduler = Executors.newSingleThreadScheduledExecutor();
         scheduler.scheduleAtFixedRate(() -> {
-            // Update container metrics for each tile
-            for (ContainerTile containerTile : containerTiles.values()) {
-                // Get container data
-                final String id = containerTile.id;
-                final String name = containerTile.name;
+            Platform.runLater(() -> {
+                // First, update the container list to catch any new/removed containers
+                refreshContainers();
 
-                // Get container stats
-                new Thread(() -> {
-                    try {
-                        ProcessBuilder processBuilder = new ProcessBuilder();
-                        processBuilder.command("docker", "inspect", "--format",
-                                "{{.State.Status}}\\t{{.State.Running}}\\t{{.Config.Image}}\\t{{.State.StartedAt}}", id);
+                // Then update metrics for each container based on its current display type
+                for (ContainerTile containerTile : containerTiles.values()) {
+                    String containerId = containerTile.id;
+                    Map<String, String> containerInfo = new HashMap<>();
+                    containerInfo.put("id", containerTile.id);
+                    containerInfo.put("name", containerTile.name);
 
-                        Process process = processBuilder.start();
-
-                        try (BufferedReader reader = new BufferedReader(
-                                new InputStreamReader(process.getInputStream()))) {
-
-                            String line = reader.readLine();
-                            if (line != null) {
-                                String[] parts = line.split("\\t");
-                                if (parts.length >= 4) {
-                                    Map<String, String> container = getStringStringMap(id, name, parts);
-
-                                    // Update the tile on JavaFX thread
-                                    Platform.runLater(() -> updateTileWithMetric(containerTile, container));
+                    // Update metrics based on what's currently being displayed
+                    switch (containerTile.currentMetric) {
+                        case CPU:
+                            fetchContainerCpuStats(containerId, (cpuUsage) -> {
+                                containerTile.tile.setValue(cpuUsage);
+                            });
+                            break;
+                        case MEMORY:
+                            fetchContainerMemoryStats(containerId, (memUsage) -> {
+                                containerTile.tile.setValue(memUsage);
+                            });
+                            break;
+                        case NETWORK:
+                            fetchContainerNetworkStats(containerId, (netIO) -> {
+                                // Format with proper units
+                                String displayValue;
+                                if (netIO >= 1024) {
+                                    displayValue = String.format("%.2f GB/s", netIO / 1024);
+                                } else if (netIO >= 1) {
+                                    displayValue = String.format("%.2f MB/s", netIO);
+                                } else {
+                                    displayValue = String.format("%.2f kB/s", netIO * 1024);
                                 }
-                            }
-                        }
-
-                    } catch (Exception e) {
-                        // Ignore errors in background update
+                                containerTile.tile.setText(displayValue);
+                            });
+                            break;
+                        case STATUS:
+                        case NAME:
+                        case UPTIME:
+                            // For these metrics, we need to get fresh container data
+                            updateContainerInfo(containerTile);
+                            break;
                     }
-                }).start();
-            }
+                }
+            });
         }, 0, 5, TimeUnit.SECONDS);
 
         statusLabel.setText("Auto-refresh enabled");
     }
 
-    private static Map<String, String> getStringStringMap(String id, String name, String[] parts) {
+    // New helper method to update basic container information
+    private void updateContainerInfo(ContainerTile containerTile) {
+        String id = containerTile.id;
+        new Thread(() -> {
+            try {
+                ProcessBuilder processBuilder = new ProcessBuilder();
+                processBuilder.command("docker", "stats", "--no-stream", "--format", "{{json .}}", id);
+
+                Process process = processBuilder.start();
+
+                try (BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(process.getInputStream()))) {
+
+                    String line = reader.readLine();
+                    System.out.println(line);
+                    if (line != null) {
+                        String[] parts = line.split("\\t");
+                        if (parts.length >= 4) {
+                            Map<String, String> container = getStringStringMap(containerTile, line);
+
+                            Platform.runLater(() -> updateTileWithMetric(containerTile, container));
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                // Log error but don't disrupt auto-refresh
+                System.err.println("Error updating container info: " + e.getMessage());
+            }
+        }).start();
+    }
+
+    private static Map<String, String> getStringStringMap(ContainerTile containerTile, String line) {
+        JSONObject json = new JSONObject(line);
+
         Map<String, String> container = new HashMap<>();
-        container.put("id", id);
-        container.put("name", name);
-        container.put("status", parts[0]);
-        container.put("running", parts[1]);
-        container.put("image", parts[2]);
-        container.put("startedAt", parts[3]);
+        container.put("id", containerTile.id);
+        container.put("name", json.optString("Name"));
+        container.put("status", json.optString("CPUPerc"));
+        container.put("running", json.optString("MemUsage"));
+        container.put("image", json.optString("MemPerc"));
+        container.put("startedAt", "");
+
         container.put("runningFor", "");
         return container;
     }
+
 
     private void stopAutoRefresh() {
         if (scheduler != null && !scheduler.isShutdown()) {
@@ -566,5 +664,4 @@ public class DockerViewModel {
         }
         statusLabel.setText("Auto-refresh disabled");
     }
-
 }

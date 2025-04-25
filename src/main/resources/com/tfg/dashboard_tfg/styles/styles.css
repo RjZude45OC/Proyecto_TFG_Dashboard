@@ -718,5 +718,132 @@
 .light-theme .scroll-bar .thumb:hover {
     -fx-background-color: #bcc0cc;
 }
-/* global css*/
+/* tab css */
+.tab-pane {
+    -fx-tab-min-width: 90px;
+}
 
+/* Base tab styling */
+.tab {
+    -fx-background-insets: 0 1 0 1, 0, 0;
+    -fx-padding: 5 10;
+    -fx-background-radius: 6px 6px 0 0;
+}
+
+/* Tab header area transparency */
+.tab-pane .tab-header-area .tab-header-background {
+    -fx-opacity: 0;
+}
+
+/* Tab label base */
+.tab .tab-label {
+    -fx-alignment: CENTER;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+/* Light theme tabs */
+.light-theme .tab-pane .tab {
+    -fx-background-color: #e6e6e6;
+}
+
+.light-theme .tab-pane .tab:selected {
+    -fx-background-color: #ADB0BB;
+}
+
+.light-theme .tab .tab-label {
+    -fx-text-fill: #828282;
+}
+
+.light-theme .tab:selected .tab-label {
+    -fx-text-fill: #96b946;
+}
+
+/* Dark theme tabs */
+.dark-theme .tab-pane .tab {
+    -fx-background-color: #2e2e42;
+}
+
+.dark-theme .tab-pane .tab:selected {
+    -fx-background-color: #576176;
+}
+
+.dark-theme .tab .tab-label {
+    -fx-text-fill: #a0a0a0;
+}
+
+.dark-theme .tab:selected .tab-label {
+    -fx-text-fill: #96b946;
+}
+
+/* table css */
+.table-view {
+    -fx-background-color: transparent;
+    -fx-table-cell-border-color: transparent;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+}
+
+/* Header styling */
+.table-view .column-header-background {
+    -fx-background-radius: 6px 6px 0 0;
+    -fx-background-insets: 0 0 1 0;
+    -fx-padding: 8 10;
+}
+
+/* Row styling */
+.table-row-cell {
+    -fx-border-color: transparent;
+    -fx-cell-size: 36px;
+    -fx-padding: 0 10;
+}
+
+/* Cell text */
+.table-cell {
+    -fx-padding: 4 10;
+}
+
+/* Light theme TableView */
+.light-theme .table-view {
+    -fx-background-color: #f0f1f5;
+    -fx-border-color: #e4e5f0;
+}
+
+.light-theme .table-view .column-header-background {
+    -fx-background-color: #e4e5f0;
+}
+
+.light-theme .table-view .table-cell {
+    -fx-text-fill: -terminal-foreground;
+    -fx-background-color: transparent;
+}
+
+.light-theme .table-row-cell:filled:selected,
+.light-theme .table-row-cell:filled:hover {
+    -fx-background-color: #d2d3db;
+}
+
+/* Dark theme TableView */
+.dark-theme .table-view {
+    -fx-background-color: #1e1e2e;
+    -fx-border-color: #383847;
+}
+
+.dark-theme .table-view .column-header-background {
+    -fx-background-color: #383847;
+}
+
+.dark-theme .table-view .table-cell {
+    -fx-text-fill: -terminal-brightWhite;
+    -fx-background-color: transparent;
+}
+
+.dark-theme .table-row-cell:filled:selected,
+.dark-theme .table-row-cell:filled:hover {
+    -fx-background-color: #383847;
+}
+.table-view .column-header,
+.table-view .column-header .filler,
+.table-view .column-header-background .filler {
+    -fx-background-color: transparent;
+}

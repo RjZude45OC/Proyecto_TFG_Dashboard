@@ -6,10 +6,14 @@ import eu.hansolo.tilesfx.chart.ChartData;
 import javafx.animation.KeyFrame;
 import javafx.animation.ScaleTransition;
 import javafx.animation.Timeline;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
@@ -53,11 +57,17 @@ public class DashboardController {
     private Tile dockerStatusTile;
     @FXML
     private Label statusLabel;
+    @FXML
+    private TextField apiUrlField;
+    @FXML
+    private Button applyUrlButton;
 
     private List<Tile> tileList;
     private ScheduledExecutorService scheduler;
     private Map<String, Long> previousNetworkBytes = new HashMap<>();
 
+    // API URL property
+    private StringProperty apiBaseUrl = new SimpleStringProperty("http://localhost:8393/api/v1/system");
 
     // Add these fields to your DashboardController class
     private Tile expandedTile = null;
@@ -65,14 +75,6 @@ public class DashboardController {
     private int originalColIndex = 0;
     private int originalRowIndex = 0;
     private Node[] hiddenTiles = null;
-
-    //api endpoint
-    private static final String BASE_URL = "http://localhost:8393/api/v1/system";
-    private static final String CPU_URL = BASE_URL + "/cpu";
-    private static final String MEMORY_URL = BASE_URL + "/memory";
-    private static final String DISKS_URL = BASE_URL + "/disks";
-    private static final String NETWORK_URL = BASE_URL + "/network";
-    private static final String SYSTEM_URL = BASE_URL;
 
     // Method to update tile colors based on theme
     private void updateTileColors(boolean isDarkMode) {
@@ -99,9 +101,6 @@ public class DashboardController {
         }
     }
 
-//    @FXML
-//    private ToggleButton themeToggle;
-
     @FXML
     public void initialize() {
         temperatureTile.getSections().clear();
@@ -122,10 +121,43 @@ public class DashboardController {
         //
         Controller.darkMode.addListener(this::changed);
 
-//        //update every x time
+        // Initialize the API URL field with the current value
+        apiUrlField.setText(apiBaseUrl.get());
+
+        // Schedule data updates
         scheduler = Executors.newSingleThreadScheduledExecutor();
         scheduler.scheduleAtFixedRate(this::fetchAndUpdateData, 0, 5, TimeUnit.SECONDS);
+    }
 
+    @FXML
+    public void onApplyUrlClicked() {
+        String newUrl = apiUrlField.getText().trim();
+        if (!newUrl.isEmpty()) {
+            apiBaseUrl.set(newUrl);
+            // Force immediate data refresh
+            fetchAndUpdateData();
+        }
+    }
+
+    // Helper method to get current API URLs
+    private String getSystemUrl() {
+        return apiBaseUrl.get();
+    }
+
+    private String getCpuUrl() {
+        return apiBaseUrl.get() + "/cpu";
+    }
+
+    private String getMemoryUrl() {
+        return apiBaseUrl.get() + "/memory";
+    }
+
+    private String getDisksUrl() {
+        return apiBaseUrl.get() + "/disks";
+    }
+
+    private String getNetworkUrl() {
+        return apiBaseUrl.get() + "/network";
     }
 
     private static class ProcessedData {
@@ -155,7 +187,7 @@ public class DashboardController {
     private void fetchAndUpdateData() {
         try {
             // Step 1: Fetch data in background thread
-            JSONObject systemData = fetchJsonData(SYSTEM_URL);
+            JSONObject systemData = fetchJsonData(getSystemUrl());
 
             // Step 2: Process all data in background thread
             final ProcessedData processedData = processAllData(systemData);
@@ -165,6 +197,12 @@ public class DashboardController {
         } catch (Exception e) {
             System.err.println("Error in background processing: " + e.getMessage());
             e.printStackTrace();
+
+            // Show error in UI
+            javafx.application.Platform.runLater(() -> {
+                statusLabel.setText("Error connecting to API: " + e.getMessage());
+                statusLabel.setTextFill(Color.web("#dc3545"));
+            });
         }
     }
 
@@ -355,163 +393,6 @@ public class DashboardController {
         }
     }
 
-    private void updateCpuTile(JSONObject cpuData) {
-        double systemCpuLoad = cpuData.getDouble("systemCpuLoad");
-        // Convert from 0-1 to 0-100 if needed
-        if (systemCpuLoad <= 1.0) {
-            systemCpuLoad *= 100;
-            cpuTile.setValue(systemCpuLoad);
-            cpuTile.setDescription("System CPU Load: " + String.format("%.2f", systemCpuLoad) + "%");
-        }
-    }
-
-    private void updateMemoryTile(JSONObject memoryData) {
-
-        double memoryUsagePercentage = memoryData.getDouble("memoryUsagePercentage");
-        memoryTile.setValue(memoryUsagePercentage);
-
-        // Convert bytes to GB for more readable values
-        double totalMemoryGB = memoryData.getDouble("totalMemory") / (1024 * 1024 * 1024);
-        double usedMemoryGB = memoryData.getDouble("usedMemory") / (1024 * 1024 * 1024);
-
-        memoryTile.setDescription(String.format("%.2f GB / %.2f GB (%.1f%%)",
-                usedMemoryGB, totalMemoryGB, memoryUsagePercentage));
-    }
-
-    private void updateStorageTile(JSONArray disksData) {
-        double totalSpace = 0;
-        double usedSpace = 0;
-
-        for (int i = 0; i < disksData.length(); i++) {
-            JSONObject disk = disksData.getJSONObject(i);
-            totalSpace += disk.getDouble("totalSpace");
-            usedSpace += disk.getDouble("usedSpace");
-        }
-
-        double usagePercentage = (usedSpace / totalSpace) * 100;
-        storageTile.setValue(usagePercentage);
-
-        // Convert to GB for more readable values
-        double totalSpaceGB = totalSpace / (1024 * 1024 * 1024);
-        double usedSpaceGB = usedSpace / (1024 * 1024 * 1024);
-
-        storageTile.setDescription(String.format("%.2f GB / %.2f GB (%.1f%%)",
-                usedSpaceGB, totalSpaceGB, usagePercentage));
-    }
-
-    private void updateNetworkTile(JSONObject networkData) {
-        JSONObject interfaces = networkData.getJSONObject("interfaces");
-        long totalBytesReceived = 0;
-        long totalBytesSent = 0;
-
-        for (String interfaceName : interfaces.keySet()) {
-            JSONObject networkInterface = interfaces.getJSONObject(interfaceName);
-            totalBytesReceived += networkInterface.getLong("bytesReceived");
-            totalBytesSent += networkInterface.getLong("bytesSent");
-        }
-
-        // Calculate network traffic rate
-        String networkKey = "total";
-        if (!previousNetworkBytes.containsKey(networkKey)) {
-            previousNetworkBytes.put(networkKey, totalBytesReceived + totalBytesSent);
-        } else {
-            long previousBytes = previousNetworkBytes.get(networkKey);
-            long currentBytes = totalBytesReceived + totalBytesSent;
-            long bytesDifference = currentBytes - previousBytes;
-
-            // Convert to KB/s (divided by 3 seconds between updates)
-            double kbPerSecond = bytesDifference / 1024.0 / 3;
-
-            // Add data point to chart
-            ChartData chartData = new ChartData("Network", kbPerSecond, Tile.BLUE);
-            networkTile.addChartData(chartData);
-
-            // Keep only the last 15 data points
-            if (networkTile.getChartData().size() > 15) {
-                networkTile.getChartData().remove(0);
-            }
-
-            // Update previous bytes for next calculation
-            previousNetworkBytes.put(networkKey, currentBytes);
-        }
-
-        // Format network usage description
-        double receivedMB = totalBytesReceived / (1024.0 * 1024.0);
-        double sentMB = totalBytesSent / (1024.0 * 1024.0);
-        networkTile.setDescription(String.format("Recv: %.2f MB | Sent: %.2f MB", receivedMB, sentMB));
-    }
-
-    private void updateSystemStatusTile(JSONObject systemData) {
-        // Calculate overall system health based on CPU and memory
-        JSONObject cpuData = systemData.getJSONObject("cpu");
-        JSONObject memoryData = systemData.getJSONObject("memory");
-
-        double cpuUsage = cpuData.getDouble("systemCpuLoad");
-        if (cpuUsage <= 1.0) cpuUsage *= 100;
-
-        double memoryUsage = memoryData.getDouble("memoryUsagePercentage");
-
-        // Simple algorithm for system health: average of CPU and memory usage
-        // Lower percentage means better health
-        double systemHealth = 100 - ((cpuUsage + memoryUsage) / 2);
-        systemStatusTile.setValue(systemHealth);
-
-        // Set description based on health
-        if (systemHealth > 75) {
-            systemStatusTile.setDescription("System Health: Excellent");
-        } else if (systemHealth > 50) {
-            systemStatusTile.setDescription("System Health: Good");
-        } else if (systemHealth > 25) {
-            systemStatusTile.setDescription("System Health: Fair");
-        } else {
-            systemStatusTile.setDescription("System Health: Poor");
-        }
-    }
-
-    private void updateJellyfinStatusTile() {
-        // Toggle status for demonstration (in a real app, you would check the actual status)
-        jellyfinStatusTile.setActive(!jellyfinStatusTile.isActive());
-
-        if (jellyfinStatusTile.isActive()) {
-            statusLabel.setText("server is running healthy");
-            statusLabel.setTextFill(Color.web("#28a745"));
-        } else {
-            statusLabel.setText("there is problem with server");
-            statusLabel.setTextFill(Color.web("#dc3545"));
-        }
-    }
-
-    private void updateDockerStatusTile(JSONObject cpuData) {
-        // For demonstration, we'll base Docker status on CPU load
-        // In a real application, you'd check actual Docker metrics
-        double cpuLoad = cpuData.getDouble("systemCpuLoad");
-        if (cpuLoad <= 1.0) cpuLoad *= 100;
-
-        // Scale to a reasonable Docker usage percentage
-        double dockerUsage = cpuLoad * 0.8; // Assuming Docker uses 80% of CPU
-        dockerStatusTile.setValue(dockerUsage);
-        dockerStatusTile.setDescription("Docker CPU Usage: " + String.format("%.2f", dockerUsage) + "%");
-    }
-
-    private void updateTemperatureTile() {
-        // Since we don't have actual temperature data, we'll simulate it based on CPU load
-        try {
-            JSONObject cpuData = fetchJsonData(CPU_URL).getJSONObject("cpu");
-            double cpuLoad = cpuData.getDouble("systemCpuLoad");
-            if (cpuLoad <= 1.0) cpuLoad *= 100;
-
-            // Simulate temperature: base 40°C + CPU load influence
-            double simulatedTemp = 40 + (cpuLoad * 0.6);
-            temperatureTile.setValue(simulatedTemp);
-            temperatureTile.setDescription("CPU Temperature: " + String.format("%.1f", simulatedTemp) + "°C");
-        } catch (Exception e) {
-            // Fallback to random temperature if API call fails
-            double simulatedTemp = 40 + Math.random() * 30;
-            temperatureTile.setValue(simulatedTemp);
-            temperatureTile.setDescription("CPU Temperature: " + String.format("%.1f", simulatedTemp) + "°C");
-        }
-    }
-
     public void ondrag(MouseEvent mouseEvent) {
         System.out.println(mouseEvent.getClass());
         System.out.println("ondrag");
@@ -523,24 +404,6 @@ public class DashboardController {
 
     public void onscroll(ScrollEvent scrollEvent) {
         System.out.println("onscroll");
-//        switch (test){
-//            case 0:
-//                cpuTile.setSkinType(TIMELINE);
-//                break;
-//            case 1:
-//                cpuTile.setSkinType(GAUGE_SPARK_LINE);
-//                break;
-//            default:
-//                cpuTile.setSkinType(SPARK_LINE);
-//                break;
-//        }
-//        if (test == 2)
-//        {
-//            test = 0;
-//        }
-//        else{
-//            test++;
-//        }
     }
 
     @FXML
@@ -658,5 +521,17 @@ public class DashboardController {
 
     private void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
         updateTileColors(newValue);
+    }
+
+    public StringProperty apiBaseUrlProperty() {
+        return apiBaseUrl;
+    }
+
+    public String getApiBaseUrl() {
+        return apiBaseUrl.get();
+    }
+
+    public void setApiBaseUrl(String url) {
+        apiBaseUrl.set(url);
     }
 }

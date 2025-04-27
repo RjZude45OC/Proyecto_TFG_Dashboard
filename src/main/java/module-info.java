@@ -15,6 +15,7 @@ module com.tfg.dashboard_tfg {
     requires org.json;
     requires java.net.http;
     requires com.fasterxml.jackson.databind;
+    requires jsch;
 
     opens com.tfg.dashboard_tfg to javafx.fxml;
     exports com.tfg.dashboard_tfg;

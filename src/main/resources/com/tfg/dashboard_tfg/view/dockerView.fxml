@@ -11,7 +11,7 @@
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.tfg.dashboard_tfg.viewmodel.DockerViewModel"
-            prefHeight="600.0" prefWidth="800.0">
+            prefHeight="860.0" prefWidth="800.0">
 
     <VBox spacing="10.0"
           AnchorPane.bottomAnchor="20.0"
@@ -28,6 +28,32 @@
             <Button text="Refresh Containers" onAction="#refreshContainers" styleClass="console-button"/>
             <ToggleButton fx:id="autoRefreshToggle" text="Auto Refresh" onAction="#toggleAutoRefresh" styleClass=" console-button"/>
         </HBox>
+
+        <TitledPane text="Remote Connection" styleClass="titled-pane, remote-connection-pane">
+            <GridPane fx:id="connectionPane" hgap="10" vgap="5" styleClass="connection-grid">
+                <Label text="Server Host:" GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="connection-label"/>
+                <TextField fx:id="serverHostField" GridPane.columnIndex="1" GridPane.rowIndex="0" promptText="e.g., localhost or IP address" styleClass="connection-input"/>
+
+                <Label text="Server Port:" GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="connection-label"/>
+                <TextField fx:id="serverPortField" GridPane.columnIndex="1" GridPane.rowIndex="1" promptText="e.g., 22 or 2375" styleClass="connection-input"/>
+
+                <Label text="Username:" GridPane.columnIndex="0" GridPane.rowIndex="2" styleClass="connection-label"/>
+                <TextField fx:id="usernameField" GridPane.columnIndex="1" GridPane.rowIndex="2" promptText="Username for SSH" styleClass="connection-input"/>
+
+                <Label text="Password:" GridPane.columnIndex="0" GridPane.rowIndex="3" styleClass="connection-label"/>
+                <PasswordField fx:id="passwordField" GridPane.columnIndex="1" GridPane.rowIndex="3" promptText="Password for SSH" styleClass="connection-input"/>
+
+                <Label text="Connection Type:" GridPane.columnIndex="0" GridPane.rowIndex="4" styleClass="connection-label"/>
+                <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="4" alignment="CENTER_LEFT">
+                    <RadioButton fx:id="sshRadio" text="SSH" toggleGroup="$connectionTypeGroup" selected="true" styleClass="connection-radio"/>
+                    <RadioButton fx:id="apiRadio" text="API" toggleGroup="$connectionTypeGroup" styleClass="connection-radio"/>
+                </HBox>
+
+                <Button fx:id="connectButton" text="Connect" GridPane.columnIndex="1" GridPane.rowIndex="5" onAction="#connectToServer" styleClass="console-button, connect-button"/>
+
+                <Label fx:id="connectionStatusLabel" text="Not Connected" GridPane.columnIndex="0" GridPane.rowIndex="6" GridPane.columnSpan="2" styleClass="status-label"/>
+            </GridPane>
+        </TitledPane>
 
         <TitledPane text="Container Monitoring" styleClass="titled-pane, container-monitoring-pane">
             <VBox spacing="5" styleClass="monitoring-container">

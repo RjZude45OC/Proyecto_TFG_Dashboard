@@ -8,116 +8,154 @@
 
 <?import javafx.collections.FXCollections?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.Font?>
+
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.tfg.dashboard_tfg.viewmodel.DockerViewModel"
-            prefHeight="860.0" prefWidth="800.0">
+            prefHeight="900.0" prefWidth="1200.0"
+            styleClass="main-background">
+    
 
-    <VBox spacing="10.0"
-          AnchorPane.bottomAnchor="20.0"
-          AnchorPane.leftAnchor="20.0"
-          AnchorPane.rightAnchor="20.0"
-          AnchorPane.topAnchor="20.0"
-          style="-fx-border-width: 1;
-                 -fx-padding: 20 20 20 20;"
-          styleClass="view">
+    <BorderPane AnchorPane.bottomAnchor="0.0"
+                AnchorPane.leftAnchor="0.0"
+                AnchorPane.rightAnchor="0.0"
+                AnchorPane.topAnchor="0.0">
 
-        <HBox alignment="CENTER_LEFT" spacing="5.0" >
-            <Label text="Docker Manager" style="-fx-font-size: 28px; -fx-font-weight: bold;"/>
-            <Region HBox.hgrow="ALWAYS"/>
-            <Button text="Refresh Containers" onAction="#refreshContainers" styleClass="console-button"/>
-            <ToggleButton fx:id="autoRefreshToggle" text="Auto Refresh" onAction="#toggleAutoRefresh" styleClass=" console-button"/>
-        </HBox>
-
-        <TitledPane text="Remote Connection" styleClass="titled-pane, remote-connection-pane">
-            <GridPane fx:id="connectionPane" hgap="10" vgap="5" styleClass="connection-grid">
-                <Label text="Server Host:" GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="connection-label"/>
-                <TextField fx:id="serverHostField" GridPane.columnIndex="1" GridPane.rowIndex="0" promptText="e.g., localhost or IP address" styleClass="connection-input"/>
-
-                <Label text="Server Port:" GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="connection-label"/>
-                <TextField fx:id="serverPortField" GridPane.columnIndex="1" GridPane.rowIndex="1" promptText="e.g., 22 or 2375" styleClass="connection-input"/>
-
-                <Label text="Username:" GridPane.columnIndex="0" GridPane.rowIndex="2" styleClass="connection-label"/>
-                <TextField fx:id="usernameField" GridPane.columnIndex="1" GridPane.rowIndex="2" promptText="Username for SSH" styleClass="connection-input"/>
-
-                <Label text="Password:" GridPane.columnIndex="0" GridPane.rowIndex="3" styleClass="connection-label"/>
-                <PasswordField fx:id="passwordField" GridPane.columnIndex="1" GridPane.rowIndex="3" promptText="Password for SSH" styleClass="connection-input"/>
-
-                <Label text="Connection Type:" GridPane.columnIndex="0" GridPane.rowIndex="4" styleClass="connection-label"/>
-                <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="4" alignment="CENTER_LEFT">
-                    <RadioButton fx:id="sshRadio" text="SSH" toggleGroup="$connectionTypeGroup" selected="true" styleClass="connection-radio"/>
-                    <RadioButton fx:id="apiRadio" text="API" toggleGroup="$connectionTypeGroup" styleClass="connection-radio"/>
+        <!-- Top Header -->
+        <top>
+            <VBox spacing="5.0" styleClass="header-panel">
+                <padding><Insets top="15" right="20" bottom="15" left="20"/></padding>
+                <HBox alignment="CENTER_LEFT" spacing="15.0">
+                    <Text text="Docker Manager" styleClass="header-title"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="connectionStatusLabel" text="Not Connected" styleClass="connection-status"/>
+                    <Button text="Refresh" onAction="#refreshContainers" styleClass="action-button"/>
+                    <ToggleButton fx:id="autoRefreshToggle" text="Auto Refresh" onAction="#toggleAutoRefresh" styleClass="toggle-button"/>
                 </HBox>
 
-                <Button fx:id="connectButton" text="Connect" GridPane.columnIndex="1" GridPane.rowIndex="5" onAction="#connectToServer" styleClass="console-button, connect-button"/>
-
-                <Label fx:id="connectionStatusLabel" text="Not Connected" GridPane.columnIndex="0" GridPane.rowIndex="6" GridPane.columnSpan="2" styleClass="status-label"/>
-            </GridPane>
-        </TitledPane>
-
-        <TitledPane text="Container Monitoring" styleClass="titled-pane, container-monitoring-pane">
-            <VBox spacing="5" styleClass="monitoring-container">
-                <HBox spacing="5" alignment="CENTER_LEFT" styleClass="monitoring-toolbar">
-                    <Label text="Container Monitoring" styleClass="monitoring-title"/>
-                    <Region HBox.hgrow="ALWAYS" />
-                    <StackPane styleClass="filter-container">
-                        <HBox spacing="8" alignment="CENTER_LEFT">
-                            <Label text="Filter:" styleClass="filter-label"/>
-                            <ComboBox fx:id="containerFilter" promptText="All Containers" prefWidth="150.0"
-                                      onAction="#applyContainerFilter" styleClass="filter-combo">
-                                <items>
-                                    <FXCollections fx:factory="observableArrayList">
-                                        <String fx:value="All Containers" />
-                                        <String fx:value="Running Only" />
-                                        <String fx:value="Stopped Only" />
-                                    </FXCollections>
-                                </items>
-                            </ComboBox>
-                        </HBox>
-                    </StackPane>
-                    <HBox spacing="3" alignment="CENTER" styleClass="container-count">
-                        <Label text="Containers:" styleClass="count-label"/>
-                        <Label fx:id="containerCountLabel" text="0" styleClass="count-value"/>
+                <HBox alignment="CENTER_LEFT" spacing="15.0" styleClass="filter-bar">
+                    <Label text="Filter:" styleClass="filter-label"/>
+                    <ComboBox fx:id="containerFilter" prefWidth="150.0" onAction="#applyContainerFilter" styleClass="filter-combo">
+                        <items>
+                            <FXCollections fx:factory="observableArrayList">
+                                <String fx:value="All Containers" />
+                                <String fx:value="Running Only" />
+                                <String fx:value="Stopped Only" />
+                            </FXCollections>
+                        </items>
+                        <value>
+                            <String fx:value="All Containers" />
+                        </value>
+                    </ComboBox>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <HBox spacing="5" alignment="CENTER" styleClass="counter-badge">
+                        <Label text="Containers:"/>
+                        <Label fx:id="containerCountLabel" text="0" styleClass="counter-value"/>
                     </HBox>
                 </HBox>
+            </VBox>
+        </top>
 
-                <Label text="Scroll on tiles to cycle through metrics" styleClass="help-text"/>
+        <!-- Left Side Connection Settings -->
+        <left>
+            <VBox spacing="10.0" styleClass="side-panel">
+                <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
 
-                <ScrollPane fitToWidth="true" prefHeight="300.0" styleClass="container-scroll">
-                    <FlowPane fx:id="containerTilesPane" hgap="10" vgap="10" styleClass="tiles-pane"
-                              prefWidth="Infinity" maxWidth="Infinity">
-                        <padding><Insets top="3" right="3" bottom="3" left="3"/></padding>
+                <TitledPane text="Connection Settings" expanded="true" styleClass="settings-pane">
+                    <VBox spacing="10" styleClass="settings-container">
+                        <GridPane fx:id="connectionPane" hgap="10" vgap="10">
+                            <columnConstraints>
+                                <ColumnConstraints hgrow="NEVER" minWidth="100" />
+                                <ColumnConstraints hgrow="ALWAYS" />
+                            </columnConstraints>
+
+                            <Label text="Host:" GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="setting-label"/>
+                            <TextField fx:id="serverHostField" promptText="localhost or IP address"
+                                       GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="setting-field"/>
+
+                            <Label text="Port:" GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="setting-label"/>
+                            <TextField fx:id="serverPortField" promptText="2375"
+                                       GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="setting-field"/>
+
+                            <Label text="Username:" GridPane.columnIndex="0" GridPane.rowIndex="2" styleClass="setting-label"/>
+                            <TextField fx:id="usernameField" promptText="SSH username"
+                                       GridPane.columnIndex="1" GridPane.rowIndex="2" styleClass="setting-field"/>
+
+                            <Label text="Password:" GridPane.columnIndex="0" GridPane.rowIndex="3" styleClass="setting-label"/>
+                            <PasswordField fx:id="passwordField" promptText="SSH password"
+                                           GridPane.columnIndex="1" GridPane.rowIndex="3" styleClass="setting-field"/>
+
+                            <Label text="Type:" GridPane.columnIndex="0" GridPane.rowIndex="4" styleClass="setting-label"/>
+                            <HBox spacing="15" GridPane.columnIndex="1" GridPane.rowIndex="4" alignment="CENTER_LEFT">
+                                <fx:define>
+                                    <ToggleGroup fx:id="connectionTypeGroup"/>
+                                </fx:define>
+                                <RadioButton fx:id="sshRadio" text="SSH" toggleGroup="$connectionTypeGroup" selected="true" styleClass="connection-radio"/>
+                                <RadioButton fx:id="apiRadio" text="API" toggleGroup="$connectionTypeGroup" styleClass="connection-radio"/>
+                            </HBox>
+
+                            <Button fx:id="connectButton" text="Connect"
+                                    GridPane.columnIndex="1" GridPane.rowIndex="5"
+                                    styleClass="connect-button"/>
+                        </GridPane>
+                    </VBox>
+                </TitledPane>
+
+                <TitledPane text="Command History" expanded="true" VBox.vgrow="ALWAYS" styleClass="history-pane">
+                    <ListView fx:id="commandHistoryList" VBox.vgrow="ALWAYS" styleClass="history-list" />
+                </TitledPane>
+            </VBox>
+        </left>
+
+        <!-- Main content area -->
+        <center>
+            <SplitPane orientation="VERTICAL" dividerPositions="0.6" styleClass="content-pane">
+                <!-- Container tiles area -->
+                <ScrollPane fitToWidth="true" styleClass="containers-scroll">
+                    <FlowPane fx:id="containerTilesPane" hgap="15" vgap="15" styleClass="tiles-pane">
+                        <padding><Insets top="15" right="15" bottom="15" left="15"/></padding>
                     </FlowPane>
                 </ScrollPane>
-            </VBox>
-        </TitledPane>
 
-        <TitledPane text="Docker Terminal" VBox.vgrow="ALWAYS" styleClass="titled-pane, docker-terminal-pane">
-            <VBox spacing="15" styleClass="terminal-container">
-                <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="terminal-toolbar">
-                    <Label text="Docker Terminal" styleClass="terminal-title"/>
-                    <Region HBox.hgrow="ALWAYS"/>
-                    <Button text="Clear Output" onAction="#clearTerminal" styleClass="console-button"/>
-                </HBox>
+                <!-- Terminal area -->
+                <VBox spacing="10" styleClass="terminal-panel">
+                    <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
 
-                <TextArea fx:id="cliOutput" prefHeight="250.0" wrapText="true" editable="false"
-                          styleClass="command-prompt, terminal-output" VBox.vgrow="ALWAYS"/>
+                    <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="terminal-header">
+                        <Label text="Docker Terminal" styleClass="terminal-title"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="statusLabel" text="Ready" styleClass="status-label"/>
+                        <Button text="Clear" onAction="#clearTerminal" styleClass="clear-button"/>
+                    </HBox>
 
-                <HBox spacing="10.0" alignment="CENTER_LEFT" styleClass="command-input-container">
-                    <Label text="\$" styleClass="prompt-symbol"/>
-                    <TextField fx:id="cliInput" HBox.hgrow="ALWAYS" prefHeight="40.0"
-                               promptText="Enter docker command..." styleClass="input-prompt, terminal-input"/>
-                    <Button text="Execute" prefHeight="40.0" onAction="#executeCommand"
-                            styleClass="console-button, execute-button"/>
-                </HBox>
+                    <TextArea fx:id="cliOutput"
+                              wrapText="true"
+                              editable="false"
+                              VBox.vgrow="ALWAYS"
+                              styleClass="terminal-output"/>
 
-                <HBox spacing="5.0" alignment="CENTER_LEFT" styleClass="history-container">
-                    <Label text="History:" styleClass="history-label"/>
-                    <ComboBox fx:id="commandHistory" prefWidth="400.0" styleClass="history-box" />
-                    <Region HBox.hgrow="ALWAYS"/>
-                    <Label fx:id="statusLabel" text="Ready" styleClass="status-label"/>
-                </HBox>
-            </VBox>
-        </TitledPane>
-    </VBox>
+                    <HBox spacing="10.0" alignment="CENTER_LEFT" styleClass="command-input-container">
+                        <Label text="\$" styleClass="prompt-symbol"/>
+                        <TextField fx:id="cliInput"
+                                   HBox.hgrow="ALWAYS"
+                                   promptText="Enter docker command..."
+                                   styleClass="terminal-input"/>
+                        <Button text="Execute" onAction="#executeCommand" styleClass="execute-button"/>
+                    </HBox>
+                </VBox>
+            </SplitPane>
+        </center>
+
+        <!-- Status bar -->
+        <bottom>
+            <HBox alignment="CENTER_LEFT" spacing="10" styleClass="status-bar">
+                <padding><Insets top="5" right="10" bottom="5" left="10"/></padding>
+                <Label text="Docker Manager v1.0" styleClass="status-text"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <ComboBox fx:id="commandHistory" prefWidth="250.0" promptText="Command History" styleClass="history-combo"/>
+            </HBox>
+        </bottom>
+    </BorderPane>
 </AnchorPane>

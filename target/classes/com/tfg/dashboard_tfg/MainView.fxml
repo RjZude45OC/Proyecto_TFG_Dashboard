@@ -39,7 +39,7 @@
     <BorderPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
                 AnchorPane.topAnchor="0.0">
         <left>
-            <VBox prefHeight="750.0" prefWidth="250.0">
+            <VBox>
                 <HBox alignment="CENTER_LEFT" prefHeight="80.0" prefWidth="250.0">
                     <Label styleClass="title" text="Dashboard">
                         <font>
@@ -168,7 +168,7 @@
         </left>
 
         <center>
-            <StackPane fx:id="mainStackPane" styleClass="view-box">
+            <StackPane fx:id="mainStackPane" styleClass="view-box" prefHeight="800">
                 <!-- inject Views-->
             </StackPane>
         </center>

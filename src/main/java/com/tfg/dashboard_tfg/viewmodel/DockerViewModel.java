@@ -33,16 +33,16 @@ import java.util.concurrent.TimeUnit;
 
 public class DockerViewModel {
 
+
     // Docker Terminal Components
     @FXML
     private TextArea cliOutput;
     @FXML
     private TextField cliInput;
     @FXML
-    private ComboBox<String> commandHistory;
-    @FXML
     private Label statusLabel;
-
+    @FXML
+    public GridPane connectionPane;
     // Container Tiles Components
     @FXML
     private FlowPane containerTilesPane;
@@ -55,26 +55,16 @@ public class DockerViewModel {
 
     // Remote Connection Components
     @FXML
-    private GridPane connectionPane;
-    @FXML
     private TextField serverHostField;
     @FXML
     private TextField serverPortField;
-    @FXML
-    private TextField usernameField;
-    @FXML
-    private PasswordField passwordField;
-    @FXML
-    private ToggleGroup connectionTypeGroup;
-    @FXML
-    private RadioButton sshRadio;
-    @FXML
-    private RadioButton apiRadio;
     @FXML
     private Button connectButton;
     @FXML
     private Label connectionStatusLabel;
 
+    @FXML
+    private ListView commandHistoryList;
     // Data structures
     private final Map<String, ContainerTile> containerTiles = new HashMap<>();
     private ScheduledExecutorService scheduler;

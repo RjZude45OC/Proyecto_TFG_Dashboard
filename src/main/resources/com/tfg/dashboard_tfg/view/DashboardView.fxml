@@ -28,7 +28,7 @@
         <HBox spacing="10.0" alignment="CENTER_LEFT">
             <Label text="API URL:" style="-fx-font-weight: bold;"/>
             <TextField fx:id="apiUrlField" promptText="Enter API base URL" HBox.hgrow="ALWAYS"/>
-            <Button fx:id="applyUrlButton" text="Apply" onAction="#onApplyUrlClicked"/>
+            <Button fx:id="applyUrlButton" text="Apply" onAction="#onApplyUrlClicked" styleClass="console-button"/>
         </HBox>
 
         <HBox spacing="20.0" alignment="CENTER" VBox.vgrow="ALWAYS">

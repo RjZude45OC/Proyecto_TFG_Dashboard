@@ -3,9 +3,7 @@ package com.tfg.dashboard_tfg.viewmodel;
 import eu.hansolo.tilesfx.Section;
 import eu.hansolo.tilesfx.Tile;
 import eu.hansolo.tilesfx.chart.ChartData;
-import javafx.animation.KeyFrame;
 import javafx.animation.ScaleTransition;
-import javafx.animation.Timeline;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
@@ -23,15 +21,10 @@ import javafx.util.Duration;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -68,7 +61,30 @@ public class DashboardController {
 
     // API URL property
     private StringProperty apiBaseUrl = new SimpleStringProperty("http://localhost:8393/api/v1/system");
+    private StringProperty apiEndpoint = new SimpleStringProperty("/api/v1/system");
+    private final Properties appProperties = new Properties();
+    private final File configFile = new File("connection.properties");
 
+    public void loadProperties() {
+        try (FileInputStream fis = new FileInputStream(configFile)) {
+            appProperties.load(fis);
+        } catch (IOException e) {
+            System.err.println("Failed to load config: " + e.getMessage());
+        }
+    }
+    public void applySettings(String newApiUrl) {
+        if (!newApiUrl.startsWith("http://") && !newApiUrl.startsWith("https://")) {
+            newApiUrl = "http://" + newApiUrl;
+        }
+
+        appProperties.setProperty("monitoringApi", newApiUrl);
+
+        try (FileOutputStream fos = new FileOutputStream(configFile)) {
+            appProperties.store(fos, "Updated by user");
+        } catch (IOException e) {
+            System.err.println("Failed to save config: " + e.getMessage());
+        }
+    }
     // Add these fields to your DashboardController class
     private Tile expandedTile = null;
     private GridPane originalParent = null;
@@ -100,7 +116,6 @@ public class DashboardController {
             }
         }
     }
-
     @FXML
     public void initialize() {
         temperatureTile.getSections().clear();
@@ -122,7 +137,8 @@ public class DashboardController {
         Controller.darkMode.addListener(this::changed);
 
         // Initialize the API URL field with the current value
-        apiUrlField.setText(apiBaseUrl.get());
+        loadProperties();
+        apiUrlField.setText(appProperties.getProperty("monitoringApi", ""));
 
         // Schedule data updates
         scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -131,9 +147,10 @@ public class DashboardController {
 
     @FXML
     public void onApplyUrlClicked() {
-        String newUrl = apiUrlField.getText().trim();
-        if (!newUrl.isEmpty()) {
-            apiBaseUrl.set(newUrl);
+        String inputUrl = apiUrlField.getText().trim();
+        applySettings(inputUrl);
+        if (!inputUrl.isEmpty()) {
+            apiBaseUrl.set(inputUrl);
             // Force immediate data refresh
             fetchAndUpdateData();
         }
@@ -187,7 +204,7 @@ public class DashboardController {
     private void fetchAndUpdateData() {
         try {
             // Step 1: Fetch data in background thread
-            JSONObject systemData = fetchJsonData(getSystemUrl());
+            JSONObject systemData = fetchJsonData();
 
             // Step 2: Process all data in background thread
             final ProcessedData processedData = processAllData(systemData);
@@ -270,7 +287,7 @@ public class DashboardController {
     // Helper method for processing CPU data
     private double processCpuUsage(JSONObject cpuData) {
         JSONArray perProcessorLoad = cpuData.getJSONArray("perProcessorLoad");
-        double systemCpuLoad  = cpuData.getDouble("systemCpuLoad");
+        double systemCpuLoad = cpuData.getDouble("systemCpuLoad");
         double totalLoad = 0;
         for (int i = 0; i < perProcessorLoad.length(); i++) {
             System.out.println(perProcessorLoad.getDouble(i));
@@ -366,7 +383,17 @@ public class DashboardController {
         }
     }
 
-    private JSONObject fetchJsonData(String apiUrl) {
+    public JSONObject fetchJsonData() {
+        String apiUrl = appProperties.getProperty("monitoringApi");
+        if (apiUrl == null || apiUrl.isEmpty()) {
+            throw new RuntimeException("apiUrl not configured");
+        }
+
+        // Ensure protocol
+        if (!apiUrl.startsWith("http://") && !apiUrl.startsWith("https://")) {
+            apiUrl = "http://" + apiUrl;
+        }
+
         try {
             URL url = new URL(apiUrl);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -392,6 +419,7 @@ public class DashboardController {
             throw new RuntimeException(e);
         }
     }
+
 
     public void ondrag(MouseEvent mouseEvent) {
         System.out.println(mouseEvent.getClass());

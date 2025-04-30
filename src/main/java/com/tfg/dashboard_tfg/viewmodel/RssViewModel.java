@@ -1060,7 +1060,11 @@ public class RssViewModel implements Initializable {
     // API Request Methods
 
     private JSONObject makeApiGetRequest(String endpoint) throws Exception {
-        URL url = new URL(apiUrlField.getText().trim() + endpoint);
+        String baseUrl = apiUrlField.getText().trim();
+        if (!baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
+            baseUrl = "http://" + baseUrl;
+        }
+        URL url = new URL(baseUrl + endpoint);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
         connection.setRequestProperty("X-Api-Key", apiKeyField.getText().trim());
@@ -1083,7 +1087,11 @@ public class RssViewModel implements Initializable {
     }
 
     private JSONObject makeApiPostRequest(String endpoint, JSONObject data) throws Exception {
-        URL url = new URL(apiUrlField.getText().trim() + endpoint);
+        String baseUrl = apiUrlField.getText().trim();
+        if (!baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
+            baseUrl = "http://" + baseUrl;
+        }
+        URL url = new URL(baseUrl + endpoint);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("POST");
         connection.setRequestProperty("X-Api-Key", apiKeyField.getText().trim());
@@ -1108,7 +1116,11 @@ public class RssViewModel implements Initializable {
     }
 
     private JSONObject makeApiPutRequest(String endpoint, JSONObject data) throws Exception {
-        URL url = new URL(apiUrlField.getText().trim() + endpoint);
+        String baseUrl = apiUrlField.getText().trim();
+        if (!baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
+            baseUrl = "http://" + baseUrl;
+        }
+        URL url = new URL(baseUrl + endpoint);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("PUT");
         connection.setRequestProperty("X-Api-Key", apiKeyField.getText().trim());
@@ -1133,7 +1145,11 @@ public class RssViewModel implements Initializable {
     }
 
     private boolean makeApiDeleteRequest(String endpoint) throws Exception {
-        URL url = new URL(apiUrlField.getText().trim() + endpoint);
+        String baseUrl = apiUrlField.getText().trim();
+        if (!baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
+            baseUrl = "http://" + baseUrl;
+        }
+        URL url = new URL(baseUrl + endpoint);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("DELETE");
         connection.setRequestProperty("X-Api-Key", apiKeyField.getText().trim());

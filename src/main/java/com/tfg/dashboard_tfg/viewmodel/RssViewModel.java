@@ -975,7 +975,7 @@ public class RssViewModel implements Initializable {
             properties.setProperty("timeout", timeoutField.getText());
             properties.setProperty("cacheDuration", cacheDurationField.getText());
 
-            try (OutputStream output = new FileOutputStream("prowlarr-settings.properties")) {
+            try (OutputStream output = new FileOutputStream("connection.properties")) {
                 properties.store(output, "Prowlarr Integration Settings");
                 showAlert(Alert.AlertType.INFORMATION, "Success", "Settings saved successfully");
             }
@@ -989,7 +989,7 @@ public class RssViewModel implements Initializable {
     private void loadApiSettings() {
         try {
             Properties properties = new Properties();
-            File settingsFile = new File("prowlarr-settings.properties");
+            File settingsFile = new File("connection.properties");
 
             if (settingsFile.exists()) {
                 try (InputStream input = new FileInputStream(settingsFile)) {
@@ -1009,7 +1009,7 @@ public class RssViewModel implements Initializable {
     private void saveApiSettings() {
         try {
             Properties properties = new Properties();
-            File settingsFile = new File("prowlarr-settings.properties");
+            File settingsFile = new File("connection.properties");
 
             if (settingsFile.exists()) {
                 try (InputStream input = new FileInputStream(settingsFile)) {

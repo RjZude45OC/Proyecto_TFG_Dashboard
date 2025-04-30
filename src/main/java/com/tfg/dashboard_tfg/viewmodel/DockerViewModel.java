@@ -169,8 +169,12 @@ public class DockerViewModel {
         // Show command in output
         cliOutput.appendText("$ " + command + "\n");
 
-        // Execute Docker API command
-        executeDockerAPICommand(command);
+        // Execute Docker API command if command start with docker
+        if (command.startsWith("docker ")) {
+            executeDockerAPICommand(command);
+        } else {
+            executeLocalCommand(command);
+        }
 
         // Clear input field
         cliInput.clear();
@@ -317,6 +321,41 @@ public class DockerViewModel {
             } catch (Exception e) {
                 Platform.runLater(() -> {
                     cliOutput.appendText("Error: " + e.getMessage() + "\n");
+                    statusLabel.setText("Command error");
+                });
+            }
+        }).start();
+    }
+
+    private void executeLocalCommand(String command) {
+        new Thread(() -> {
+            try {
+                ProcessBuilder builder = new ProcessBuilder();
+                // Use cmd /c to execute the full command on Windows
+                builder.command("cmd.exe", "/c", command);
+                builder.redirectErrorStream(true);  // Merge stderr with stdout
+
+                Process process = builder.start();
+
+                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                StringBuilder output = new StringBuilder();
+                String line;
+
+                while ((line = reader.readLine()) != null) {
+                    output.append(line).append("\n");
+                }
+
+                int exitCode = process.waitFor();
+                final String result = output.toString();
+
+                Platform.runLater(() -> {
+                    cliOutput.appendText(result);
+                    statusLabel.setText(exitCode == 0 ? "Command completed" : "Command failed with code " + exitCode);
+                });
+
+            } catch (IOException | InterruptedException e) {
+                Platform.runLater(() -> {
+                    cliOutput.appendText("Error executing command: " + e.getMessage() + "\n");
                     statusLabel.setText("Command error");
                 });
             }
@@ -548,6 +587,7 @@ public class DockerViewModel {
                     tile.setValue(memUsage);
                     tile.setUnit("%");
                     tile.setMaxValue(100);
+                    System.out.println(memUsage);
                 });
                 break;
 
@@ -685,7 +725,6 @@ public class DockerViewModel {
 
             long usage = memStats.getLong("usage");
             long limit = memStats.getLong("limit");
-
             return (double) usage / limit * 100.0;
         }
     }

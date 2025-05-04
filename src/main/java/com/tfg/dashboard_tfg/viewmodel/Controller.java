@@ -324,10 +324,10 @@ public class Controller {
 
     @FXML
     public void showSonarrView() {
-        if (!isLoggedIn.get()) {
-            showLoginForm();
-            return;
-        }
+//        if (!isLoggedIn.get()) {
+//            showLoginForm();
+//            return;
+//        }
 
         resetViewStyles();
         if (darkMode.get()) {
@@ -340,10 +340,10 @@ public class Controller {
 
     @FXML
     public void showJellyfinView() {
-        if (!isLoggedIn.get()) {
-            showLoginForm();
-            return;
-        }
+//        if (!isLoggedIn.get()) {
+//            showLoginForm();
+//            return;
+//        }
 
         resetViewStyles();
         if (darkMode.get()) {

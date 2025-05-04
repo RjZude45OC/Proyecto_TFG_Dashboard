@@ -1,25 +1,245 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
+<?import javafx.collections.FXCollections?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Text?>
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.tfg.dashboard_tfg.viewmodel.JellyFinViewModel">
+            fx:controller="com.tfg.dashboard_tfg.viewmodel.JellyFinViewModel"
+            styleClass="main-background">
 
-    <VBox spacing="20.0"
-          AnchorPane.bottomAnchor="20.0"
-          AnchorPane.leftAnchor="20.0"
-          AnchorPane.rightAnchor="20.0"
-          AnchorPane.topAnchor="20.0"
-          style="-fx-border-width: 1;
-                 -fx-padding: 20 40 0 40;"
-          styleClass="view">
+    <BorderPane AnchorPane.bottomAnchor="0.0"
+                AnchorPane.leftAnchor="0.0"
+                AnchorPane.rightAnchor="0.0"
+                AnchorPane.topAnchor="0.0">
 
-        <Label text="Jellyfin"
-               style="-fx-font-size: 28px; -fx-font-weight: bold;"/>
-    </VBox>
+        <!-- Top Header -->
+        <top>
+            <VBox spacing="5.0" styleClass="header-panel">
+                <padding>
+                    <Insets top="15" right="20" bottom="15" left="20"/>
+                </padding>
+                <HBox alignment="CENTER_LEFT" spacing="15.0">
+                    <Text text="Jellyfin Manager" styleClass="header-title"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="serverStatusLabel" text="Not Connected" styleClass="connection-status"/>
+                    <Button text="Refresh" onAction="#refreshServerStatus" styleClass="console-button"/>
+                    <ToggleButton fx:id="autoRefreshToggle" text="Auto Refresh" onAction="#toggleAutoRefresh"
+                                  styleClass="console-button"/>
+                </HBox>
+
+                <HBox alignment="CENTER_LEFT" spacing="15.0" styleClass="filter-bar">
+                    <Label text="Filter:" styleClass="filter-label"/>
+                    <ComboBox fx:id="mediaFilter" prefWidth="150.0" onAction="#applyMediaFilter"
+                              styleClass="filter-combo">
+                        <items>
+                            <FXCollections fx:factory="observableArrayList">
+                                <String fx:value="All Media"/>
+                                <String fx:value="Movies"/>
+                                <String fx:value="TV Shows"/>
+                                <String fx:value="Music"/>
+                            </FXCollections>
+                        </items>
+                        <value>
+                            <String fx:value="All Media"/>
+                        </value>
+                    </ComboBox>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <HBox spacing="5" alignment="CENTER" styleClass="counter-badge">
+                        <Label text="Active Streams:"/>
+                        <Label fx:id="activeStreamsLabel" text="0" styleClass="counter-value"/>
+                    </HBox>
+                </HBox>
+            </VBox>
+        </top>
+
+        <!-- Left Side Connection Settings -->
+        <left>
+            <VBox spacing="10.0" styleClass="side-panel">
+                <padding>
+                    <Insets top="10" right="10" left="10"/>
+                </padding>
+
+                <TitledPane text="Connection Settings" styleClass="settings-pane">
+                    <VBox spacing="10" styleClass="settings-container">
+                        <GridPane fx:id="connectionPane" hgap="10" vgap="10">
+                            <columnConstraints>
+                                <ColumnConstraints hgrow="NEVER" minWidth="100"/>
+                                <ColumnConstraints hgrow="ALWAYS"/>
+                            </columnConstraints>
+
+                            <Label text="Server URL:" GridPane.columnIndex="0" GridPane.rowIndex="0"
+                                   styleClass="setting-label"/>
+                            <TextField fx:id="serverUrlField" promptText="http://localhost:8096"
+                                       GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="setting-field"/>
+
+                            <Label text="API Key:" GridPane.columnIndex="0" GridPane.rowIndex="1"
+                                   styleClass="setting-label"/>
+                            <PasswordField fx:id="apiKeyField" promptText="Enter API key"
+                                           GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="setting-field"/>
+
+                            <Label text="Username:" GridPane.columnIndex="0" GridPane.rowIndex="2"
+                                   styleClass="setting-label"/>
+                            <TextField fx:id="usernameField" promptText="Optional"
+                                       GridPane.columnIndex="1" GridPane.rowIndex="2" styleClass="setting-field"/>
+
+                            <Label text="Password:" GridPane.columnIndex="0" GridPane.rowIndex="3"
+                                   styleClass="setting-label"/>
+                            <PasswordField fx:id="passwordField" promptText="Optional"
+                                           GridPane.columnIndex="1" GridPane.rowIndex="3" styleClass="setting-field"/>
+
+                            <Button fx:id="connectButton" text="Connect"
+                                    GridPane.columnIndex="1" GridPane.rowIndex="4"
+                                    styleClass="console-button"/>
+                        </GridPane>
+                    </VBox>
+                </TitledPane>
+
+                <TitledPane text="Server Stats" styleClass="settings-pane">
+                    <VBox spacing="10" styleClass="settings-container">
+                        <GridPane hgap="10" vgap="10">
+                            <columnConstraints>
+                                <ColumnConstraints hgrow="NEVER" minWidth="120"/>
+                                <ColumnConstraints hgrow="ALWAYS"/>
+                            </columnConstraints>
+
+                            <Label text="CPU Usage:" GridPane.columnIndex="0" GridPane.rowIndex="0"
+                                   styleClass="setting-label"/>
+                            <ProgressBar fx:id="cpuUsageBar" progress="0.0" GridPane.columnIndex="1" GridPane.rowIndex="0"
+                                         styleClass="stat-progress"/>
+
+                            <Label text="Memory Usage:" GridPane.columnIndex="0" GridPane.rowIndex="1"
+                                   styleClass="setting-label"/>
+                            <ProgressBar fx:id="memoryUsageBar" progress="0.0" GridPane.columnIndex="1" GridPane.rowIndex="1"
+                                         styleClass="stat-progress"/>
+
+                            <Label text="Storage:" GridPane.columnIndex="0" GridPane.rowIndex="2"
+                                   styleClass="setting-label"/>
+                            <ProgressBar fx:id="storageUsageBar" progress="0.0" GridPane.columnIndex="1" GridPane.rowIndex="2"
+                                         styleClass="stat-progress"/>
+
+                            <Label text="Version:" GridPane.columnIndex="0" GridPane.rowIndex="3"
+                                   styleClass="setting-label"/>
+                            <Label fx:id="versionLabel" text="N/A" GridPane.columnIndex="1" GridPane.rowIndex="3"
+                                   styleClass="stat-value"/>
+
+                            <Label text="Uptime:" GridPane.columnIndex="0" GridPane.rowIndex="4"
+                                   styleClass="setting-label"/>
+                            <Label fx:id="uptimeLabel" text="N/A" GridPane.columnIndex="1" GridPane.rowIndex="4"
+                                   styleClass="stat-value"/>
+                        </GridPane>
+                    </VBox>
+                </TitledPane>
+
+                <TitledPane text="Library Stats" VBox.vgrow="ALWAYS" styleClass="history-pane">
+                    <GridPane hgap="10" vgap="5">
+                        <columnConstraints>
+                            <ColumnConstraints hgrow="NEVER" minWidth="120"/>
+                            <ColumnConstraints hgrow="ALWAYS"/>
+                        </columnConstraints>
+
+                        <Label text="Movies:" GridPane.columnIndex="0" GridPane.rowIndex="0"
+                               styleClass="setting-label"/>
+                        <Label fx:id="moviesCountLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="0"
+                               styleClass="stat-value"/>
+
+                        <Label text="TV Shows:" GridPane.columnIndex="0" GridPane.rowIndex="1"
+                               styleClass="setting-label"/>
+                        <Label fx:id="tvShowsCountLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="1"
+                               styleClass="stat-value"/>
+
+                        <Label text="Episodes:" GridPane.columnIndex="0" GridPane.rowIndex="2"
+                               styleClass="setting-label"/>
+                        <Label fx:id="episodesCountLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="2"
+                               styleClass="stat-value"/>
+
+                        <Label text="Music Albums:" GridPane.columnIndex="0" GridPane.rowIndex="3"
+                               styleClass="setting-label"/>
+                        <Label fx:id="albumsCountLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="3"
+                               styleClass="stat-value"/>
+
+                        <Label text="Songs:" GridPane.columnIndex="0" GridPane.rowIndex="4"
+                               styleClass="setting-label"/>
+                        <Label fx:id="songsCountLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="4"
+                               styleClass="stat-value"/>
+
+                        <Label text="Total Size:" GridPane.columnIndex="0" GridPane.rowIndex="5"
+                               styleClass="setting-label"/>
+                        <Label fx:id="totalSizeLabel" text="0 GB" GridPane.columnIndex="1" GridPane.rowIndex="5"
+                               styleClass="stat-value"/>
+                    </GridPane>
+                </TitledPane>
+            </VBox>
+        </left>
+
+        <!-- Main content area -->
+        <center>
+            <SplitPane orientation="VERTICAL" dividerPositions="0.6" styleClass="content-pane">
+                <!-- Active streams tiles area -->
+                <VBox spacing="10">
+                    <padding>
+                        <Insets top="10" right="10" bottom="0" left="10"/>
+                    </padding>
+                    <Label text="Active Streams" styleClass="section-header"/>
+                    <ScrollPane fitToWidth="true" styleClass="containers-scroll" VBox.vgrow="ALWAYS">
+                        <FlowPane fx:id="activeStreamsTilesPane" hgap="15" vgap="15" styleClass="tiles-pane">
+                            <padding>
+                                <Insets top="15" right="15" bottom="15" left="15"/>
+                            </padding>
+                        </FlowPane>
+                    </ScrollPane>
+                </VBox>
+
+                <!-- Activity log area -->
+                <VBox spacing="10" styleClass="terminal-panel">
+                    <padding>
+                        <Insets top="10" right="10" bottom="10" left="10"/>
+                    </padding>
+
+                    <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="terminal-header">
+                        <Label text="Activity Log" styleClass="terminal-title"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <ComboBox fx:id="logLevelFilter" prefWidth="100.0" styleClass="filter-combo">
+                            <items>
+                                <FXCollections fx:factory="observableArrayList">
+                                    <String fx:value="All"/>
+                                    <String fx:value="Info"/>
+                                    <String fx:value="Warning"/>
+                                    <String fx:value="Error"/>
+                                </FXCollections>
+                            </items>
+                            <value>
+                                <String fx:value="All"/>
+                            </value>
+                        </ComboBox>
+                        <Button text="Clear" onAction="#clearLogs" styleClass="console-button"/>
+                    </HBox>
+
+                    <TableView fx:id="logTable" VBox.vgrow="ALWAYS" styleClass="log-table">
+                        <columns>
+                            <TableColumn fx:id="timeColumn" text="Time" prefWidth="150"/>
+                            <TableColumn fx:id="levelColumn" text="Level" prefWidth="80"/>
+                            <TableColumn fx:id="sourceColumn" text="Source" prefWidth="150"/>
+                            <TableColumn fx:id="messageColumn" text="Message" prefWidth="400"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+            </SplitPane>
+        </center>
+
+        <bottom>
+            <HBox alignment="CENTER_LEFT" spacing="10" styleClass="status-bar">
+                <padding>
+                    <Insets top="5" right="10" bottom="5" left="10"/>
+                </padding>
+                <Label text="Jellyfin Manager v1.0" styleClass="status-text"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="lastUpdateLabel" text="Last update: Never" styleClass="status-text"/>
+            </HBox>
+        </bottom>
+    </BorderPane>
 </AnchorPane>

@@ -111,6 +111,15 @@ public class DockerViewModel {
                 executeCommand();
             }
         });
+        // Add this in your initialization method
+        if (containerTilesPane.getParent() instanceof ScrollPane) {
+            ScrollPane scrollPane = (ScrollPane) containerTilesPane.getParent();
+            scrollPane.viewportBoundsProperty().addListener((obs, oldBounds, newBounds) -> {
+                if (newBounds.getWidth() > 0) {
+                    refreshContainers(); // Your method to refresh container display
+                }
+            });
+        }
     }
 
     private void connectToDockerAPI() {
@@ -471,9 +480,33 @@ public class DockerViewModel {
         // Set tile color based on container status
         Color tileColor = isRunning ? Color.valueOf("#2ecc71") : Color.valueOf("#e74c3c");
 
+        // Calculate tile width to have 5 tiles per row
+        double flowPaneWidth = containerTilesPane.getWidth();
+        if (flowPaneWidth <= 0) {
+            // If FlowPane has no width yet, try to get parent width
+            ScrollPane scrollPane = (ScrollPane) containerTilesPane.getParent();
+            flowPaneWidth = scrollPane.getWidth();
+
+            // If still no width, use default viewport width
+            if (flowPaneWidth <= 0) {
+                flowPaneWidth = scrollPane.getPrefViewportWidth();
+                if (flowPaneWidth <= 0) {
+                    flowPaneWidth = 800; // Default fallback width
+                }
+            }
+        }
+
+        // Calculate tile width: (container width - padding - gaps) / 5
+        double paddingWidth = containerTilesPane.getPadding().getLeft() + containerTilesPane.getPadding().getRight();
+        double gapWidth = containerTilesPane.getHgap() * 4; // 4 gaps for 5 tiles
+        double tileWidth = (flowPaneWidth - paddingWidth - gapWidth) / 5.0;
+
+        // Set minimum tile width
+        tileWidth = Math.max(tileWidth, 120);
+
         Tile tile = TileBuilder.create()
                 .skinType(Tile.SkinType.GAUGE)
-                .prefSize(120, 120)
+                .prefSize(tileWidth, 120)  // Use calculated width
                 .maxWidth(Double.MAX_VALUE)
                 .maxHeight(Double.MAX_VALUE)
                 .title(name)

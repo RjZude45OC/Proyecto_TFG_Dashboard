@@ -221,10 +221,10 @@
 
                     <TableView fx:id="logTable" VBox.vgrow="ALWAYS" styleClass="log-table">
                         <columns>
-                            <TableColumn fx:id="timeColumn" text="Time" prefWidth="150"/>
-                            <TableColumn fx:id="levelColumn" text="Level" prefWidth="80"/>
+                            <TableColumn fx:id="timeColumn" text="Time" prefWidth="200"/>
+                            <TableColumn fx:id="levelColumn" text="Level" prefWidth="100"/>
                             <TableColumn fx:id="sourceColumn" text="Source" prefWidth="150"/>
-                            <TableColumn fx:id="messageColumn" text="Message" prefWidth="400"/>
+                            <TableColumn fx:id="messageColumn" text="Message" prefWidth="300"/>
                         </columns>
                     </TableView>
                 </VBox>

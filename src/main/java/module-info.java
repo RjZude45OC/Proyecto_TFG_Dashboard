@@ -22,4 +22,6 @@ module com.tfg.dashboard_tfg {
     exports com.tfg.dashboard_tfg.viewmodel;
     opens com.tfg.dashboard_tfg.viewmodel to javafx.fxml;
     exports com.tfg.dashboard_tfg.services to com.fasterxml.jackson.databind;
+
+    opens com.tfg.dashboard_tfg.model to javafx.base;
 }

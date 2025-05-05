@@ -120,7 +120,7 @@
                             </GridPane>
                         </TitledPane>
 
-                        <TitledPane text="Indexer Stats" expanded="true" VBox.vgrow="ALWAYS">
+                        <TitledPane text="Indexer Stats" VBox.vgrow="ALWAYS">
                             <TableView fx:id="indexerStatsTableView" styleClass="container-scroll">
                                 <columns>
                                     <TableColumn fx:id="statsIndexerNameColumn" text="Indexer" />

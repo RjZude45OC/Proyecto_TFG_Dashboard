@@ -32,40 +32,66 @@ import java.util.stream.Collectors;
 public class RssViewModel implements Initializable {
 
     // API Connection Fields
-    @FXML private TextField apiUrlField;
-    @FXML private TextField apiKeyField;
-    @FXML private Label statusLabel;
+    @FXML
+    private TextField apiUrlField;
+    @FXML
+    private TextField apiKeyField;
+    @FXML
+    private Label statusLabel;
 
     // Indexer Tab Fields
-    @FXML private TextField indexerSearchField;
-    @FXML private TableView<IndexerItem> indexersTableView;
-    @FXML private TableColumn<IndexerItem, Integer> indexerIdColumn;
-    @FXML private TableColumn<IndexerItem, String> indexerNameColumn;
-    @FXML private TableColumn<IndexerItem, String> indexerTypeColumn;
-    @FXML private TableColumn<IndexerItem, Boolean> indexerEnabledColumn;
-    @FXML private TableColumn<IndexerItem, Integer> indexerPriorityColumn;
-    @FXML private TableColumn<IndexerItem, Void> indexerActionColumn;
+    @FXML
+    private TextField indexerSearchField;
+    @FXML
+    private TableView<IndexerItem> indexersTableView;
+    @FXML
+    private TableColumn<IndexerItem, Integer> indexerIdColumn;
+    @FXML
+    private TableColumn<IndexerItem, String> indexerNameColumn;
+    @FXML
+    private TableColumn<IndexerItem, String> indexerTypeColumn;
+    @FXML
+    private TableColumn<IndexerItem, Boolean> indexerEnabledColumn;
+    @FXML
+    private TableColumn<IndexerItem, Integer> indexerPriorityColumn;
+    @FXML
+    private TableColumn<IndexerItem, Void> indexerActionColumn;
 
     // Tags Tab Fields
-    @FXML private TextField tagSearchField;
-    @FXML private TableView<TagItem> tagsTableView;
-    @FXML private TableColumn<TagItem, Integer> tagIdColumn;
-    @FXML private TableColumn<TagItem, String> tagLabelColumn;
-    @FXML private TableColumn<TagItem, Void> tagActionColumn;
+    @FXML
+    private TextField tagSearchField;
+    @FXML
+    private TableView<TagItem> tagsTableView;
+    @FXML
+    private TableColumn<TagItem, Integer> tagIdColumn;
+    @FXML
+    private TableColumn<TagItem, String> tagLabelColumn;
+    @FXML
+    private TableColumn<TagItem, Void> tagActionColumn;
 
     // Stats Tab Fields
-    @FXML private Label versionLabel;
-    @FXML private Label indexersCountLabel;
-    @FXML private Label enabledIndexersLabel;
-    @FXML private TableView<IndexerStatsItem> indexerStatsTableView;
-    @FXML private TableColumn<IndexerStatsItem, String> statsIndexerNameColumn;
-    @FXML private TableColumn<IndexerStatsItem, Integer> statsSuccessCountColumn;
-    @FXML private TableColumn<IndexerStatsItem, Integer> statsFailureCountColumn;
-    @FXML private TableColumn<IndexerStatsItem, Double> statsAvgResponseColumn;
+    @FXML
+    private Label versionLabel;
+    @FXML
+    private Label indexersCountLabel;
+    @FXML
+    private Label enabledIndexersLabel;
+    @FXML
+    private TableView<IndexerStatsItem> indexerStatsTableView;
+    @FXML
+    private TableColumn<IndexerStatsItem, String> statsIndexerNameColumn;
+    @FXML
+    private TableColumn<IndexerStatsItem, Integer> statsSuccessCountColumn;
+    @FXML
+    private TableColumn<IndexerStatsItem, Integer> statsFailureCountColumn;
+    @FXML
+    private TableColumn<IndexerStatsItem, Double> statsAvgResponseColumn;
 
     // Settings Tab Fields
-    @FXML private TextField timeoutField;
-    @FXML private TextField cacheDurationField;
+    @FXML
+    private TextField timeoutField;
+    @FXML
+    private TextField cacheDurationField;
 
     // Observable Lists
     private final ObservableList<IndexerItem> indexersList = FXCollections.observableArrayList();
@@ -390,7 +416,7 @@ public class RssViewModel implements Initializable {
 
         CompletableFuture.runAsync(() -> {
             try {
-                JSONArray statsArray = makeApiGetRequest(STATS_ENDPOINT).getJSONArray("records");
+                JSONArray statsArray = makeApiGetRequest(STATS_ENDPOINT).getJSONArray("indexers");
                 List<IndexerStatsItem> stats = new ArrayList<>();
 
                 for (int i = 0; i < statsArray.length(); i++) {
@@ -713,8 +739,9 @@ public class RssViewModel implements Initializable {
         statusLabel.setText("Testing indexer...");
         CompletableFuture.runAsync(() -> {
             try {
-                JSONObject response = makeApiPostRequest(INDEXERS_ENDPOINT + "/test/" + indexerId, new JSONObject());
+                JSONObject indexer = makeApiGetRequest(INDEXERS_ENDPOINT + "/" + indexerId);
 
+                JSONObject response = makeApiPostRequest(INDEXERS_ENDPOINT + "/test", indexer);
                 Platform.runLater(() -> {
                     if (response != null && response.has("isValid") && response.getBoolean("isValid")) {
                         statusLabel.setText("Indexer test successful");

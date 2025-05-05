@@ -995,8 +995,8 @@ public class RssViewModel implements Initializable {
                 try (InputStream input = new FileInputStream(settingsFile)) {
                     properties.load(input);
 
-                    apiUrlField.setText(properties.getProperty("apiUrl", ""));
-                    apiKeyField.setText(properties.getProperty("apiKey", ""));
+                    apiUrlField.setText(properties.getProperty("prowlarr-apiUrl", ""));
+                    apiKeyField.setText(properties.getProperty("prowlarr-apiKey", ""));
                     timeoutField.setText(properties.getProperty("timeout", "30"));
                     cacheDurationField.setText(properties.getProperty("cacheDuration", "10"));
                 }

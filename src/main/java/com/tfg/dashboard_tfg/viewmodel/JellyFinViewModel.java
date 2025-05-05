@@ -19,8 +19,7 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.util.Duration;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -217,7 +216,121 @@ public class JellyFinViewModel implements Initializable {
     private Timeline autoRefreshTimeline;
     private final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
     private final DateTimeFormatter logTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final String PROPERTIES_FILE = "connection.properties";
+    private Properties appProperties = new Properties();
+    private boolean propertiesLoaded = false;
 
+    /**
+     * Loads application properties from the properties file if not already loaded
+     */
+    private void loadPropertiesIfNeeded() {
+        if (propertiesLoaded) {
+            return;
+        }
+
+        File propertiesFile = new File(PROPERTIES_FILE);
+
+        try {
+            // Create the file if it doesn't exist
+            if (!propertiesFile.exists()) {
+                propertiesFile.createNewFile();
+                addLogEntry("Info", "Properties", "Created new properties file");
+            }
+
+            // Load properties
+            try (FileInputStream in = new FileInputStream(propertiesFile)) {
+                appProperties.load(in);
+                addLogEntry("Info", "Properties", "Loaded properties from file");
+            }
+
+            // Set the application properties from the loaded values
+            if (appProperties.containsKey("jellyfin-apiUrl")) {
+                serverUrl.set(appProperties.getProperty("jellyfin-apiUrl"));
+            }
+
+            if (appProperties.containsKey("jellyfin-apiKey")) {
+                apiKey.set(appProperties.getProperty("jellyfin-apiKey"));
+            }
+
+            if (appProperties.containsKey("username")) {
+                username.set(appProperties.getProperty("username"));
+            }
+
+            if (appProperties.containsKey("password")) {
+                password.set(appProperties.getProperty("password"));
+            }
+
+            if (appProperties.containsKey("timeout")) {
+                try {
+                    int timeoutValue = Integer.parseInt(appProperties.getProperty("timeout"));
+                    // Assuming you have a timeout property in your application
+                    // timeout.set(timeoutValue);
+                } catch (NumberFormatException e) {
+                    addLogEntry("Warning", "Properties", "Invalid timeout value in properties");
+                }
+            }
+
+            if (appProperties.containsKey("cacheDuration")) {
+                try {
+                    int cacheDuration = Integer.parseInt(appProperties.getProperty("cacheDuration"));
+                    // Assuming you have a cacheDuration property in your application
+                    // cacheDuration.set(cacheDuration);
+                } catch (NumberFormatException e) {
+                    addLogEntry("Warning", "Properties", "Invalid cache duration value in properties");
+                }
+            }
+
+            propertiesLoaded = true;
+        } catch (IOException e) {
+            addLogEntry("Error", "Properties", "Failed to load properties: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Saves the current connection properties to the properties file
+     */
+    private void saveConnectionProperties() {
+        // Update properties with current values
+        appProperties.setProperty("jellyfin-apiUrl", serverUrl.get() != null ? serverUrl.get() : "");
+        appProperties.setProperty("jellyfin-apiKey", apiKey.get() != null ? apiKey.get() : "");
+
+        if (username.get() != null && !username.get().isEmpty()) {
+            appProperties.setProperty("username", username.get());
+        }
+
+        if (password.get() != null && !password.get().isEmpty()) {
+            appProperties.setProperty("password", password.get());
+        }
+
+        // Add timestamp comment
+        try (FileOutputStream out = new FileOutputStream(PROPERTIES_FILE)) {
+            appProperties.store(out, "Updated by user");
+            addLogEntry("Info", "Properties", "Saved connection properties to file");
+        } catch (IOException e) {
+            addLogEntry("Error", "Properties", "Failed to save properties: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Updates a specific property and saves the changes
+     * @param key Property key
+     * @param value Property value
+     */
+    public void updateProperty(String key, String value) {
+        // Ensure properties are loaded
+        loadPropertiesIfNeeded();
+
+        // Update the property
+        appProperties.setProperty(key, value);
+
+        // Save the changes
+        try (FileOutputStream out = new FileOutputStream(PROPERTIES_FILE)) {
+            appProperties.store(out, "Updated by user");
+            addLogEntry("Info", "Properties", "Updated property: " + key);
+        } catch (IOException e) {
+            addLogEntry("Error", "Properties", "Failed to save property: " + e.getMessage());
+        }
+    }
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         // Initialize HTTP client and thread pool
@@ -228,8 +341,8 @@ public class JellyFinViewModel implements Initializable {
         autoRefreshTimeline = new Timeline(new KeyFrame(Duration.seconds(30), e -> refreshServerStatus()));
         autoRefreshTimeline.setCycleCount(Animation.INDEFINITE);
 
-        // Set default values
-        serverUrlField.setText("http://localhost:8096");
+        // Load properties from file first
+        loadPropertiesIfNeeded();
 
         // Setup data bindings
         serverStatusLabel.textProperty().bind(
@@ -250,17 +363,55 @@ public class JellyFinViewModel implements Initializable {
         // Setup event handlers
         connectButton.setOnAction(event -> connectToServer());
 
-        // Setup property listeners
+        // Setup property listeners with property change tracking
+        setupTextFieldBindings();
+
+        logLevelFilter.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            filterLogs();
+        });
+
+        // Initial refresh attempt if we have valid URL
+        if (serverUrl.get() != null && !serverUrl.get().isEmpty()) {
+            addLogEntry("Info", "Initialization", "Attempting connection with saved properties");
+            connectToServer();
+        }
+    }
+    /**
+     * Sets up bidirectional bindings between text fields and properties,
+     * with change listeners to save updates to the properties file
+     */
+    private void setupTextFieldBindings() {
+        // Setup bidirectional bindings
         serverUrlField.textProperty().bindBidirectional(serverUrl);
         apiKeyField.textProperty().bindBidirectional(apiKey);
         usernameField.textProperty().bindBidirectional(username);
         passwordField.textProperty().bindBidirectional(password);
 
-        logLevelFilter.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-            filterLogs();
+        // Add focus lost listeners to save changes to properties file
+        serverUrlField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+            if (wasFocused && !isNowFocused) {
+                updateProperty("jellyfin-apiUrl", serverUrl.get());
+            }
+        });
+
+        apiKeyField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+            if (wasFocused && !isNowFocused) {
+                updateProperty("jellyfin-apiKey", apiKey.get());
+            }
+        });
+
+        usernameField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+            if (wasFocused && !isNowFocused) {
+                updateProperty("username", username.get());
+            }
+        });
+
+        passwordField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+            if (wasFocused && !isNowFocused) {
+                updateProperty("password", password.get());
+            }
         });
     }
-
     private void setupLogTable() {
         // Configure table columns
         timeColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getTime()));
@@ -301,14 +452,14 @@ public class JellyFinViewModel implements Initializable {
         logTable.setItems(filteredLogEntries);
     }
 
-    /**
-     * Attempt to connect to the Jellyfin server using the provided credentials
-     */
     private void connectToServer() {
         // Reset connection status
         connected.set(false);
 
-        // Validate input
+        // Load properties from file if not already loaded
+        loadPropertiesIfNeeded();
+
+        // Validate input from properties
         if (serverUrl.get() == null || serverUrl.get().trim().isEmpty()) {
             addLogEntry("Error", "Connection", "Server URL cannot be empty");
             return;
@@ -356,6 +507,9 @@ public class JellyFinViewModel implements Initializable {
                 // Parse response
                 JSONObject serverInfo = new JSONObject(response.body());
                 String version = serverInfo.optString("Version", "Unknown");
+
+                // Save successful connection details to properties
+                saveConnectionProperties();
 
                 return "Connected to Jellyfin v" + version;
             } catch (Exception e) {

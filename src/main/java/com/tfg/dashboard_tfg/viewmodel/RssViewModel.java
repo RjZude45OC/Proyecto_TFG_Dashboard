@@ -193,6 +193,111 @@ public class RssViewModel implements Initializable {
         indexerEnabledColumn.setCellValueFactory(new PropertyValueFactory<>("enabled"));
         indexerPriorityColumn.setCellValueFactory(new PropertyValueFactory<>("priority"));
 
+        // Center and style ID column
+        indexerIdColumn.setCellFactory(column -> new TableCell<IndexerItem, Integer>() {
+            @Override
+            protected void updateItem(Integer id, boolean empty) {
+                super.updateItem(id, empty);
+                if (id == null || empty) {
+                    setText(null);
+                    setStyle("");
+                } else {
+                    setText(id.toString());
+                    setAlignment(Pos.CENTER);
+                }
+            }
+        });
+
+        // Center and style Name column
+        indexerNameColumn.setCellFactory(column -> new TableCell<IndexerItem, String>() {
+            @Override
+            protected void updateItem(String name, boolean empty) {
+                super.updateItem(name, empty);
+                if (name == null || empty) {
+                    setText(null);
+                    setStyle("");
+                } else {
+                    setText(name);
+                    setAlignment(Pos.CENTER);
+                }
+            }
+        });
+
+        // For the columns with existing styling, add the center alignment
+        indexerTypeColumn.setCellFactory(column -> new TableCell<IndexerItem, String>() {
+            @Override
+            protected void updateItem(String type, boolean empty) {
+                super.updateItem(type, empty);
+
+                if (type == null || empty) {
+                    setText(null);
+                    setStyle("");
+                } else {
+                    setText(type);
+                    setAlignment(Pos.CENTER); // This centers the text in the cell
+
+                    switch (type.toLowerCase()) {
+                        case "usenetindexer":
+                        case "newznab":
+                            setStyle("-fx-text-fill: blue;");
+                            break;
+                        case "torrentindexer":
+                        case "torznab":
+                        case "torrentrss":
+                            setStyle("-fx-text-fill: purple;");
+                            break;
+                        case "cardigann":
+                            setStyle("-fx-text-fill: teal;");
+                            break;
+                        default:
+                            setStyle("");
+                            break;
+                    }
+                }
+            }
+        });
+
+        // Similarly update other columns...
+        indexerEnabledColumn.setCellFactory(column -> new TableCell<IndexerItem, Boolean>() {
+            @Override
+            protected void updateItem(Boolean enabled, boolean empty) {
+                super.updateItem(enabled, empty);
+
+                if (empty || enabled == null) {
+                    setText(null);
+                    setStyle("");
+                } else {
+                    setText(enabled.toString());
+                    setAlignment(Pos.CENTER);
+                    if (enabled) {
+                        setStyle("-fx-text-fill: green;");
+                    } else {
+                        setStyle("-fx-text-fill: red;");
+                    }
+                }
+            }
+        });
+        indexerPriorityColumn.setCellFactory(column -> new TableCell<IndexerItem, Integer>() {
+            @Override
+            protected void updateItem(Integer priority, boolean empty) {
+                super.updateItem(priority, empty);
+
+                if (priority == null || empty) {
+                    setText(null);
+                    setStyle("");
+                } else {
+                    setAlignment(Pos.CENTER);
+                    setText(priority.toString());
+                    if (priority <= 25) {
+                        setStyle("-fx-text-fill: green;");
+                    } else if (priority <= 75) {
+                        setStyle("-fx-text-fill: orange;");
+                    } else {
+                        setStyle("-fx-text-fill: gray;");
+                    }
+                }
+            }
+        });
         // Add action buttons to table
         setupIndexerActionColumn();
 
@@ -233,6 +338,10 @@ public class RssViewModel implements Initializable {
             {
                 box.setAlignment(Pos.CENTER);
 
+                editButton.getStyleClass().add("table-button");
+                deleteButton.getStyleClass().add("table-button");
+                testButton.getStyleClass().add("table-button");
+
                 editButton.setOnAction(event -> {
                     IndexerItem indexer = getTableView().getItems().get(getIndex());
                     showEditIndexerDialog(indexer);
@@ -256,7 +365,9 @@ public class RssViewModel implements Initializable {
                     setGraphic(null);
                 } else {
                     setGraphic(box);
+                    box.setAlignment(Pos.CENTER);
                 }
+
             }
         });
     }
@@ -288,6 +399,7 @@ public class RssViewModel implements Initializable {
                     setGraphic(null);
                 } else {
                     setGraphic(box);
+                    setAlignment(Pos.CENTER);
                 }
             }
         });
@@ -465,11 +577,8 @@ public class RssViewModel implements Initializable {
             try {
                 JSONArray definitionsArray = makeApiGetRequest("/api/v1/indexer/schema").getJSONArray("records");
                 List<String> availableTypes = new ArrayList<>();
-
-                for (int i = 0; i < definitionsArray.length(); i++) {
-                    JSONObject definition = definitionsArray.getJSONObject(i);
-                    availableTypes.add(definition.getString("protocol"));
-                }
+                availableTypes.add("torrent");
+                availableTypes.add("nzb");
 
                 Platform.runLater(() -> createAddIndexerDialog(availableTypes));
 

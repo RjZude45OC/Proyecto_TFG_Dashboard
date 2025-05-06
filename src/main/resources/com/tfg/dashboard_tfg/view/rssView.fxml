@@ -39,122 +39,121 @@
         </HBox>
 
         <TabPane VBox.vgrow="ALWAYS" styleClass="monitoring-container">
-            <tabs>
-                <!-- Indexers Tab -->
-                <Tab text="Indexers" closable="false">
-                    <VBox spacing="10.0" styleClass="terminal-container">
-                        <HBox spacing="10.0" alignment="CENTER_LEFT" styleClass="monitoring-toolbar">
-                            <Button text="Refresh Indexers" onAction="#refreshIndexers"
-                                    styleClass="console-button" />
-                            <Button text="Add Indexer" onAction="#showAddIndexerDialog"
-                                    styleClass="console-button" />
-                            <Button text="Test All" onAction="#testAllIndexers"
-                                    styleClass="console-button" />
-                            <Region HBox.hgrow="ALWAYS" />
-                            <TextField fx:id="indexerSearchField" promptText="Search indexers..."
-                                       styleClass="terminal-input" />
-                        </HBox>
+            <!-- Indexers Tab -->
+            <Tab text="Indexers" closable="false">
+                <VBox spacing="10.0" styleClass="terminal-container">
+                    <HBox spacing="10.0" alignment="CENTER_LEFT" styleClass="monitoring-toolbar">
+                        <Button text="Refresh Indexers" onAction="#refreshIndexers"
+                                styleClass="console-button"/>
+                        <Button text="Add Indexer" onAction="#showAddIndexerDialog"
+                                styleClass="console-button"/>
+                        <Button text="Test All" onAction="#testAllIndexers"
+                                styleClass="console-button"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <TextField fx:id="indexerSearchField" promptText="Search indexers..."
+                                   styleClass="terminal-input"/>
+                    </HBox>
 
-                        <TableView fx:id="indexersTableView" VBox.vgrow="ALWAYS"
-                                   styleClass="container-scroll">
+                    <TableView fx:id="indexersTableView" VBox.vgrow="ALWAYS"
+                               styleClass="container-scroll">
+                        <columns>
+                            <TableColumn fx:id="indexerIdColumn" text="ID" prefWidth="60"/>
+                            <TableColumn fx:id="indexerNameColumn" text="Name" prefWidth="100"/>
+                            <TableColumn fx:id="indexerTypeColumn" text="Type" prefWidth="100"/>
+                            <TableColumn fx:id="indexerEnabledColumn" text="Enabled"/>
+                            <TableColumn fx:id="indexerPriorityColumn" text="Priority" prefWidth="100"/>
+                            <TableColumn fx:id="indexerActionColumn" text="Actions" minWidth="180" prefWidth="200"/>
+                        </columns>
+                    </TableView>
+
+                </VBox>
+            </Tab>
+
+            <!-- Tags Tab -->
+            <Tab text="Tags" closable="false">
+                <VBox spacing="10.0" styleClass="terminal-container">
+                    <HBox spacing="10.0" alignment="CENTER_LEFT" styleClass="monitoring-toolbar">
+                        <Button text="Refresh Tags" onAction="#refreshTags"
+                                styleClass="console-button"/>
+                        <Button text="Add Tag" onAction="#showAddTagDialog"
+                                styleClass="console-button"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <TextField fx:id="tagSearchField" promptText="Search tags..."
+                                   styleClass="terminal-input"/>
+                    </HBox>
+
+                    <TableView fx:id="tagsTableView" VBox.vgrow="ALWAYS"
+                               styleClass="container-scroll">
+                        <columns>
+                            <TableColumn fx:id="tagIdColumn" text="ID"/>
+                            <TableColumn fx:id="tagLabelColumn" text="Label"/>
+                            <TableColumn fx:id="tagActionColumn" text="Actions"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+            </Tab>
+
+            <!-- Stats Tab -->
+            <Tab text="Stats" closable="false">
+                <VBox spacing="10.0" styleClass="terminal-container">
+                    <HBox spacing="10.0" alignment="CENTER_LEFT" styleClass="monitoring-toolbar">
+                        <Button text="Refresh Stats" onAction="#refreshStats"
+                                styleClass="console-button"/>
+                    </HBox>
+
+                    <TitledPane text="System Status" expanded="true">
+                        <GridPane hgap="10" vgap="5" styleClass="filter-container">
+                            <Label text="Prowlarr Version:" styleClass="filter-label"
+                                   GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                            <Label fx:id="versionLabel" text="Unknown"
+                                   GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+                            <Label text="Indexers Count:" styleClass="filter-label"
+                                   GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                            <Label fx:id="indexersCountLabel" text="0"
+                                   GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                            <Label text="Enabled Indexers:" styleClass="filter-label"
+                                   GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                            <Label fx:id="enabledIndexersLabel" text="0"
+                                   GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                        </GridPane>
+                    </TitledPane>
+
+                    <TitledPane text="Indexer Stats" VBox.vgrow="ALWAYS">
+                        <TableView fx:id="indexerStatsTableView" styleClass="container-scroll">
                             <columns>
-                                <TableColumn fx:id="indexerIdColumn" text="ID" />
-                                <TableColumn fx:id="indexerNameColumn" text="Name" />
-                                <TableColumn fx:id="indexerTypeColumn" text="Type" />
-                                <TableColumn fx:id="indexerEnabledColumn" text="Enabled" />
-                                <TableColumn fx:id="indexerPriorityColumn" text="Priority" />
-                                <TableColumn fx:id="indexerActionColumn" text="Actions" />
+                                <TableColumn fx:id="statsIndexerNameColumn" text="Indexer"/>
+                                <TableColumn fx:id="statsSuccessCountColumn" text="Success"/>
+                                <TableColumn fx:id="statsFailureCountColumn" text="Failures"/>
+                                <TableColumn fx:id="statsAvgResponseColumn" text="Avg Response"/>
                             </columns>
                         </TableView>
-                    </VBox>
-                </Tab>
+                    </TitledPane>
+                </VBox>
+            </Tab>
 
-                <!-- Tags Tab -->
-                <Tab text="Tags" closable="false">
-                    <VBox spacing="10.0" styleClass="terminal-container">
-                        <HBox spacing="10.0" alignment="CENTER_LEFT" styleClass="monitoring-toolbar">
-                            <Button text="Refresh Tags" onAction="#refreshTags"
-                                    styleClass="console-button" />
-                            <Button text="Add Tag" onAction="#showAddTagDialog"
-                                    styleClass="console-button" />
-                            <Region HBox.hgrow="ALWAYS" />
-                            <TextField fx:id="tagSearchField" promptText="Search tags..."
-                                       styleClass="terminal-input" />
-                        </HBox>
+            <!-- Settings Tab -->
+            <Tab text="Settings" closable="false">
+                <VBox spacing="10.0" styleClass="terminal-container">
+                    <TitledPane text="General Settings" expanded="true">
+                        <GridPane hgap="10" vgap="5" styleClass="filter-container">
+                            <Label text="Connection Timeout (sec):" styleClass="filter-label"
+                                   GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                            <TextField fx:id="timeoutField" promptText="30" styleClass="terminal-input"
+                                       GridPane.columnIndex="1" GridPane.rowIndex="0"/>
 
-                        <TableView fx:id="tagsTableView" VBox.vgrow="ALWAYS"
-                                   styleClass="container-scroll">
-                            <columns>
-                                <TableColumn fx:id="tagIdColumn" text="ID" />
-                                <TableColumn fx:id="tagLabelColumn" text="Label" />
-                                <TableColumn fx:id="tagActionColumn" text="Actions" />
-                            </columns>
-                        </TableView>
-                    </VBox>
-                </Tab>
+                            <Label text="Cache Duration (min):" styleClass="filter-label"
+                                   GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                            <TextField fx:id="cacheDurationField" promptText="10" styleClass="terminal-input"
+                                       GridPane.columnIndex="1" GridPane.rowIndex="1"/>
 
-                <!-- Stats Tab -->
-                <Tab text="Stats" closable="false">
-                    <VBox spacing="10.0" styleClass="terminal-container">
-                        <HBox spacing="10.0" alignment="CENTER_LEFT" styleClass="monitoring-toolbar">
-                            <Button text="Refresh Stats" onAction="#refreshStats"
-                                    styleClass="console-button" />
-                        </HBox>
-
-                        <TitledPane text="System Status" expanded="true">
-                            <GridPane hgap="10" vgap="5" styleClass="filter-container">
-                                <Label text="Prowlarr Version:" styleClass="filter-label"
-                                       GridPane.columnIndex="0" GridPane.rowIndex="0" />
-                                <Label fx:id="versionLabel" text="Unknown"
-                                       GridPane.columnIndex="1" GridPane.rowIndex="0" />
-
-                                <Label text="Indexers Count:" styleClass="filter-label"
-                                       GridPane.columnIndex="0" GridPane.rowIndex="1" />
-                                <Label fx:id="indexersCountLabel" text="0"
-                                       GridPane.columnIndex="1" GridPane.rowIndex="1" />
-
-                                <Label text="Enabled Indexers:" styleClass="filter-label"
-                                       GridPane.columnIndex="0" GridPane.rowIndex="2" />
-                                <Label fx:id="enabledIndexersLabel" text="0"
-                                       GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                            </GridPane>
-                        </TitledPane>
-
-                        <TitledPane text="Indexer Stats" VBox.vgrow="ALWAYS">
-                            <TableView fx:id="indexerStatsTableView" styleClass="container-scroll">
-                                <columns>
-                                    <TableColumn fx:id="statsIndexerNameColumn" text="Indexer" />
-                                    <TableColumn fx:id="statsSuccessCountColumn" text="Success" />
-                                    <TableColumn fx:id="statsFailureCountColumn" text="Failures" />
-                                    <TableColumn fx:id="statsAvgResponseColumn" text="Avg Response" />
-                                </columns>
-                            </TableView>
-                        </TitledPane>
-                    </VBox>
-                </Tab>
-
-                <!-- Settings Tab -->
-                <Tab text="Settings" closable="false">
-                    <VBox spacing="10.0" styleClass="terminal-container">
-                        <TitledPane text="General Settings" expanded="true">
-                            <GridPane hgap="10" vgap="5" styleClass="filter-container">
-                                <Label text="Connection Timeout (sec):" styleClass="filter-label"
-                                       GridPane.columnIndex="0" GridPane.rowIndex="0" />
-                                <TextField fx:id="timeoutField" promptText="30" styleClass="terminal-input"
-                                           GridPane.columnIndex="1" GridPane.rowIndex="0" />
-
-                                <Label text="Cache Duration (min):" styleClass="filter-label"
-                                       GridPane.columnIndex="0" GridPane.rowIndex="1" />
-                                <TextField fx:id="cacheDurationField" promptText="10" styleClass="terminal-input"
-                                           GridPane.columnIndex="1" GridPane.rowIndex="1" />
-
-                                <Button text="Save Settings" onAction="#saveSettings" styleClass="console-button"
-                                        GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                            </GridPane>
-                        </TitledPane>
-                    </VBox>
-                </Tab>
-            </tabs>
+                            <Button text="Save Settings" onAction="#saveSettings" styleClass="console-button"
+                                    GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                        </GridPane>
+                    </TitledPane>
+                </VBox>
+            </Tab>
         </TabPane>
 
         <HBox alignment="CENTER_RIGHT" spacing="10.0">

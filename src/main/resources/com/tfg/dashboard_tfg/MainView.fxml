@@ -168,7 +168,7 @@
         </left>
 
         <center>
-            <StackPane fx:id="mainStackPane" styleClass="view-box" prefHeight="800">
+            <StackPane fx:id="mainStackPane" styleClass="view-box" prefHeight="800" prefWidth="1300">
                 <!-- inject Views-->
             </StackPane>
         </center>

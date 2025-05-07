@@ -406,8 +406,17 @@
     -fx-background-color: derive(-terminal-blue, 40%);
     -fx-text-fill: #1a1b26;
 }
+.control-button{
+}
+.dark-theme .stop-button{
+}
+.light-theme .stop-button{
+}
 
-
+.dark-theme .info-button{
+}
+.light-theme .info-button{
+}
 .execute-button {
     -fx-font-size: 13px;
 }

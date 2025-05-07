@@ -15,11 +15,15 @@ import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.util.Duration;
 
 import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -37,6 +41,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class JellyFinViewModel implements Initializable {
+
 
     // FXML Controls - Connection
     @FXML
@@ -65,6 +70,10 @@ public class JellyFinViewModel implements Initializable {
     private Label versionLabel;
     @FXML
     private Label uptimeLabel;
+    @FXML
+    private Label cpuUsageLabel;
+    @FXML
+    public Label memoryUsageLabel;
 
     // FXML Controls - Media Stats
     @FXML
@@ -108,6 +117,10 @@ public class JellyFinViewModel implements Initializable {
     private final StringProperty apiKey = new SimpleStringProperty("");
     private final StringProperty username = new SimpleStringProperty("");
     private final StringProperty password = new SimpleStringProperty("");
+    private final StringProperty serverMonitoringEndpoint = new SimpleStringProperty("");
+    private final StringProperty dockerApiEndpoint = new SimpleStringProperty("");
+    private final IntegerProperty autoUpdateInterval = new SimpleIntegerProperty(0);
+
 
     // Data collections
     private final ObservableList<LogEntry> logEntries = FXCollections.observableArrayList();
@@ -147,12 +160,29 @@ public class JellyFinViewModel implements Initializable {
     public static class StreamSession {
         private String username;
         private String device;
+        private String client;
         private String mediaType;
         private String title;
         private int progress;
+        private int runtime;
         private String resolution;
-        private int bitrate;
+        private int bitrate;  // In Mbps
+        private boolean playing;
+        private boolean muted;
+        private String repeatMode;
+        private boolean canSeek;
+        private String remoteAddress;
+        private String lastActivity;
+        private String deviceId;
+        private int year;
+        private String overview;
+        private String codec;
+        private double frameRate;
+        private String videoRange;
+        private String filePath;
+        private String sourceType;
 
+        // Getters and setters
         public String getUsername() {
             return username;
         }
@@ -167,6 +197,14 @@ public class JellyFinViewModel implements Initializable {
 
         public void setDevice(String device) {
             this.device = device;
+        }
+
+        public String getClient() {
+            return client;
+        }
+
+        public void setClient(String client) {
+            this.client = client;
         }
 
         public String getMediaType() {
@@ -193,6 +231,14 @@ public class JellyFinViewModel implements Initializable {
             this.progress = progress;
         }
 
+        public int getRuntime() {
+            return runtime;
+        }
+
+        public void setRuntime(int runtime) {
+            this.runtime = runtime;
+        }
+
         public String getResolution() {
             return resolution;
         }
@@ -207,6 +253,118 @@ public class JellyFinViewModel implements Initializable {
 
         public void setBitrate(int bitrate) {
             this.bitrate = bitrate;
+        }
+
+        public boolean isPlaying() {
+            return playing;
+        }
+
+        public void setPlaying(boolean playing) {
+            this.playing = playing;
+        }
+
+        public boolean isMuted() {
+            return muted;
+        }
+
+        public void setMuted(boolean muted) {
+            this.muted = muted;
+        }
+
+        public String getRepeatMode() {
+            return repeatMode;
+        }
+
+        public void setRepeatMode(String repeatMode) {
+            this.repeatMode = repeatMode;
+        }
+
+        public boolean isCanSeek() {
+            return canSeek;
+        }
+
+        public void setCanSeek(boolean canSeek) {
+            this.canSeek = canSeek;
+        }
+
+        public String getRemoteAddress() {
+            return remoteAddress;
+        }
+
+        public void setRemoteAddress(String remoteAddress) {
+            this.remoteAddress = remoteAddress;
+        }
+
+        public String getLastActivity() {
+            return lastActivity;
+        }
+
+        public void setLastActivity(String lastActivity) {
+            this.lastActivity = lastActivity;
+        }
+
+        public String getDeviceId() {
+            return deviceId;
+        }
+
+        public void setDeviceId(String deviceId) {
+            this.deviceId = deviceId;
+        }
+
+        public int getYear() {
+            return year;
+        }
+
+        public void setYear(int year) {
+            this.year = year;
+        }
+
+        public String getOverview() {
+            return overview;
+        }
+
+        public void setOverview(String overview) {
+            this.overview = overview;
+        }
+
+        public String getCodec() {
+            return codec;
+        }
+
+        public void setCodec(String codec) {
+            this.codec = codec;
+        }
+
+        public double getFrameRate() {
+            return frameRate;
+        }
+
+        public void setFrameRate(double frameRate) {
+            this.frameRate = frameRate;
+        }
+
+        public String getVideoRange() {
+            return videoRange;
+        }
+
+        public void setVideoRange(String videoRange) {
+            this.videoRange = videoRange;
+        }
+
+        public String getFilePath() {
+            return filePath;
+        }
+
+        public void setFilePath(String filePath) {
+            this.filePath = filePath;
+        }
+
+        public String getSourceType() {
+            return sourceType;
+        }
+
+        public void setSourceType(String sourceType) {
+            this.sourceType = sourceType;
         }
     }
 
@@ -247,15 +405,21 @@ public class JellyFinViewModel implements Initializable {
             if (appProperties.containsKey("jellyfin-apiUrl")) {
                 serverUrl.set(appProperties.getProperty("jellyfin-apiUrl"));
             }
-
+            if (appProperties.containsKey("monitoringApi")) {
+                serverMonitoringEndpoint.set(appProperties.getProperty("monitoringApi"));
+            }
+            if (appProperties.containsKey("update-interval")) {
+                autoUpdateInterval.set(Integer.parseInt(appProperties.getProperty("update-interval")));
+            }
             if (appProperties.containsKey("jellyfin-apiKey")) {
                 apiKey.set(appProperties.getProperty("jellyfin-apiKey"));
             }
-
+            if (appProperties.containsKey("dockerApi")) {
+                dockerApiEndpoint.set(appProperties.getProperty("dockerApi"));
+            }
             if (appProperties.containsKey("username")) {
                 username.set(appProperties.getProperty("username"));
             }
-
             if (appProperties.containsKey("password")) {
                 password.set(appProperties.getProperty("password"));
             }
@@ -313,7 +477,8 @@ public class JellyFinViewModel implements Initializable {
 
     /**
      * Updates a specific property and saves the changes
-     * @param key Property key
+     *
+     * @param key   Property key
      * @param value Property value
      */
     public void updateProperty(String key, String value) {
@@ -331,6 +496,7 @@ public class JellyFinViewModel implements Initializable {
             addLogEntry("Error", "Properties", "Failed to save property: " + e.getMessage());
         }
     }
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         // Initialize HTTP client and thread pool
@@ -338,7 +504,7 @@ public class JellyFinViewModel implements Initializable {
         executorService = Executors.newFixedThreadPool(3);
 
         // Initialize auto-refresh timeline
-        autoRefreshTimeline = new Timeline(new KeyFrame(Duration.seconds(30), e -> refreshServerStatus()));
+        autoRefreshTimeline = new Timeline(new KeyFrame(Duration.seconds(autoUpdateInterval.get()), e -> refreshServerStatus()));
         autoRefreshTimeline.setCycleCount(Animation.INDEFINITE);
 
         // Load properties from file first
@@ -376,6 +542,7 @@ public class JellyFinViewModel implements Initializable {
             connectToServer();
         }
     }
+
     /**
      * Sets up bidirectional bindings between text fields and properties,
      * with change listeners to save updates to the properties file
@@ -412,6 +579,7 @@ public class JellyFinViewModel implements Initializable {
             }
         });
     }
+
     private void setupLogTable() {
         // Configure table columns
         timeColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getTime()));
@@ -555,7 +723,7 @@ public class JellyFinViewModel implements Initializable {
     private void toggleAutoRefresh() {
         if (autoRefreshToggle.isSelected()) {
             autoRefreshTimeline.play();
-            addLogEntry("Info", "System", "Auto-refresh enabled (30 second interval)");
+            addLogEntry("Info", "System", "Auto-refresh enabled (" + autoUpdateInterval.get() + " second interval)");
         } else {
             autoRefreshTimeline.stop();
             addLogEntry("Info", "System", "Auto-refresh disabled");
@@ -597,11 +765,8 @@ public class JellyFinViewModel implements Initializable {
     private CompletableFuture<Void> fetchSystemInfo() {
         return CompletableFuture.runAsync(() -> {
             try {
-                // Use the provided API endpoint
-                String systemInfoUrl = "http://192.168.1.85:8393/api/v1/system";
-
                 HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create(systemInfoUrl))
+                        .uri(URI.create(serverMonitoringEndpoint.get()))
                         .GET()
                         .build();
 
@@ -626,9 +791,8 @@ public class JellyFinViewModel implements Initializable {
                 JSONObject memoryData = systemInfo.optJSONObject("memory");
                 JSONArray disksData = systemInfo.optJSONArray("disks");
                 JSONObject networkData = systemInfo.optJSONObject("network"); //might be unused
-
                 // Extract data and use 0 as default.
-                double cpuUsage = cpuData != null ? cpuData.optDouble("systemCpuLoad", 0) : 0;
+                double cpuUsage = cpuData != null ? processCpuUsage(cpuData) : 0;
                 long totalMemory = memoryData != null ? memoryData.optLong("totalMemory", 0) : 0;
                 long usedMemory = memoryData != null ? memoryData.optLong("usedMemory", 0) : 0;
                 double memoryUsagePercentage = memoryData != null ? memoryData.optDouble("memoryUsagePercentage", 0) / 100.0 : 0;
@@ -650,62 +814,71 @@ public class JellyFinViewModel implements Initializable {
                     else {
                         storageUsagePercentage = 0;
                     }
-                }
-                else{
+                } else {
                     storageUsagePercentage = 0;
                 }
                 // Fallback for version and uptime -  try to get from Jellyfin if available.
                 String version = "N/A";
                 String uptime = "N/A";
                 if (apiKey.get() != null && !apiKey.get().trim().isEmpty()) {
-                    try{
+                    try {
                         HttpRequest jellyfinSystemRequest = HttpRequest.newBuilder()
                                 .uri(URI.create(serverUrl.get() + "/System/Info"))
                                 .header("X-MediaBrowser-Token", apiKey.get())
                                 .GET()
                                 .build();
                         HttpResponse<String> jellyfinSystemResponse = httpClient.send(jellyfinSystemRequest, HttpResponse.BodyHandlers.ofString());
-                        if(jellyfinSystemResponse.statusCode() == 200){
+                        if (jellyfinSystemResponse.statusCode() == 200) {
                             JSONObject jellyfinSystemInfo = new JSONObject(jellyfinSystemResponse.body());
-                            version = jellyfinSystemInfo.optString("Version","N/A");
-                            uptime = jellyfinSystemInfo.optString("LocalTime","N/A"); //This is not really the uptime, there is no direct uptime in Jellyfin API
+                            version = jellyfinSystemInfo.optString("Version", "N/A");
                         }
-                    }
-                    catch(Exception ex){
-                        addLogEntry("Warning","System","Failed to get version/uptime from Jellyfin: " + ex.getMessage());
+                    } catch (Exception ex) {
+                        addLogEntry("Warning", "System", "Failed to get version from Jellyfin: " + ex.getMessage());
                     }
                 }
-                // Try to get uptime from Docker if available
-                if (uptime.equals("N/A")) {
-                    try {
-                        Process process = new ProcessBuilder("docker", "inspect", "-f", "{{.State.StartedAt}}", "jellyfin") //changed from $(docker ps... to jellyfin
-                                .start();
-                        process.waitFor();
-                        if (process.exitValue() == 0) {
-                            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                            String dockerUptime = reader.readLine();
-                            if (dockerUptime != null && !dockerUptime.isEmpty()) {
-                                // Parse the Docker uptime string (ISO 8601) and calculate the difference.
-                                java.time.OffsetDateTime startedAt = java.time.OffsetDateTime.parse(dockerUptime);
-                                java.time.Duration duration = java.time.Duration.between(startedAt, java.time.OffsetDateTime.now());
 
-                                long days = duration.toDays();
-                                long hours = duration.toHoursPart();
-                                long minutes = duration.toMinutesPart();
-                                uptime = String.format("%d days, %d hours, %d minutes", days, hours, minutes);
-                            }
-                        }
-                    } catch (Exception e) {
-                        addLogEntry("Warning", "System", "Failed to get uptime from Docker: " + e.getMessage());
+                try {
+                    String containerName = "jellyfin";
+                    String dockerHost = dockerApiEndpoint.get();
+                    String urlStr = dockerHost + "/containers/" + containerName + "/json";
+
+                    HttpRequest dockerRequest = HttpRequest.newBuilder()
+                            .uri(URI.create(urlStr))
+                            .GET()
+                            .build();
+                    HttpResponse<String> dockerResponse = httpClient.send(dockerRequest, HttpResponse.BodyHandlers.ofString());
+
+                    if (dockerResponse.statusCode() != 200) {
+                        addLogEntry("Error", "Info", "Failed to fetch from " + urlStr + ": HTTP " + dockerResponse.statusCode() + " - " + response.body());
                     }
+
+                    JSONObject jsonResponse = new JSONObject(dockerResponse.body());
+                    String dockerUptime = jsonResponse.getJSONObject("State").getString("StartedAt");
+
+                    if (dockerUptime != null && !dockerUptime.isEmpty()) {
+                        java.time.OffsetDateTime startedAt = java.time.OffsetDateTime.parse(dockerUptime);
+                        java.time.Duration duration = java.time.Duration.between(startedAt, java.time.OffsetDateTime.now());
+
+                        long days = duration.toDays();
+                        long hours = duration.toHoursPart();
+                        long minutes = duration.toMinutesPart();
+                        uptime = String.format("%d days, %d hours, %d minutes", days, hours, minutes);
+                    }
+
+                } catch (Exception e) {
+                    addLogEntry("Warning", "System", "Failed to get uptime from Docker API: " + e.getMessage());
                 }
+
 
                 // Update UI on JavaFX thread
                 String finalVersion = version;
                 String finalUptime = uptime;
                 Platform.runLater(() -> {
                     cpuUsageBar.setProgress(cpuUsage);
+                    cpuUsageLabel.setText(String.format("%.1f%%", cpuUsage * 100));
                     memoryUsageBar.setProgress(memoryUsagePercentage);
+                    memoryUsageLabel.setText(String.format("%.1f%%", memoryUsagePercentage * 100));
+
                     storageUsageBar.setProgress(storageUsagePercentage);
                     versionLabel.setText(finalVersion);
                     uptimeLabel.setText(finalUptime);
@@ -724,7 +897,10 @@ public class JellyFinViewModel implements Initializable {
         });
     }
 
-
+    private double processCpuUsage(JSONObject cpuData) {
+        double systemCpuLoad = cpuData.getDouble("systemCpuLoad");
+        return systemCpuLoad / 100;
+    }
 
     /**
      * Fetch library statistics from the server using Jellyfin API
@@ -800,7 +976,6 @@ public class JellyFinViewModel implements Initializable {
             }
         }, executorService);
     }
-
 
 
     /**
@@ -947,71 +1122,212 @@ public class JellyFinViewModel implements Initializable {
      * Creates a visual tile for an active stream session
      */
     private VBox createStreamTile(StreamSession session) {
-        VBox tile = new VBox(8);
-        tile.setPadding(new Insets(15));
-        tile.setMinWidth(250);
-        tile.setMaxWidth(300);
+        VBox tile = new VBox(10);
+        tile.setPadding(new Insets(10));
+        tile.setMinWidth(280);
+        tile.setMaxWidth(350);
         tile.setPrefWidth(280);
         tile.getStyleClass().add("stream-tile");
 
+        // Status indicator - active or idle
+        HBox statusBar = new HBox(5);
+        statusBar.setAlignment(Pos.CENTER_LEFT);
+
+        Circle statusIndicator = new Circle(6);
+        statusIndicator.getStyleClass().add(session.isPlaying() ? "status-active" : "status-idle");
+
+        Label statusLabel = new Label(session.isPlaying() ? "Active" : "Idle");
+        statusLabel.getStyleClass().add("status-text");
+
+        Region topSpacer = new Region();
+        HBox.setHgrow(topSpacer, Priority.ALWAYS);
+
+        Label lastActiveLabel = new Label("Last active: " + formatDateTime(session.getLastActivity()));
+        lastActiveLabel.getStyleClass().add("last-active");
+
+        statusBar.getChildren().addAll(statusIndicator, statusLabel, topSpacer, lastActiveLabel);
+
         // Header with user info
-        HBox header = new HBox(10);
+        HBox header = new HBox(5);
         header.setAlignment(Pos.CENTER_LEFT);
 
+        // User avatar circle
+        Circle userAvatar = new Circle(15);
+        userAvatar.setFill(Color.DARKGRAY);
+        Text userInitial = new Text(session.getUsername().substring(0, 1).toUpperCase());
+        userInitial.setFill(Color.WHITE);
+        userInitial.setFont(Font.font("System", FontWeight.BOLD, 16));
+        StackPane avatarPane = new StackPane(userAvatar, userInitial);
+
+        VBox userInfo = new VBox(2);
         Label userLabel = new Label(session.getUsername());
         userLabel.getStyleClass().add("tile-username");
 
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
+        Label deviceInfoLabel = new Label(session.getClient() + " • " + session.getDevice());
+        deviceInfoLabel.getStyleClass().add("tile-device");
 
-        Label deviceLabel = new Label(session.getDevice());
-        deviceLabel.getStyleClass().add("tile-device");
+        userInfo.getChildren().addAll(userLabel, deviceInfoLabel);
 
-        header.getChildren().addAll(userLabel, spacer, deviceLabel);
+        Region headerSpacer = new Region();
+        HBox.setHgrow(headerSpacer, Priority.ALWAYS);
 
-        // Media info
+        // Remote connection indicator if applicable
+        Label remoteLabel = null;
+        if (!"Local".equals(session.getRemoteAddress())) {
+            remoteLabel = new Label("REMOTE");
+            remoteLabel.getStyleClass().add("remote-tag");
+        }
+
+        header.getChildren().addAll(avatarPane, userInfo, headerSpacer);
+        if (remoteLabel != null) {
+            header.getChildren().add(remoteLabel);
+        }
+
+        // Media info section
+        VBox mediaInfoBox = new VBox(6);
+
+        // Media title with year if available
+        HBox titleBox = new HBox(8);
         Label titleLabel = new Label(session.getTitle());
         titleLabel.getStyleClass().add("tile-title");
         titleLabel.setWrapText(true);
 
-        HBox mediaInfo = new HBox(10);
-        mediaInfo.setAlignment(Pos.CENTER_LEFT);
+        Label yearLabel = null;
+        if (session.getYear() > 0) {
+            yearLabel = new Label("(" + session.getYear() + ")");
+            yearLabel.getStyleClass().add("year-label");
+        }
 
-        Label mediaTypeLabel = new Label(session.getMediaType());
-        mediaTypeLabel.getStyleClass().add("media-type");
+        titleBox.getChildren().add(titleLabel);
+        if (yearLabel != null) {
+            titleBox.getChildren().add(yearLabel);
+        }
 
-        Label resolutionLabel = new Label(session.getResolution());
-        resolutionLabel.getStyleClass().add("resolution");
+        // Technical specs in tags
+        FlowPane techSpecs = new FlowPane(8, 8);
+        techSpecs.setPrefWrapLength(280);
 
-        Label bitrateLabel = new Label(session.getBitrate() + " Mbps");
-        bitrateLabel.getStyleClass().add("bitrate");
+        // Only add these if we have active media playing
+        if (!"Idle".equals(session.getMediaType())) {
+            Label mediaTypeTag = createTag(session.getMediaType());
+            Label resolutionTag = createTag(session.getResolution());
+            Label codecTag = createTag(session.getCodec());
+            Label bitrateTag = createTag(session.getBitrate() + " Mbps");
 
-        mediaInfo.getChildren().addAll(mediaTypeLabel, resolutionLabel, bitrateLabel);
+            techSpecs.getChildren().addAll(mediaTypeTag, resolutionTag, codecTag, bitrateTag);
 
-        // Progress
-        ProgressBar progressBar = new ProgressBar(session.getProgress() / 100.0);
+            if ("HDR".equals(session.getVideoRange()) || "HDR10".equals(session.getVideoRange()) ||
+                    "DolbyVision".equals(session.getVideoRange())) {
+                Label hdrTag = createTag(session.getVideoRange());
+                hdrTag.getStyleClass().add("hdr-tag");
+                techSpecs.getChildren().add(hdrTag);
+            }
+
+            if (session.getFrameRate() > 0) {
+                Label fpsTag = createTag(Math.round(session.getFrameRate()) + " fps");
+                techSpecs.getChildren().add(fpsTag);
+            }
+        } else {
+            Label idleTag = createTag("No media playing");
+            techSpecs.getChildren().add(idleTag);
+        }
+
+        mediaInfoBox.getChildren().addAll(titleBox, techSpecs);
+
+        VBox progressBox = new VBox(4);
+        progressBox.setVisible(!"Idle".equals(session.getMediaType()));
+        progressBox.setManaged(!"Idle".equals(session.getMediaType()));
+
+        HBox progressLabels = new HBox();
+        progressLabels.setAlignment(Pos.CENTER_LEFT);
+
+        Label elapsedLabel = new Label(formatTime(session.getProgress()));
+        elapsedLabel.getStyleClass().add("time-label");
+
+        Region progressSpacer = new Region();
+        HBox.setHgrow(progressSpacer, Priority.ALWAYS);
+
+        Label durationLabel = new Label(formatTime(session.getRuntime()));
+        durationLabel.getStyleClass().add("time-label");
+        progressLabels.getChildren().addAll(elapsedLabel, progressSpacer, durationLabel);
+
+        double progressPercentage = session.getRuntime() > 0 ?
+                (double) session.getProgress() / session.getRuntime() : 0;
+        ProgressBar progressBar = new ProgressBar(progressPercentage);
         progressBar.setPrefWidth(Double.MAX_VALUE);
+        progressBar.getStyleClass().add("media-progress");
+        progressBox.getChildren().addAll(progressBar, progressLabels);
 
-        Label progressLabel = new Label(session.getProgress() + "%");
-        progressLabel.getStyleClass().add("progress-label");
-
-        // Controls (demo only)
+        // Controls section
         HBox controls = new HBox(10);
         controls.setAlignment(Pos.CENTER);
 
-        Button pauseButton = new Button("Pause");
-        pauseButton.getStyleClass().add("control-button");
+        Button playPauseButton = new Button(session.isPlaying() ? "Pause" : "Play");
+        playPauseButton.getStyleClass().add("control-button");
 
         Button stopButton = new Button("Stop");
         stopButton.getStyleClass().add("control-button");
-        stopButton.setStyle("-fx-background-color: #e74c3c;");
+        stopButton.getStyleClass().add("stop-button");
 
-        controls.getChildren().addAll(pauseButton, stopButton);
+        Button infoButton = new Button("Details");
+        infoButton.getStyleClass().add("control-button");
+        infoButton.getStyleClass().add("info-button");
+
+        controls.getChildren().addAll(playPauseButton, stopButton, infoButton);
+
+        // Source path (truncate and make subtle)
+        Label pathLabel = new Label(session.getFilePath());
+        pathLabel.getStyleClass().add("path-label");
+        pathLabel.setWrapText(true);
+        pathLabel.setVisible(!"Idle".equals(session.getMediaType()));
+        pathLabel.setManaged(!"Idle".equals(session.getMediaType()));
 
         // Add all elements to the tile
-        tile.getChildren().addAll(header, titleLabel, mediaInfo, progressBar, progressLabel, controls);
+        tile.getChildren().addAll(statusBar, header, mediaInfoBox, progressBox, controls);
+
+        // Only add path if there's media playing
+        if (!"Idle".equals(session.getMediaType())) {
+            tile.getChildren().add(pathLabel);
+        }
 
         return tile;
+    }
+
+    // Helper method to create tag labels
+    private Label createTag(String text) {
+        Label tag = new Label(text);
+        tag.getStyleClass().add("tech-tag");
+        return tag;
+    }
+
+    // Helper method to format time in HH:MM:SS
+    private String formatTime(int seconds) {
+        int hours = seconds / 3600;
+        int minutes = (seconds % 3600) / 60;
+        int secs = seconds % 60;
+
+        if (hours > 0) {
+            return String.format("%d:%02d:%02d", hours, minutes, secs);
+        } else {
+            return String.format("%02d:%02d", minutes, secs);
+        }
+    }
+
+    // Helper method to format datetime
+    private String formatDateTime(String isoDateTime) {
+        if (isoDateTime == null || "Unknown".equals(isoDateTime)) {
+            return "Unknown";
+        }
+
+        try {
+            DateTimeFormatter inputFormatter = DateTimeFormatter.ISO_DATE_TIME;
+            LocalDateTime dateTime = LocalDateTime.parse(isoDateTime, inputFormatter);
+
+            DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("MMM d, HH:mm");
+            return dateTime.format(outputFormatter);
+        } catch (Exception e) {
+            return "Unknown";
+        }
     }
 
     /**
@@ -1061,41 +1377,98 @@ public class JellyFinViewModel implements Initializable {
                 JSONArray sessionsJson = new JSONArray(response.body());
                 List<StreamSession> sessions = new ArrayList<>();
 
-                // Iterate through the sessions in the JSON array
                 for (int i = 0; i < sessionsJson.length(); i++) {
                     JSONObject sessionJson = sessionsJson.getJSONObject(i);
                     StreamSession session = new StreamSession();
 
-                    // Extract the data.  You'll need to adjust this based on the *actual* structure of the Jellyfin API response.  I've made educated guesses about the field names.  Use a debugger or look at the JSON to get the correct names.
-                    session.setUsername(sessionJson.optString("UserName", "Unknown User")); // "UserName" is a guess
-                    session.setDevice(sessionJson.optString("Client", "Unknown Device"));      // "Client" is a guess
-                    JSONObject nowPlayingItem = sessionJson.optJSONObject("NowPlayingItem");  // "NowPlayingItem" is a guess
-                    if (nowPlayingItem != null) {
-                        String mediaType = nowPlayingItem.optString("Type", "Unknown"); // "Type" is a guess
-                        session.setMediaType(mediaType);
-                        session.setTitle(nowPlayingItem.optString("Name", "Unknown Title"));    // "Name" is a guess
+                    // Extract basic user information
+                    session.setUsername(sessionJson.optString("UserName", "Unknown User"));
+                    session.setDevice(sessionJson.optString("DeviceName", "Unknown Device"));
+                    session.setClient(sessionJson.optString("Client", "Unknown Client"));
 
-                        // Get progress.  This is more complex, and the field names vary *wildly* in different APIs.
-                        if(nowPlayingItem.has("UserData")) {
-                            JSONObject userData = nowPlayingItem.getJSONObject("UserData");
-                            session.setProgress((int)(userData.optDouble("PlaybackPositionTicks", 0) / (double)nowPlayingItem.optLong("RunTimeTicks",1) * 100)); // PlaybackPositionTicks, RunTimeTicks
-                        }
-                        else{
-                            session.setProgress(0);
-                        }
+                    // Get remote connection information
+                    session.setRemoteAddress(sessionJson.optString("RemoteEndPoint", "Local"));
 
-
-                        // Example for bitrate.  The actual field name is *highly* likely to be different.
-                        session.setBitrate(sessionJson.optInt("TranscodingInfo", 0));  // "TranscodingInfo" is a guess, and might be an object, not a direct int.
-                        session.setResolution(sessionJson.optString("PresentationMode", "Unknown")); // "PresentationMode" is a guess
+                    // Extract playback state
+                    JSONObject playState = sessionJson.optJSONObject("PlayState");
+                    if (playState != null) {
+                        session.setPlaying(!playState.optBoolean("IsPaused", false));
+                        session.setMuted(playState.optBoolean("IsMuted", false));
+                        session.setRepeatMode(playState.optString("RepeatMode", "None"));
+                        session.setCanSeek(playState.optBoolean("CanSeek", false));
                     }
-                    else{
+
+                    // Check for active playback
+                    JSONArray nowPlayingQueueItems = sessionJson.optJSONArray("NowPlayingQueueFullItems");
+                    if (nowPlayingQueueItems != null && nowPlayingQueueItems.length() > 0) {
+                        JSONObject mediaItem = nowPlayingQueueItems.getJSONObject(0);
+
+                        // Basic media information
+                        session.setTitle(mediaItem.optString("Name", "Unknown Title"));
+                        session.setMediaType(mediaItem.optString("MediaType", "Unknown"));
+                        session.setYear(mediaItem.optInt("ProductionYear", 0));
+                        session.setOverview(mediaItem.optString("Overview", ""));
+
+                        // In the parsing method where we extract session data:
+                        long runtimeTicks = mediaItem.optLong("RunTimeTicks", 0);
+                        session.setRuntime(runtimeTicks > 0 ? (int) (runtimeTicks / 10000000) : 0); // Convert ticks to seconds
+
+
+                        JSONObject userData = mediaItem.optJSONObject("UserData");
+                        if (userData != null && userData.has("PlaybackPositionTicks")) {
+                            long positionTicks = userData.optLong("PlaybackPositionTicks", 0);
+                            session.setProgress((int) (positionTicks / 10000000)); // Convert ticks to seconds
+                        } else {
+                            // If position isn't available, check if there's a PlayState with position
+                            playState = sessionJson.optJSONObject("PlayState");
+                            if (playState != null && playState.has("PositionTicks")) {
+                                long positionTicks = playState.optLong("PositionTicks", 0);
+                                session.setProgress((int) (positionTicks / 10000000));
+                            } else {
+                                // No position data found
+                                session.setProgress(0);
+                            }
+                        }
+
+                        // Get video stream details if available
+                        JSONArray mediaStreams = mediaItem.optJSONArray("MediaStreams");
+                        if (mediaStreams != null) {
+                            for (int j = 0; j < mediaStreams.length(); j++) {
+                                JSONObject stream = mediaStreams.getJSONObject(j);
+                                String streamType = stream.optString("Type", "");
+
+                                if ("Video".equals(streamType)) {
+                                    // Resolution information
+                                    int width = stream.optInt("Width", 0);
+                                    int height = stream.optInt("Height", 0);
+                                    session.setResolution(width > 0 && height > 0 ? width + "x" + height : "Unknown");
+
+                                    // Video codec and quality information
+                                    session.setCodec(stream.optString("Codec", "Unknown"));
+                                    session.setBitrate(Math.round(stream.optInt("BitRate", 0) / 1000000.0f)); // Convert to Mbps
+                                    session.setFrameRate(stream.optDouble("RealFrameRate", 0));
+                                    session.setVideoRange(stream.optString("VideoRange", "Unknown"));
+                                    break;
+                                }
+                            }
+                        }
+
+                        // Get path and location information
+                        session.setFilePath(mediaItem.optString("Path", ""));
+                        session.setSourceType(mediaItem.optString("LocationType", "Unknown"));
+                    } else {
+                        // Set default values for idle sessions
                         session.setTitle("Idle");
                         session.setMediaType("Idle");
                         session.setProgress(0);
                         session.setBitrate(0);
-                        session.setResolution("Unknown");
+                        session.setResolution("None");
+                        session.setPlaying(false);
                     }
+
+                    // Add other session metadata
+                    session.setLastActivity(sessionJson.optString("LastActivityDate", "Unknown"));
+                    session.setDeviceId(sessionJson.optString("DeviceId", "Unknown"));
 
                     sessions.add(session);
                 }

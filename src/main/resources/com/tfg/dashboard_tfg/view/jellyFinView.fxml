@@ -111,11 +111,13 @@
                                    styleClass="setting-label"/>
                             <ProgressBar fx:id="cpuUsageBar" progress="0.0" GridPane.columnIndex="1" GridPane.rowIndex="0"
                                          styleClass="stat-progress"/>
+                            <Label fx:id="cpuUsageLabel" GridPane.columnIndex="2" GridPane.rowIndex="0" text="0%"/>
 
                             <Label text="Memory Usage:" GridPane.columnIndex="0" GridPane.rowIndex="1"
                                    styleClass="setting-label"/>
                             <ProgressBar fx:id="memoryUsageBar" progress="0.0" GridPane.columnIndex="1" GridPane.rowIndex="1"
                                          styleClass="stat-progress"/>
+                            <Label fx:id="memoryUsageLabel" GridPane.columnIndex="2" GridPane.rowIndex="1" text="0%"/>
 
                             <Label text="Storage:" GridPane.columnIndex="0" GridPane.rowIndex="2"
                                    styleClass="setting-label"/>
@@ -131,6 +133,8 @@
                                    styleClass="setting-label"/>
                             <Label fx:id="uptimeLabel" text="N/A" GridPane.columnIndex="1" GridPane.rowIndex="4"
                                    styleClass="stat-value"/>
+
+
                         </GridPane>
                     </VBox>
                 </TitledPane>

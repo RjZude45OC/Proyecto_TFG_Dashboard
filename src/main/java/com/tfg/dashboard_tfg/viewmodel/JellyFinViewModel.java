@@ -119,7 +119,7 @@ public class JellyFinViewModel implements Initializable {
     private final StringProperty password = new SimpleStringProperty("");
     private final StringProperty serverMonitoringEndpoint = new SimpleStringProperty("");
     private final StringProperty dockerApiEndpoint = new SimpleStringProperty("");
-    private final IntegerProperty autoUpdateInterval = new SimpleIntegerProperty(0);
+    private final DoubleProperty autoUpdateInterval = new SimpleDoubleProperty(0);
 
 
     // Data collections
@@ -377,6 +377,7 @@ public class JellyFinViewModel implements Initializable {
     private static final String PROPERTIES_FILE = "connection.properties";
     private Properties appProperties = new Properties();
     private boolean propertiesLoaded = false;
+    private JSONObject systeminfo;
 
     /**
      * Loads application properties from the properties file if not already loaded
@@ -409,7 +410,7 @@ public class JellyFinViewModel implements Initializable {
                 serverMonitoringEndpoint.set(appProperties.getProperty("monitoringApi"));
             }
             if (appProperties.containsKey("update-interval")) {
-                autoUpdateInterval.set(Integer.parseInt(appProperties.getProperty("update-interval")));
+                autoUpdateInterval.set(Double.parseDouble(appProperties.getProperty("update-interval")));
             }
             if (appProperties.containsKey("jellyfin-apiKey")) {
                 apiKey.set(appProperties.getProperty("jellyfin-apiKey"));
@@ -499,15 +500,14 @@ public class JellyFinViewModel implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        // Initialize HTTP client and thread pool
         httpClient = HttpClient.newBuilder().build();
         executorService = Executors.newFixedThreadPool(3);
 
-        // Initialize auto-refresh timeline
-        autoRefreshTimeline = new Timeline(new KeyFrame(Duration.seconds(autoUpdateInterval.get()), e -> refreshServerStatus()));
+        autoRefreshTimeline = new Timeline(new KeyFrame(Duration.seconds(5), e -> {
+            refreshServerStatus();
+        }));
         autoRefreshTimeline.setCycleCount(Animation.INDEFINITE);
 
-        // Load properties from file first
         loadPropertiesIfNeeded();
 
         // Setup data bindings
@@ -541,6 +541,8 @@ public class JellyFinViewModel implements Initializable {
             addLogEntry("Info", "Initialization", "Attempting connection with saved properties");
             connectToServer();
         }
+        refreshServerStatus();
+
     }
 
     /**
@@ -675,7 +677,6 @@ public class JellyFinViewModel implements Initializable {
                 // Parse response
                 JSONObject serverInfo = new JSONObject(response.body());
                 String version = serverInfo.optString("Version", "Unknown");
-
                 // Save successful connection details to properties
                 saveConnectionProperties();
 
@@ -700,11 +701,6 @@ public class JellyFinViewModel implements Initializable {
 
                     // Fetch initial data
                     refreshServerStatus();
-
-                    // Start auto-refresh if enabled
-                    if (autoRefreshToggle.isSelected()) {
-                        autoRefreshTimeline.play();
-                    }
                 } else {
                     serverStatusLabel.textProperty().unbind();
                     serverStatusLabel.styleProperty().unbind(); // Unbind the style property
@@ -721,6 +717,7 @@ public class JellyFinViewModel implements Initializable {
      */
     @FXML
     private void toggleAutoRefresh() {
+        System.out.println("autorefresh");
         if (autoRefreshToggle.isSelected()) {
             autoRefreshTimeline.play();
             addLogEntry("Info", "System", "Auto-refresh enabled (" + autoUpdateInterval.get() + " second interval)");
@@ -735,6 +732,7 @@ public class JellyFinViewModel implements Initializable {
      */
     @FXML
     private void refreshServerStatus() {
+        System.out.println("refresh");
         if (!connected.get()) {
             return;
         }
@@ -791,6 +789,8 @@ public class JellyFinViewModel implements Initializable {
                 JSONObject memoryData = systemInfo.optJSONObject("memory");
                 JSONArray disksData = systemInfo.optJSONArray("disks");
                 JSONObject networkData = systemInfo.optJSONObject("network"); //might be unused
+
+                systeminfo = systemInfo;
                 // Extract data and use 0 as default.
                 double cpuUsage = cpuData != null ? processCpuUsage(cpuData) : 0;
                 long totalMemory = memoryData != null ? memoryData.optLong("totalMemory", 0) : 0;
@@ -1040,12 +1040,6 @@ public class JellyFinViewModel implements Initializable {
     private CompletableFuture<Void> fetchRecentLogs() {
         return CompletableFuture.runAsync(() -> {
             try {
-                // Simulate API delay
-                Thread.sleep(400);
-
-                // Generate random logs
-                Random random = new Random();
-                int newLogsCount = random.nextInt(3); // 0-2 new logs per refresh
 
                 List<LogEntry> newLogs = new ArrayList<>();
                 String[] sources = {"System", "Playback", "Auth", "Transcoder", "Scheduler", "IO"};
@@ -1053,49 +1047,41 @@ public class JellyFinViewModel implements Initializable {
                         "Library scan completed",
                         "User logged in",
                         "Startup complete",
-                        "Media optimized",
                         "Metadata updated",
                         "Scheduled task completed"
                 };
                 String[] warningMessages = {
-                        "Slow response time detected",
                         "High CPU usage",
                         "Failed to fetch metadata",
                         "Network latency detected",
-                        "Database query timeout"
                 };
                 String[] errorMessages = {
-                        "Failed to connect to database",
                         "IO error when reading media file",
                         "Authentication failure",
                         "Transcoding error",
                         "Out of memory"
                 };
 
-                for (int i = 0; i < newLogsCount; i++) {
-                    LocalDateTime now = LocalDateTime.now();
-                    String time = now.format(logTimeFormatter);
-                    String source = sources[random.nextInt(sources.length)];
+                LocalDateTime now = LocalDateTime.now();
+                String time = now.format(logTimeFormatter);
+                String source = "";
 
-                    // Decide log level (mostly info, sometimes warning, rarely error)
-                    int levelRandom = random.nextInt(100);
-                    String level;
-                    String message;
+                String level = "";
+                String message = "";
+                System.out.println(systeminfo);
+//                    if (levelRandom < 70) {
+//                        level = "Info";
+//                        message = infoMessages[random.nextInt(infoMessages.length)];
+//                    } else if (levelRandom < 95) {
+//                        level = "Warning";
+//                        message = warningMessages[random.nextInt(warningMessages.length)];
+//                    } else {
+//                        level = "Error";
+//                        message = errorMessages[random.nextInt(errorMessages.length)];
+//                    }
 
-                    if (levelRandom < 70) {
-                        level = "Info";
-                        message = infoMessages[random.nextInt(infoMessages.length)];
-                    } else if (levelRandom < 95) {
-                        level = "Warning";
-                        message = warningMessages[random.nextInt(warningMessages.length)];
-                    } else {
-                        level = "Error";
-                        message = errorMessages[random.nextInt(errorMessages.length)];
-                    }
-
-                    LogEntry entry = new LogEntry(time, level, source, message);
-                    newLogs.add(entry);
-                }
+                LogEntry entry = new LogEntry(time, level, source, message);
+                newLogs.add(entry);
 
                 // Update UI on JavaFX thread
                 Platform.runLater(() -> {

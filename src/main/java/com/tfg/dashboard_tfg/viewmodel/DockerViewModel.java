@@ -491,14 +491,13 @@ public class DockerViewModel {
         // Calculate tile width: (container width - padding - gaps) / 5
         double paddingWidth = containerTilesPane.getPadding().getLeft() + containerTilesPane.getPadding().getRight();
         double gapWidth = containerTilesPane.getHgap() * 4; // 4 gaps for 5 tiles
-        double tileWidth = (flowPaneWidth - paddingWidth - gapWidth) / 5.0;
+        double tileWidth = (flowPaneWidth - paddingWidth - gapWidth) / 4.0;
 
-        // Set minimum tile width
         tileWidth = Math.max(tileWidth, 120);
 
         Tile tile = TileBuilder.create()
                 .skinType(Tile.SkinType.GAUGE)
-                .prefSize(tileWidth, 120)  // Use calculated width
+                .prefSize(tileWidth, tileWidth)
                 .maxWidth(Double.MAX_VALUE)
                 .maxHeight(Double.MAX_VALUE)
                 .title(name)

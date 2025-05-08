@@ -47,6 +47,9 @@ public class Controller {
 
     @FXML
     public Button DownloadBtn;
+
+    @FXML
+    public Button JellyseerBtn;
     // Theme Properties
     @FXML
     private ToggleButton themeToggle;
@@ -69,6 +72,9 @@ public class Controller {
 
     @FXML
     private AnchorPane dashboardView;
+
+    @FXML
+    private AnchorPane jellyseerView;
 
     @FXML
     private AnchorPane sonarrView;
@@ -403,6 +409,18 @@ public class Controller {
     }
 
     @FXML
+    public void showJellyseerView() {
+
+        resetViewStyles();
+        if (darkMode.get()) {
+            JellyseerBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: #CDD6F4;");
+        } else {
+            JellyseerBtn.setStyle("-fx-background-color: #e0e0e0; -fx-text-fill: #333333;");
+        }
+        setViewVisibility(jellyseerView);
+    }
+
+    @FXML
     public void showLoginForm() {
         // If already logged in, this is a logout action
         if (isLoggedIn.get()) {
@@ -448,6 +466,7 @@ public class Controller {
             loginMenuBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #CDD6F4;");
             rssBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #CDD6F4;");
             DownloadBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #CDD6F4;");
+            JellyseerBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #CDD6F4;");
         } else {
             dashboardBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");
             sonarrBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");
@@ -456,6 +475,7 @@ public class Controller {
             loginMenuBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");
             rssBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");
             DownloadBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");
+            JellyseerBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");
         }
     }
 
@@ -469,6 +489,7 @@ public class Controller {
         registerView.setVisible(false);
         rssView.setVisible(false);
         DownloaderClientView.setVisible(false);
+        jellyseerView.setVisible(false);
         // Show the active view
         activeView.setVisible(true);
     }
@@ -523,8 +544,15 @@ public class Controller {
         FXMLLoader downloadClientLoader = new FXMLLoader(getClass().getResource(path));
         PathCheck(path);
         DownloaderClientView = downloadClientLoader.load();
+
+        //load DownloadClient view
+        path = "/com/tfg/dashboard_tfg/view/jellyseerView.fxml";
+        FXMLLoader jellyseerLoader = new FXMLLoader(getClass().getResource(path));
+        PathCheck(path);
+        jellyseerView = jellyseerLoader.load();
+
         //add all child to main panel
-        mainStackPane.getChildren().addAll(dashboardView, dockerView, jellyfinView, loginView, registerView, rssView, sonarrView,DownloaderClientView);
+        mainStackPane.getChildren().addAll(dashboardView, dockerView, jellyfinView, loginView, registerView, rssView, sonarrView, DownloaderClientView, jellyseerView);
 
         // Set up controllers
         LoginViewModel loginController = loginLoader.getController();

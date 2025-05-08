@@ -134,6 +134,19 @@
                             <Insets left="20.0"/>
                         </padding>
                     </Button>
+
+                    <Button fx:id="JellyseerBtn" alignment="BASELINE_LEFT" graphicTextGap="15.0" onAction="#showJellyseerView"
+                            prefHeight="50.0" prefWidth="250.0" text="WebView">
+                        <graphic>
+                            <FontIcon iconLiteral="mdi2w-web" iconSize="22"/>
+                        </graphic>
+                        <font>
+                            <Font size="16.0"/>
+                        </font>
+                        <padding>
+                            <Insets left="20.0"/>
+                        </padding>
+                    </Button>
                 </VBox>
 
                 <VBox VBox.vgrow="NEVER">
@@ -168,7 +181,7 @@
         </left>
 
         <center>
-            <StackPane fx:id="mainStackPane" styleClass="view-box" prefHeight="800">
+            <StackPane fx:id="mainStackPane" styleClass="view-box" prefHeight="800" prefWidth="1350">
                 <!-- inject Views-->
             </StackPane>
         </center>

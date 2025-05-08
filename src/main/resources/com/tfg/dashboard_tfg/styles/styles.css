@@ -880,3 +880,221 @@
 .table-view .column-header-background .filler {
     -fx-background-color: transparent;
 }
+/* Web Viewer Styles */
+
+/* Container */
+.webview-container {
+    -fx-background-radius: 5px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 0);
+}
+
+.dark-theme .webview-container {
+    -fx-background-color: #252538;
+}
+
+.light-theme .webview-container {
+    -fx-background-color: white;
+}
+
+/* Header */
+.webview-header {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 5 0 10 0;
+}
+
+.dark-theme .webview-header {
+    -fx-text-fill: -terminal-brightWhite;
+}
+
+.light-theme .webview-header {
+    -fx-text-fill: #5e72e4;
+}
+
+/* Navigation bar */
+.navigation-controls {
+    -fx-background-radius: 5px;
+    -fx-padding: 5 10;
+    -fx-border-radius: 5;
+    -fx-border-width: 1;
+}
+
+.dark-theme .navigation-controls {
+    -fx-background-color: #2e2e42;
+    -fx-border-color: #3d3d56;
+}
+
+.light-theme .navigation-controls {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #e4e5f0;
+}
+
+/* Navigation buttons */
+.nav-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 3;
+    -fx-border-radius: 3;
+    -fx-padding: 5 10;
+}
+
+.dark-theme .nav-button {
+    -fx-text-fill: -terminal-brightWhite;
+}
+
+.dark-theme .nav-button FontIcon {
+    -fx-icon-color: -terminal-brightWhite;
+}
+
+.light-theme .nav-button {
+    -fx-text-fill: -terminal-foreground;
+}
+
+.light-theme .nav-button FontIcon {
+    -fx-icon-color: #5e72e4;
+}
+
+.dark-theme .nav-button:hover {
+    -fx-background-color: #3d3d56;
+}
+
+.light-theme .nav-button:hover {
+    -fx-background-color: #e9eaf3;
+}
+
+.dark-theme .nav-button:pressed {
+    -fx-background-color: #4d4d66;
+}
+
+.light-theme .nav-button:pressed {
+    -fx-background-color: #d9dae5;
+}
+
+/* URL field */
+.url-field {
+    -fx-background-radius: 3;
+    -fx-border-radius: 3;
+    -fx-border-width: 1;
+    -fx-padding: 5 10;
+}
+
+.dark-theme .url-field {
+    -fx-background-color: #1e1e2c;
+    -fx-border-color: #3d3d56;
+    -fx-text-fill: -terminal-brightWhite;
+}
+
+.light-theme .url-field {
+    -fx-background-color: white;
+    -fx-border-color: #e4e5f0;
+    -fx-text-fill: -terminal-foreground;
+}
+
+.dark-theme .url-field:focused {
+    -fx-border-color: #5e72e4;
+}
+
+.light-theme .url-field:focused {
+    -fx-border-color: #5e72e4;
+}
+
+/* Go button */
+.go-button {
+    -fx-background-radius: 3;
+    -fx-border-radius: 3;
+    -fx-padding: 5 15;
+    -fx-font-weight: bold;
+}
+
+.dark-theme .go-button {
+    -fx-background-color: #5e72e4;
+    -fx-text-fill: -terminal-brightWhite;
+}
+
+.dark-theme .go-button FontIcon {
+    -fx-icon-color: -terminal-brightWhite;
+}
+
+.light-theme .go-button {
+    -fx-background-color: #5e72e4;
+    -fx-text-fill: white;
+}
+
+.light-theme .go-button FontIcon {
+    -fx-icon-color: white;
+}
+
+.dark-theme .go-button:hover {
+    -fx-background-color: #4a5acf;
+}
+
+.light-theme .go-button:hover {
+    -fx-background-color: #4a5acf;
+}
+
+.dark-theme .go-button:pressed {
+    -fx-background-color: #3a4ac0;
+}
+
+.light-theme .go-button:pressed {
+    -fx-background-color: #3a4ac0;
+}
+
+/* Status bar */
+.status-bar {
+    -fx-background-radius: 3;
+    -fx-border-radius: 3;
+    -fx-border-width: 1;
+    -fx-padding: 5 10;
+}
+
+.dark-theme .status-bar {
+    -fx-background-color: #2e2e42;
+    -fx-border-color: #3d3d56;
+}
+
+.light-theme .status-bar {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #e4e5f0;
+}
+
+.dark-theme .status-bar Label {
+    -fx-text-fill: -terminal-brightWhite;
+}
+
+.light-theme .status-bar Label {
+    -fx-text-fill: #6c757d;
+}
+
+/* Progress indicators */
+.dark-theme .progress-bar .bar {
+    -fx-background-color: #5e72e4;
+}
+
+.light-theme .progress-bar .bar {
+    -fx-background-color: #5e72e4;
+}
+
+.dark-theme .progress-bar .track {
+    -fx-background-color: #3d3d56;
+}
+
+.light-theme .progress-bar .track {
+    -fx-background-color: #e4e5f0;
+}
+
+.dark-theme .progress-indicator {
+    -fx-progress-color: #5e72e4;
+}
+
+.light-theme .progress-indicator {
+    -fx-progress-color: #5e72e4;
+}
+
+/* WebView customization */
+.dark-theme .web-view {
+    -fx-background-color: #1e1e2c;
+}
+
+.light-theme .web-view {
+    -fx-background-color: white;
+}

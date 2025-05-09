@@ -19,11 +19,9 @@ import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
-import javafx.scene.text.TextFlow;
 import javafx.util.Duration;
 
 import java.io.*;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -714,7 +712,6 @@ public class JellyFinViewModel implements Initializable {
      */
     @FXML
     private void toggleAutoRefresh() {
-        System.out.println("autorefresh");
         if (autoRefreshToggle.isSelected()) {
             autoRefreshTimeline.play();
             addLogEntry("Info", "System", "Auto-refresh enabled (" + autoUpdateInterval.get() + " second interval)");
@@ -729,7 +726,6 @@ public class JellyFinViewModel implements Initializable {
      */
     @FXML
     private void refreshServerStatus() {
-        System.out.println("refresh");
         if (!connected.get()) {
             return;
         }
@@ -743,7 +739,6 @@ public class JellyFinViewModel implements Initializable {
         CompletableFuture<Void> activeSessions = fetchActiveSessions();
         CompletableFuture<Void> logs = fetchRecentLogs();
 
-        // Wait for all tasks to complete
         CompletableFuture.allOf(
                 systemInfo,
                 libraryStats,
@@ -799,7 +794,7 @@ public class JellyFinViewModel implements Initializable {
                 double usedSpace = 0;
                 double storageUsagePercentage;
 
-                if (disksData != null && disksData.length() > 0) {
+                if (disksData != null && !disksData.isEmpty()) {
                     // Sum up the space from all disks
                     for (int i = 0; i < disksData.length(); i++) {
                         JSONObject disk = disksData.getJSONObject(i);
@@ -881,7 +876,6 @@ public class JellyFinViewModel implements Initializable {
                     uptimeLabel.setText(finalUptime);
                 });
             } catch (Exception e) {
-                e.printStackTrace();
                 addLogEntry("Error", "System", "Error fetching system info: " + e.getMessage());
                 Platform.runLater(() -> {
                     versionLabel.setText("N/A");
@@ -960,7 +954,6 @@ public class JellyFinViewModel implements Initializable {
                     totalSizeLabel.setText(String.format("%.1f GB", totalSize));
                 });
             } catch (Exception e) {
-                e.printStackTrace();
                 addLogEntry("Error", "Library", "Error fetching library stats: " + e.getMessage());
                 Platform.runLater(() -> {
                     moviesCountLabel.setText("0");
@@ -975,9 +968,6 @@ public class JellyFinViewModel implements Initializable {
     }
 
 
-    /**
-     * Fetch recent logs from the server
-     */
     /**
      * Filter logs based on selected level
      */
@@ -1065,7 +1055,6 @@ public class JellyFinViewModel implements Initializable {
 
                 String level = "";
                 String message = "";
-                System.out.println(systeminfo);
 //                    if (levelRandom < 70) {
 //                        level = "Info";
 //                        message = infoMessages[random.nextInt(infoMessages.length)];
@@ -1337,8 +1326,6 @@ public class JellyFinViewModel implements Initializable {
                             .GET()
                             .build();
                 }
-
-
                 // Send the request and get the response
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
@@ -1363,7 +1350,6 @@ public class JellyFinViewModel implements Initializable {
                 for (int i = 0; i < sessionsJson.length(); i++) {
                     JSONObject sessionJson = sessionsJson.getJSONObject(i);
                     StreamSession session = new StreamSession();
-
                     // Extract basic user information
                     session.setUsername(sessionJson.optString("UserName", "Unknown User"));
                     session.setDevice(sessionJson.optString("DeviceName", "Unknown Device"));
@@ -1383,7 +1369,7 @@ public class JellyFinViewModel implements Initializable {
 
                     // Check for active playback
                     JSONArray nowPlayingQueueItems = sessionJson.optJSONArray("NowPlayingQueueFullItems");
-                    if (nowPlayingQueueItems != null && nowPlayingQueueItems.length() > 0) {
+                    if (nowPlayingQueueItems != null && !nowPlayingQueueItems.isEmpty()) {
                         JSONObject mediaItem = nowPlayingQueueItems.getJSONObject(0);
 
                         // Basic media information
@@ -1402,13 +1388,22 @@ public class JellyFinViewModel implements Initializable {
                             long positionTicks = userData.optLong("PlaybackPositionTicks", 0);
                             session.setProgress((int) (positionTicks / 10000000)); // Convert ticks to seconds
                         } else {
-                            // If position isn't available, check if there's a PlayState with position
                             playState = sessionJson.optJSONObject("PlayState");
-                            if (playState != null && playState.has("PositionTicks")) {
-                                long positionTicks = playState.optLong("PositionTicks", 0);
-                                session.setProgress((int) (positionTicks / 10000000));
+                            if (playState != null) {
+                                if (playState.has("PositionTicks")) {
+                                    long positionTicks = playState.optLong("PositionTicks", 0);
+                                    session.setProgress((int) (positionTicks / 10000000));
+                                } else {
+                                    session.setTitle("Idle");
+                                    session.setMediaType("Idle");
+                                    session.setProgress(0);
+                                    session.setBitrate(0);
+                                    session.setResolution("None");
+                                    session.setPlaying(false);
+                                    session.setYear(0);
+                                    session.setProgress(0);
+                                }
                             } else {
-                                // No position data found
                                 session.setProgress(0);
                             }
                         }
@@ -1440,7 +1435,6 @@ public class JellyFinViewModel implements Initializable {
                         session.setFilePath(mediaItem.optString("Path", ""));
                         session.setSourceType(mediaItem.optString("LocationType", "Unknown"));
                     } else {
-                        // Set default values for idle sessions
                         session.setTitle("Idle");
                         session.setMediaType("Idle");
                         session.setProgress(0);
@@ -1477,7 +1471,6 @@ public class JellyFinViewModel implements Initializable {
                 });
             } catch (Exception e) {
                 // Catch any exceptions (e.g., network errors, JSON parsing errors)
-                e.printStackTrace();
                 addLogEntry("Error", "Active Sessions", "Error fetching active sessions: " + e.getMessage());
                 Platform.runLater(() -> {
                     activeStreamsLabel.setText("0"); // Or some error indicator

@@ -61,7 +61,6 @@ public class DashboardController {
 
     // API URL property
     private StringProperty apiBaseUrl = new SimpleStringProperty("http://localhost:8393/api/v1/system");
-    private StringProperty apiEndpoint = new SimpleStringProperty("/api/v1/system");
     private final Properties appProperties = new Properties();
     private final File configFile = new File("connection.properties");
 
@@ -72,6 +71,7 @@ public class DashboardController {
             System.err.println("Failed to load config: " + e.getMessage());
         }
     }
+
     public void applySettings(String newApiUrl) {
         if (!newApiUrl.startsWith("http://") && !newApiUrl.startsWith("https://")) {
             newApiUrl = "http://" + newApiUrl;
@@ -85,6 +85,7 @@ public class DashboardController {
             System.err.println("Failed to save config: " + e.getMessage());
         }
     }
+
     // Add these fields to your DashboardController class
     private Tile expandedTile = null;
     private GridPane originalParent = null;
@@ -116,6 +117,7 @@ public class DashboardController {
             }
         }
     }
+
     @FXML
     public void initialize() {
         temperatureTile.getSections().clear();
@@ -349,9 +351,23 @@ public class DashboardController {
         storageTile.setDescription(data.storageDescription);
 
         // Update Network tile
-        if (data.networkData.kbPerSecond > 0) { // Only add data if we have a valid rate
-            ChartData chartData = new ChartData("Network", data.networkData.kbPerSecond, Tile.BLUE);
+
+        if (data.networkData.kbPerSecond > 0) {
+            System.out.println(data.networkData.kbPerSecond);
+
+            double value = data.networkData.kbPerSecond;
+            String unit;
+            if (value >= 1000) {
+                unit = "Mbps";
+                value = value / 1000;
+            } else {
+                unit = "Kbps";
+            }
+
+            ChartData chartData = new ChartData("Network", value);
             networkTile.addChartData(chartData);
+
+            networkTile.setUnit(unit);
 
             // Keep only the most recent data points
             if (networkTile.getChartData().size() > 15) {

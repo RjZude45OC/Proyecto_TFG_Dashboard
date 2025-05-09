@@ -65,6 +65,8 @@ public class JellyFinViewModel implements Initializable {
     @FXML
     private ProgressBar storageUsageBar;
     @FXML
+    private ProgressBar networkUsageBar;
+    @FXML
     private Label versionLabel;
     @FXML
     private Label uptimeLabel;
@@ -72,6 +74,10 @@ public class JellyFinViewModel implements Initializable {
     private Label cpuUsageLabel;
     @FXML
     public Label memoryUsageLabel;
+    @FXML
+    public Label storageUsageLabel;
+    @FXML
+    public Label networkUsageLabel;
 
     // FXML Controls - Media Stats
     @FXML
@@ -388,19 +394,14 @@ public class JellyFinViewModel implements Initializable {
         File propertiesFile = new File(PROPERTIES_FILE);
 
         try {
-            // Create the file if it doesn't exist
             if (!propertiesFile.exists()) {
                 propertiesFile.createNewFile();
                 addLogEntry("Info", "Properties", "Created new properties file");
             }
-
-            // Load properties
             try (FileInputStream in = new FileInputStream(propertiesFile)) {
                 appProperties.load(in);
                 addLogEntry("Info", "Properties", "Loaded properties from file");
             }
-
-            // Set the application properties from the loaded values
             if (appProperties.containsKey("jellyfin-apiUrl")) {
                 serverUrl.set(appProperties.getProperty("jellyfin-apiUrl"));
             }
@@ -422,27 +423,6 @@ public class JellyFinViewModel implements Initializable {
             if (appProperties.containsKey("password")) {
                 password.set(appProperties.getProperty("password"));
             }
-
-            if (appProperties.containsKey("timeout")) {
-                try {
-                    int timeoutValue = Integer.parseInt(appProperties.getProperty("timeout"));
-                    // Assuming you have a timeout property in your application
-                    // timeout.set(timeoutValue);
-                } catch (NumberFormatException e) {
-                    addLogEntry("Warning", "Properties", "Invalid timeout value in properties");
-                }
-            }
-
-            if (appProperties.containsKey("cacheDuration")) {
-                try {
-                    int cacheDuration = Integer.parseInt(appProperties.getProperty("cacheDuration"));
-                    // Assuming you have a cacheDuration property in your application
-                    // cacheDuration.set(cacheDuration);
-                } catch (NumberFormatException e) {
-                    addLogEntry("Warning", "Properties", "Invalid cache duration value in properties");
-                }
-            }
-
             propertiesLoaded = true;
         } catch (IOException e) {
             addLogEntry("Error", "Properties", "Failed to load properties: " + e.getMessage());
@@ -453,7 +433,6 @@ public class JellyFinViewModel implements Initializable {
      * Saves the current connection properties to the properties file
      */
     private void saveConnectionProperties() {
-        // Update properties with current values
         appProperties.setProperty("jellyfin-apiUrl", serverUrl.get() != null ? serverUrl.get() : "");
         appProperties.setProperty("jellyfin-apiKey", apiKey.get() != null ? apiKey.get() : "");
 
@@ -465,7 +444,6 @@ public class JellyFinViewModel implements Initializable {
             appProperties.setProperty("password", password.get());
         }
 
-        // Add timestamp comment
         try (FileOutputStream out = new FileOutputStream(PROPERTIES_FILE)) {
             appProperties.store(out, "Updated by user");
             addLogEntry("Info", "Properties", "Saved connection properties to file");
@@ -1051,10 +1029,27 @@ public class JellyFinViewModel implements Initializable {
 
                 LocalDateTime now = LocalDateTime.now();
                 String time = now.format(logTimeFormatter);
-                String source = "";
+                String source = "System";
 
                 String level = "";
                 String message = "";
+                JSONObject cpuData = systeminfo.optJSONObject("cpu");
+                JSONObject memoryData = systeminfo.optJSONObject("memory");
+                JSONArray disksData = systeminfo.optJSONArray("disks");
+                JSONObject networkData = systeminfo.optJSONObject("network");
+//                System.out.println("cpu "+ cpuData);
+//                System.out.println("memory "+ memoryData);
+//                System.out.println("disk "+ disksData);
+//                System.out.println("network " + networkData);
+                double systemCpuLoad = cpuData.getDouble("systemCpuLoad");
+                if (systemCpuLoad >= 80) {
+                    level = "Warning";
+                    message = warningMessages[0];
+                }
+                if (systemCpuLoad >= 80) {
+                    level = "Warning";
+                    message = warningMessages[0];
+                }
 //                    if (levelRandom < 70) {
 //                        level = "Info";
 //                        message = infoMessages[random.nextInt(infoMessages.length)];

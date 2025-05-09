@@ -123,17 +123,23 @@
                                    styleClass="setting-label"/>
                             <ProgressBar fx:id="storageUsageBar" progress="0.0" GridPane.columnIndex="1" GridPane.rowIndex="2"
                                          styleClass="stat-progress"/>
+                            <Label fx:id="storageUsageLabel" GridPane.columnIndex="2" GridPane.rowIndex="2" text="0%"/>
 
-                            <Label text="Version:" GridPane.columnIndex="0" GridPane.rowIndex="3"
+                            <Label text="Network:" GridPane.columnIndex="0" GridPane.rowIndex="3"
                                    styleClass="setting-label"/>
-                            <Label fx:id="versionLabel" text="N/A" GridPane.columnIndex="1" GridPane.rowIndex="3"
+                            <ProgressBar fx:id="networkUsageBar" progress="0.0" GridPane.columnIndex="1" GridPane.rowIndex="3"
+                                         styleClass="stat-progress"/>
+                            <Label fx:id="networkUsageLabel" GridPane.columnIndex="2" GridPane.rowIndex="3" text="0%"/>
+
+                            <Label text="Version:" GridPane.columnIndex="0" GridPane.rowIndex="4"
+                                   styleClass="setting-label"/>
+                            <Label fx:id="versionLabel" text="N/A" GridPane.columnIndex="1" GridPane.rowIndex="4"
                                    styleClass="stat-value"/>
 
-                            <Label text="Uptime:" GridPane.columnIndex="0" GridPane.rowIndex="4"
+                            <Label text="Uptime:" GridPane.columnIndex="0" GridPane.rowIndex="5"
                                    styleClass="setting-label"/>
-                            <Label fx:id="uptimeLabel" text="N/A" GridPane.columnIndex="1" GridPane.rowIndex="4"
+                            <Label fx:id="uptimeLabel" text="N/A" GridPane.columnIndex="1" GridPane.rowIndex="5"
                                    styleClass="stat-value"/>
-
 
                         </GridPane>
                     </VBox>
@@ -186,7 +192,7 @@
                 <!-- Active streams tiles area -->
                 <VBox spacing="10">
                     <padding>
-                        <Insets top="10" right="10" bottom="0" left="10"/>
+                        <Insets top="10" right="10" left="10"/>
                     </padding>
                     <Label text="Active Streams" styleClass="section-header"/>
                     <ScrollPane fitToWidth="true" styleClass="containers-scroll" VBox.vgrow="ALWAYS">

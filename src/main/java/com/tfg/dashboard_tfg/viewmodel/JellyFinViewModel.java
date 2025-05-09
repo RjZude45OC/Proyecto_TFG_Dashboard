@@ -119,7 +119,7 @@ public class JellyFinViewModel implements Initializable {
     private final StringProperty password = new SimpleStringProperty("");
     private final StringProperty serverMonitoringEndpoint = new SimpleStringProperty("");
     private final StringProperty dockerApiEndpoint = new SimpleStringProperty("");
-    private final DoubleProperty autoUpdateInterval = new SimpleDoubleProperty(0);
+    private final StringProperty autoUpdateInterval = new SimpleStringProperty("");
 
 
     // Data collections
@@ -375,7 +375,7 @@ public class JellyFinViewModel implements Initializable {
     private final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
     private final DateTimeFormatter logTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final String PROPERTIES_FILE = "connection.properties";
-    private Properties appProperties = new Properties();
+    private final Properties appProperties = new Properties();
     private boolean propertiesLoaded = false;
     private JSONObject systeminfo;
 
@@ -410,7 +410,7 @@ public class JellyFinViewModel implements Initializable {
                 serverMonitoringEndpoint.set(appProperties.getProperty("monitoringApi"));
             }
             if (appProperties.containsKey("update-interval")) {
-                autoUpdateInterval.set(Double.parseDouble(appProperties.getProperty("update-interval")));
+                autoUpdateInterval.set(appProperties.getProperty("update-interval"));
             }
             if (appProperties.containsKey("jellyfin-apiKey")) {
                 apiKey.set(appProperties.getProperty("jellyfin-apiKey"));
@@ -502,14 +502,11 @@ public class JellyFinViewModel implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         httpClient = HttpClient.newBuilder().build();
         executorService = Executors.newFixedThreadPool(3);
-
-        autoRefreshTimeline = new Timeline(new KeyFrame(Duration.seconds(5), e -> {
+        loadPropertiesIfNeeded();
+        autoRefreshTimeline = new Timeline(new KeyFrame(Duration.seconds(Double.parseDouble(autoUpdateInterval.getValue())), e -> {
             refreshServerStatus();
         }));
         autoRefreshTimeline.setCycleCount(Animation.INDEFINITE);
-
-        loadPropertiesIfNeeded();
-
         // Setup data bindings
         serverStatusLabel.textProperty().bind(
                 Bindings.when(connected)

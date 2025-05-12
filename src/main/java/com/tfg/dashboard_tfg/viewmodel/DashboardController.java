@@ -60,7 +60,7 @@ public class DashboardController {
     private Map<String, Long> previousNetworkBytes = new HashMap<>();
 
     // API URL property
-    private StringProperty apiBaseUrl = new SimpleStringProperty("http://localhost:8393/api/v1/system");
+    private StringProperty apiBaseUrl = new SimpleStringProperty("");
     private final Properties appProperties = new Properties();
     private final File configFile = new File("connection.properties");
 
@@ -145,6 +145,8 @@ public class DashboardController {
         // Schedule data updates
         scheduler = Executors.newSingleThreadScheduledExecutor();
         scheduler.scheduleAtFixedRate(this::fetchAndUpdateData, 0, 5, TimeUnit.SECONDS);
+        ChartData chartData = new ChartData("Network", 0);
+        networkTile.addChartData(chartData);
     }
 
     @FXML
@@ -293,7 +295,7 @@ public class DashboardController {
         double totalLoad = 0;
         for (int i = 0; i < perProcessorLoad.length(); i++) {
             System.out.println(perProcessorLoad.getDouble(i));
-            totalLoad += perProcessorLoad.getDouble(i); // values are between 0.0 and 1.0
+            totalLoad += perProcessorLoad.getDouble(i);
         }
         System.out.println(totalLoad);
         System.out.println("----------------");
@@ -338,41 +340,42 @@ public class DashboardController {
 
     // Update all UI components with the processed data
     private void updateAllTiles(ProcessedData data) {
-        // Update CPU tile
         cpuTile.setValue(data.cpuUsage);
         cpuTile.setDescription(data.cpuDescription);
 
-        // Update Memory tile
         memoryTile.setValue(data.memoryUsage);
         memoryTile.setDescription(data.memoryDescription);
 
-        // Update Storage tile
         storageTile.setValue(data.storagePercentage);
         storageTile.setDescription(data.storageDescription);
 
-        // Update Network tile
-
         if (data.networkData.kbPerSecond > 0) {
-            System.out.println(data.networkData.kbPerSecond);
-
             double value = data.networkData.kbPerSecond;
             String unit;
-            if (value >= 1000) {
-                unit = "Mbps";
-                value = value / 1000;
-            } else {
-                unit = "Kbps";
-            }
 
+//            if (value >= 1000) {
+//                System.out.println("value with unit: " + value + "kb (" + (value / 1000) + "mb)");
+//            } else {
+//                System.out.println("value with unit: " + value + "kb");
+//            }
+            double lastValue = networkTile.getChartData().get(networkTile.getChartData().size() - 1).getValue();
             ChartData chartData = new ChartData("Network", value);
             networkTile.addChartData(chartData);
 
-            networkTile.setUnit(unit);
-
-            // Keep only the most recent data points
             if (networkTile.getChartData().size() > 15) {
                 networkTile.getChartData().remove(0);
             }
+            if (lastValue >= 1000) {
+                unit = "Mbps";
+                networkTile.setValue(lastValue / 1000);
+            } else {
+                unit = "Kbps";
+                networkTile.setValue(lastValue);
+            }
+//            System.out.println("lastvalue " + lastValue);
+//            System.out.println("is last value mb " + (lastValue >= 1000));
+            networkTile.setUnit(unit);
+            networkTile.setDecimals(2);
         }
         networkTile.setDescription(data.networkData.description);
 

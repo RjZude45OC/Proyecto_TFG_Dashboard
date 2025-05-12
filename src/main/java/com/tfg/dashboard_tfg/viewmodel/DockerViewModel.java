@@ -3,6 +3,7 @@ package com.tfg.dashboard_tfg.viewmodel;
 import eu.hansolo.tilesfx.Tile;
 import eu.hansolo.tilesfx.TileBuilder;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -13,9 +14,7 @@ import javafx.scene.paint.Color;
 import org.json.JSONObject;
 
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.*;
@@ -57,6 +56,19 @@ public class DockerViewModel {
 
     @FXML
     private ListView commandHistoryList;
+
+    private final Properties appProperties = new Properties();
+    private final File configFile = new File("connection.properties");
+    private String url;
+
+    public void loadProperties() {
+        try (FileInputStream fis = new FileInputStream(configFile)) {
+            appProperties.load(fis);
+        } catch (IOException e) {
+            System.err.println("Failed to load config: " + e.getMessage());
+        }
+    }
+
     // Data structures
     private final Map<String, ContainerTile> containerTiles = new HashMap<>();
     private ScheduledExecutorService scheduler;
@@ -112,6 +124,9 @@ public class DockerViewModel {
                 }
             });
         }
+        loadProperties();
+        url = appProperties.getProperty("dockerApi");
+        connectToDockerAPI();
     }
 
     private void connectToDockerAPI() {
@@ -119,8 +134,13 @@ public class DockerViewModel {
         String port = serverPortField.getText().trim();
 
         if (host.isEmpty()) {
-            connectionStatusLabel.setText("Please provide host");
-            return;
+            if (url.isEmpty()) {
+                connectionStatusLabel.setText("Please provide host");
+                return;
+            }
+            else {
+                host = url;
+            }
         }
 
         int portNum = 2375;
@@ -134,6 +154,7 @@ public class DockerViewModel {
         }
 
         dockerApiUrl = "http://" + host + ":" + portNum;
+        serverHostField.setText("http://" + host);
         connectionStatusLabel.setText("Testing connection to Docker API...");
 
         new Thread(() -> {

@@ -415,7 +415,7 @@ public class JellyFinViewModel implements Initializable {
                 apiKey.set(appProperties.getProperty("jellyfin-apiKey"));
             }
             if (appProperties.containsKey("dockerApi")) {
-                dockerApiEndpoint.set(appProperties.getProperty("dockerApi"));
+                dockerApiEndpoint.set("http://" + appProperties.getProperty("dockerApi") + ":2375");
             }
             if (appProperties.containsKey("username")) {
                 username.set(appProperties.getProperty("username"));

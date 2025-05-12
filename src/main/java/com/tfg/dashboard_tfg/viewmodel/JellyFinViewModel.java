@@ -515,7 +515,6 @@ public class JellyFinViewModel implements Initializable {
             connectToServer();
         }
         refreshServerStatus();
-
     }
 
     /**
@@ -753,12 +752,11 @@ public class JellyFinViewModel implements Initializable {
                     return;
                 }
 
-                // Parse the JSON response
                 JSONObject systemInfo = new JSONObject(response.body());
                 JSONObject cpuData = systemInfo.optJSONObject("cpu");
                 JSONObject memoryData = systemInfo.optJSONObject("memory");
                 JSONArray disksData = systemInfo.optJSONArray("disks");
-                JSONObject networkData = systemInfo.optJSONObject("network"); //might be unused
+                JSONObject networkData = systemInfo.optJSONObject("network");
 
                 systeminfo = systemInfo;
                 // Extract data and use 0 as default.
@@ -787,7 +785,7 @@ public class JellyFinViewModel implements Initializable {
                 } else {
                     storageUsagePercentage = 0;
                 }
-                // Fallback for version and uptime -  try to get from Jellyfin if available.
+
                 String version = "N/A";
                 String uptime = "N/A";
                 if (apiKey.get() != null && !apiKey.get().trim().isEmpty()) {
@@ -850,6 +848,8 @@ public class JellyFinViewModel implements Initializable {
                     memoryUsageLabel.setText(String.format("%.1f%%", memoryUsagePercentage * 100));
 
                     storageUsageBar.setProgress(storageUsagePercentage);
+                    storageUsageLabel.setText(String.format("%.1f%%", storageUsagePercentage * 100));
+
                     versionLabel.setText(finalVersion);
                     uptimeLabel.setText(finalUptime);
                 });
@@ -1080,6 +1080,7 @@ public class JellyFinViewModel implements Initializable {
             } catch (Exception e) {
                 Platform.runLater(() -> {
                     addLogEntry("Error", "Logs", "Failed to fetch logs: " + e.getMessage());
+                    System.out.println(e.getMessage());
                 });
             }
         }, executorService);

@@ -181,7 +181,7 @@ public class DashboardController {
         return apiBaseUrl.get() + "/network";
     }
 
-    private static class ProcessedData {
+    public static class ProcessedData {
         double cpuUsage;
         String cpuDescription;
         double memoryUsage;
@@ -199,7 +199,7 @@ public class DashboardController {
     }
 
     // Helper class for network data
-    private static class NetworkData {
+    public static class NetworkData {
         double kbPerSecond;
         String description;
         long currentBytes;

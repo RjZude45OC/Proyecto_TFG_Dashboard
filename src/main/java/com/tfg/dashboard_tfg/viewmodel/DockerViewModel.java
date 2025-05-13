@@ -620,6 +620,7 @@ public class DockerViewModel {
                     tile.setMaxValue(100);
                     tile.setThreshold(80);
                     tile.setThresholdVisible(true);
+                    System.out.println(cpuUsage);
                 });
                 break;
 
@@ -632,7 +633,6 @@ public class DockerViewModel {
                     tile.setValue(memUsage);
                     tile.setUnit("%");
                     tile.setMaxValue(100);
-                    System.out.println(memUsage);
                 });
                 break;
 
@@ -705,24 +705,21 @@ public class DockerViewModel {
             }
 
             JSONObject json = new JSONObject(response.toString());
-
-            // CPU calculation logic based on Docker stats API
             JSONObject cpuStats = json.getJSONObject("cpu_stats");
             JSONObject preCpuStats = json.getJSONObject("precpu_stats");
 
             long cpuDelta = cpuStats.getJSONObject("cpu_usage").getLong("total_usage") -
                     preCpuStats.getJSONObject("cpu_usage").getLong("total_usage");
 
+
             long systemDelta = cpuStats.getLong("system_cpu_usage") -
                     preCpuStats.getLong("system_cpu_usage");
 
-            int numCPUs = cpuStats.getJSONObject("cpu_usage").getJSONArray("percpu_usage").length();
+            int numCPUs = cpuStats.getInt("online_cpus");
             double cpuUsage = 0.0;
-
             if (systemDelta > 0 && cpuDelta > 0) {
                 cpuUsage = ((double) cpuDelta / systemDelta) * numCPUs * 100.0;
             }
-
             return cpuUsage;
         }
     }

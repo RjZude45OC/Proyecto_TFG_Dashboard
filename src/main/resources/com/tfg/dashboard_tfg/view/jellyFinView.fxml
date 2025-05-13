@@ -32,22 +32,7 @@
                                   styleClass="console-button"/>
                 </HBox>
 
-                <HBox alignment="CENTER_LEFT" spacing="15.0" styleClass="filter-bar">
-                    <Label text="Filter:" styleClass="filter-label"/>
-                    <ComboBox fx:id="mediaFilter" prefWidth="150.0" onAction="#applyMediaFilter"
-                              styleClass="filter-combo">
-                        <items>
-                            <FXCollections fx:factory="observableArrayList">
-                                <String fx:value="All Media"/>
-                                <String fx:value="Movies"/>
-                                <String fx:value="TV Shows"/>
-                                <String fx:value="Music"/>
-                            </FXCollections>
-                        </items>
-                        <value>
-                            <String fx:value="All Media"/>
-                        </value>
-                    </ComboBox>
+                <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="filter-bar">
                     <Region HBox.hgrow="ALWAYS"/>
                     <HBox spacing="5" alignment="CENTER" styleClass="counter-badge">
                         <Label text="Active Streams:"/>

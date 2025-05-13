@@ -277,7 +277,6 @@ public class Controller {
         String activeStyle = "-fx-background-color: #2e2e42; -fx-text-fill: #CDD6F4;";
         String inactiveStyle = "-fx-background-color: transparent; -fx-text-fill: #CDD6F4;";
 
-        // Get the active button and only apply active style to it
         Button activeButton = getActiveButton();
 
         dashboardBtn.setStyle(activeButton == dashboardBtn ? activeStyle : inactiveStyle);
@@ -287,6 +286,7 @@ public class Controller {
         loginMenuBtn.setStyle(activeButton == loginMenuBtn ? activeStyle : inactiveStyle);
         rssBtn.setStyle(activeButton == rssBtn ? activeStyle : inactiveStyle);
         DownloadBtn.setStyle(activeButton == DownloadBtn ? activeStyle : inactiveStyle);
+        JellyseerBtn.setStyle(activeButton == JellyseerBtn ? activeStyle : inactiveStyle);
     }
 
     private void applyLightThemeToButtons() {

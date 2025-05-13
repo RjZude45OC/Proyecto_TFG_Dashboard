@@ -100,48 +100,32 @@
                 </TitledPane>
 
                 <TitledPane text="Server Stats" styleClass="settings-pane">
-                    <VBox spacing="10" styleClass="settings-container">
-                        <GridPane hgap="10" vgap="10">
-                            <columnConstraints>
-                                <ColumnConstraints hgrow="NEVER" minWidth="120"/>
-                                <ColumnConstraints hgrow="ALWAYS"/>
-                            </columnConstraints>
+                    <VBox spacing="5" styleClass="settings-container">
+                        <HBox>
+                            <VBox spacing="5" prefWidth="120">
+                                <Label text="CPU Usage:" styleClass="setting-label"/>
+                                <Label text="Memory Usage:" styleClass="setting-label"/>
+                                <Label text="Storage:" styleClass="setting-label"/>
+                                <Label text="Network:" styleClass="setting-label"/>
+                                <Label text="Version:" styleClass="setting-label"/>
+                                <Label text="Uptime:" styleClass="setting-label"/>
+                            </VBox>
 
-                            <Label text="CPU Usage:" GridPane.columnIndex="0" GridPane.rowIndex="0"
-                                   styleClass="setting-label"/>
-                            <ProgressBar fx:id="cpuUsageBar" progress="0.0" GridPane.columnIndex="1" GridPane.rowIndex="0"
-                                         styleClass="stat-progress"/>
-                            <Label fx:id="cpuUsageLabel" GridPane.columnIndex="2" GridPane.rowIndex="0" text="0%"/>
-
-                            <Label text="Memory Usage:" GridPane.columnIndex="0" GridPane.rowIndex="1"
-                                   styleClass="setting-label"/>
-                            <ProgressBar fx:id="memoryUsageBar" progress="0.0" GridPane.columnIndex="1" GridPane.rowIndex="1"
-                                         styleClass="stat-progress"/>
-                            <Label fx:id="memoryUsageLabel" GridPane.columnIndex="2" GridPane.rowIndex="1" text="0%"/>
-
-                            <Label text="Storage:" GridPane.columnIndex="0" GridPane.rowIndex="2"
-                                   styleClass="setting-label"/>
-                            <ProgressBar fx:id="storageUsageBar" progress="0.0" GridPane.columnIndex="1" GridPane.rowIndex="2"
-                                         styleClass="stat-progress"/>
-                            <Label fx:id="storageUsageLabel" GridPane.columnIndex="2" GridPane.rowIndex="2" text="0%"/>
-
-                            <Label text="Network:" GridPane.columnIndex="0" GridPane.rowIndex="3"
-                                   styleClass="setting-label"/>
-                            <ProgressBar fx:id="networkUsageBar" progress="0.0" GridPane.columnIndex="1" GridPane.rowIndex="3"
-                                         styleClass="stat-progress"/>
-                            <Label fx:id="networkUsageLabel" GridPane.columnIndex="2" GridPane.rowIndex="3" text="0%"/>
-
-                            <Label text="Version:" GridPane.columnIndex="0" GridPane.rowIndex="4"
-                                   styleClass="setting-label"/>
-                            <Label fx:id="versionLabel" text="N/A" GridPane.columnIndex="1" GridPane.rowIndex="4"
-                                   styleClass="stat-value"/>
-
-                            <Label text="Uptime:" GridPane.columnIndex="0" GridPane.rowIndex="5"
-                                   styleClass="setting-label"/>
-                            <Label fx:id="uptimeLabel" text="N/A" GridPane.columnIndex="1" GridPane.rowIndex="5"
-                                   styleClass="stat-value"/>
-
-                        </GridPane>
+                            <VBox spacing="5" HBox.hgrow="ALWAYS" maxWidth="170">
+                                <ProgressBar fx:id="cpuUsageBar" progress="0.0" styleClass="stat-progress" maxWidth="Infinity"/>
+                                <ProgressBar fx:id="memoryUsageBar" progress="0.0" styleClass="stat-progress" maxWidth="Infinity"/>
+                                <ProgressBar fx:id="storageUsageBar" progress="0.0" styleClass="stat-progress" maxWidth="Infinity"/>
+                                <Label fx:id="networkUsageLabel" text="down:0B/up:0B" maxWidth="Infinity"/>
+                                <Label fx:id="versionLabel" text="N/A" styleClass="stat-value"/>
+                                <Label fx:id="uptimeLabel" text="N/A" styleClass="stat-value"/>
+                            </VBox>
+                            <Region prefWidth="5"/>
+                            <VBox spacing="5" prefWidth="50">
+                                <Label fx:id="cpuUsageLabel" text="0%"/>
+                                <Label fx:id="memoryUsageLabel" text="0%"/>
+                                <Label fx:id="storageUsageLabel" text="0%"/>
+                            </VBox>
+                        </HBox>
                     </VBox>
                 </TitledPane>
 

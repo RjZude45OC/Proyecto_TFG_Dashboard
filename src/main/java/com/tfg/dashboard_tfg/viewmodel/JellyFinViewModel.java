@@ -39,9 +39,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class JellyFinViewModel implements Initializable {
-
-
-    // FXML Controls - Connection
     @FXML
     private TextField serverUrlField;
     @FXML
@@ -56,8 +53,6 @@ public class JellyFinViewModel implements Initializable {
     private Label serverStatusLabel;
     @FXML
     private ToggleButton autoRefreshToggle;
-
-    // FXML Controls - Server Stats
     @FXML
     private ProgressBar cpuUsageBar;
     @FXML
@@ -78,8 +73,6 @@ public class JellyFinViewModel implements Initializable {
     public Label storageUsageLabel;
     @FXML
     public Label networkUsageLabel;
-
-    // FXML Controls - Media Stats
     @FXML
     private Label moviesCountLabel;
     @FXML
@@ -96,8 +89,6 @@ public class JellyFinViewModel implements Initializable {
     private Label activeStreamsLabel;
     @FXML
     private Label lastUpdateLabel;
-
-    // FXML Controls - Content Area
     @FXML
     private ComboBox<String> mediaFilter;
     @FXML
@@ -115,7 +106,6 @@ public class JellyFinViewModel implements Initializable {
     @FXML
     private ComboBox<String> logLevelFilter;
 
-    // Properties for binding
     private final BooleanProperty connected = new SimpleBooleanProperty(false);
     private final StringProperty serverUrl = new SimpleStringProperty("");
     private final StringProperty apiKey = new SimpleStringProperty("");
@@ -125,12 +115,12 @@ public class JellyFinViewModel implements Initializable {
     private final StringProperty dockerApiEndpoint = new SimpleStringProperty("");
     private final StringProperty autoUpdateInterval = new SimpleStringProperty("");
 
-
-    // Data collections
     private final ObservableList<LogEntry> logEntries = FXCollections.observableArrayList();
     private final ObservableList<LogEntry> filteredLogEntries = FXCollections.observableArrayList();
+    private Map<String, Long> previousBytesReceived = new HashMap<>();
+    private Map<String, Long> previousBytesSent = new HashMap<>();
+    private long lastUpdateTimestamp = System.currentTimeMillis();
 
-    // Model classes for UI data
     public static class LogEntry {
         private final String time;
         private final String level;
@@ -372,7 +362,6 @@ public class JellyFinViewModel implements Initializable {
         }
     }
 
-    // Utility properties
     private HttpClient httpClient;
     private ExecutorService executorService;
     private Timeline autoRefreshTimeline;
@@ -390,7 +379,6 @@ public class JellyFinViewModel implements Initializable {
         if (propertiesLoaded) {
             return;
         }
-
         File propertiesFile = new File(PROPERTIES_FILE);
 
         try {
@@ -454,18 +442,10 @@ public class JellyFinViewModel implements Initializable {
 
     /**
      * Updates a specific property and saves the changes
-     *
-     * @param key   Property key
-     * @param value Property value
      */
     public void updateProperty(String key, String value) {
-        // Ensure properties are loaded
         loadPropertiesIfNeeded();
-
-        // Update the property
         appProperties.setProperty(key, value);
-
-        // Save the changes
         try (FileOutputStream out = new FileOutputStream(PROPERTIES_FILE)) {
             appProperties.store(out, "Updated by user");
             addLogEntry("Info", "Properties", "Updated property: " + key);
@@ -483,7 +463,6 @@ public class JellyFinViewModel implements Initializable {
             refreshServerStatus();
         }));
         autoRefreshTimeline.setCycleCount(Animation.INDEFINITE);
-        // Setup data bindings
         serverStatusLabel.textProperty().bind(
                 Bindings.when(connected)
                         .then("Connected")
@@ -496,20 +475,13 @@ public class JellyFinViewModel implements Initializable {
                         .otherwise("-fx-text-fill: red;")
         );
 
-        // Setup table
         setupLogTable();
-
-        // Setup event handlers
         connectButton.setOnAction(event -> connectToServer());
-
-        // Setup property listeners with property change tracking
         setupTextFieldBindings();
 
         logLevelFilter.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             filterLogs();
         });
-
-        // Initial refresh attempt if we have valid URL
         if (serverUrl.get() != null && !serverUrl.get().isEmpty()) {
             addLogEntry("Info", "Initialization", "Attempting connection with saved properties");
             connectToServer();
@@ -518,17 +490,14 @@ public class JellyFinViewModel implements Initializable {
     }
 
     /**
-     * Sets up bidirectional bindings between text fields and properties,
-     * with change listeners to save updates to the properties file
+     * Sets up bindings text fields and properties
      */
     private void setupTextFieldBindings() {
-        // Setup bidirectional bindings
         serverUrlField.textProperty().bindBidirectional(serverUrl);
         apiKeyField.textProperty().bindBidirectional(apiKey);
         usernameField.textProperty().bindBidirectional(username);
         passwordField.textProperty().bindBidirectional(password);
 
-        // Add focus lost listeners to save changes to properties file
         serverUrlField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
             if (wasFocused && !isNowFocused) {
                 updateProperty("jellyfin-apiUrl", serverUrl.get());
@@ -555,13 +524,11 @@ public class JellyFinViewModel implements Initializable {
     }
 
     private void setupLogTable() {
-        // Configure table columns
         timeColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getTime()));
         levelColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getLevel()));
         sourceColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getSource()));
         messageColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getMessage()));
 
-        // Set custom cell factories for coloring based on log level
         levelColumn.setCellFactory(column -> new TableCell<LogEntry, String>() {
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -590,37 +557,27 @@ public class JellyFinViewModel implements Initializable {
             }
         });
 
-        // Link table to observable list
         logTable.setItems(filteredLogEntries);
     }
 
     private void connectToServer() {
-        // Reset connection status
         connected.set(false);
-
-        // Load properties from file if not already loaded
         loadPropertiesIfNeeded();
-
-        // Validate input from properties
         if (serverUrl.get() == null || serverUrl.get().trim().isEmpty()) {
             addLogEntry("Error", "Connection", "Server URL cannot be empty");
             return;
         }
 
-        // Show connecting status
         serverStatusLabel.textProperty().unbind();
-        serverStatusLabel.styleProperty().unbind(); // Ensure style is unbound as well
+        serverStatusLabel.styleProperty().unbind();
         serverStatusLabel.setText("Connecting...");
         serverStatusLabel.setStyle("-fx-text-fill: orange;");
 
-        // Create connection task
         CompletableFuture.supplyAsync(() -> {
             try {
-                // Build the system info request
                 HttpRequest request;
 
                 if (apiKey.get() != null && !apiKey.get().trim().isEmpty()) {
-                    // API Key authentication
                     request = HttpRequest.newBuilder()
                             .uri(URI.create(serverUrl.get() + "/System/Info"))
                             .header("X-MediaBrowser-Token", apiKey.get())
@@ -628,28 +585,22 @@ public class JellyFinViewModel implements Initializable {
                             .build();
                 } else if (username.get() != null && !username.get().trim().isEmpty() &&
                         password.get() != null && !password.get().trim().isEmpty()) {
-                    // Username/password auth would require a more complex flow in a real app
-                    // This is simplified for demonstration purposes
                     return "Authentication requires API key in this implementation";
                 } else {
-                    // No authentication
                     request = HttpRequest.newBuilder()
                             .uri(URI.create(serverUrl.get() + "/System/Info/Public"))
                             .GET()
                             .build();
                 }
 
-                // Execute request
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
                 if (response.statusCode() != 200) {
                     return "Failed to connect: HTTP " + response.statusCode();
                 }
 
-                // Parse response
                 JSONObject serverInfo = new JSONObject(response.body());
                 String version = serverInfo.optString("Version", "Unknown");
-                // Save successful connection details to properties
                 saveConnectionProperties();
 
                 return "Connected to Jellyfin v" + version;
@@ -665,13 +616,11 @@ public class JellyFinViewModel implements Initializable {
                                     .then("Connected")
                                     .otherwise("Not Connected")
                     );
-                    // You might want to set a default "connected" style here if needed
-                    serverStatusLabel.styleProperty().unbind(); // Ensure style is unbound before potentially setting a default
-                    serverStatusLabel.setStyle(""); // Or a specific connected style
+                    serverStatusLabel.styleProperty().unbind();
+                    serverStatusLabel.setStyle("");
 
                     addLogEntry("Info", "Connection", result);
 
-                    // Fetch initial data
                     refreshServerStatus();
                 } else {
                     serverStatusLabel.textProperty().unbind();
@@ -707,10 +656,8 @@ public class JellyFinViewModel implements Initializable {
             return;
         }
 
-        // Update last refresh time
         lastUpdateLabel.setText("Last update: " + timeFormat.format(new Date()));
 
-        // Fetch data in parallel
         CompletableFuture<Void> systemInfo = fetchSystemInfo();
         CompletableFuture<Void> libraryStats = fetchLibraryStats();
         CompletableFuture<Void> activeSessions = fetchActiveSessions();
@@ -740,7 +687,6 @@ public class JellyFinViewModel implements Initializable {
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
                 if (response.statusCode() != 200) {
-                    // Handle errors
                     addLogEntry("Error", "System", "Failed to fetch system info: HTTP " + response.statusCode() + " - " + response.body());
                     Platform.runLater(() -> {
                         versionLabel.setText("N/A");
@@ -757,21 +703,16 @@ public class JellyFinViewModel implements Initializable {
                 JSONObject memoryData = systemInfo.optJSONObject("memory");
                 JSONArray disksData = systemInfo.optJSONArray("disks");
                 JSONObject networkData = systemInfo.optJSONObject("network");
-
                 systeminfo = systemInfo;
-                // Extract data and use 0 as default.
                 double cpuUsage = cpuData != null ? processCpuUsage(cpuData) : 0;
-                long totalMemory = memoryData != null ? memoryData.optLong("totalMemory", 0) : 0;
-                long usedMemory = memoryData != null ? memoryData.optLong("usedMemory", 0) : 0;
+//                long totalMemory = memoryData != null ? memoryData.optLong("totalMemory", 0) : 0;
+//                long usedMemory = memoryData != null ? memoryData.optLong("usedMemory", 0) : 0;
                 double memoryUsagePercentage = memoryData != null ? memoryData.optDouble("memoryUsagePercentage", 0) / 100.0 : 0;
-
-
                 double totalSpace = 0;
                 double usedSpace = 0;
                 double storageUsagePercentage;
 
                 if (disksData != null && !disksData.isEmpty()) {
-                    // Sum up the space from all disks
                     for (int i = 0; i < disksData.length(); i++) {
                         JSONObject disk = disksData.getJSONObject(i);
                         totalSpace += disk.optDouble("totalSpace", 0);
@@ -837,8 +778,44 @@ public class JellyFinViewModel implements Initializable {
                     addLogEntry("Warning", "System", "Failed to get uptime from Docker API: " + e.getMessage());
                 }
 
+                DashboardController.NetworkData data = new DashboardController.NetworkData();
+                JSONObject interfaces = networkData.getJSONObject("interfaces");
 
-                // Update UI on JavaFX thread
+                long totalBytesReceived = 0;
+                long totalBytesSent = 0;
+
+                for (String interfaceName : interfaces.keySet()) {
+                    JSONObject networkInterface = interfaces.getJSONObject(interfaceName);
+                    totalBytesReceived += networkInterface.getLong("bytesReceived");
+                    totalBytesSent += networkInterface.getLong("bytesSent");
+                }
+
+                data.currentBytes = totalBytesReceived + totalBytesSent;
+
+                long currentTime = System.currentTimeMillis();
+                double timeDiffSeconds = (currentTime - lastUpdateTimestamp) / 1000.0;
+
+                String networkKey = "total";
+                double downloadKBps = 0;
+                double uploadKBps = 0;
+
+                if (previousBytesReceived.containsKey(networkKey) && previousBytesSent.containsKey(networkKey)) {
+                    long receivedDiff = totalBytesReceived - previousBytesReceived.get(networkKey);
+                    downloadKBps = receivedDiff / timeDiffSeconds / 1024.0;
+
+                    long sentDiff = totalBytesSent - previousBytesSent.get(networkKey);
+                    uploadKBps = sentDiff / timeDiffSeconds / 1024.0;
+
+                    data.kbPerSecond = (receivedDiff + sentDiff) / timeDiffSeconds / 1024.0;
+                } else {
+                    data.kbPerSecond = 0;
+                }
+
+                previousBytesReceived.put(networkKey, totalBytesReceived);
+                previousBytesSent.put(networkKey, totalBytesSent);
+                lastUpdateTimestamp = currentTime;
+
+                data.description = formatNetworkUsage(downloadKBps, uploadKBps);
                 String finalVersion = version;
                 String finalUptime = uptime;
                 Platform.runLater(() -> {
@@ -849,6 +826,8 @@ public class JellyFinViewModel implements Initializable {
 
                     storageUsageBar.setProgress(storageUsagePercentage);
                     storageUsageLabel.setText(String.format("%.1f%%", storageUsagePercentage * 100));
+
+                    networkUsageLabel.setText(data.description);
 
                     versionLabel.setText(finalVersion);
                     uptimeLabel.setText(finalUptime);
@@ -877,29 +856,25 @@ public class JellyFinViewModel implements Initializable {
     private CompletableFuture<Void> fetchLibraryStats() {
         return CompletableFuture.runAsync(() -> {
             try {
-                // Base URL for Jellyfin API.
                 String jellyfinApiUrl = serverUrl.get() + "/";
-
-                // Construct URLs for the API calls.
                 String moviesUrl = jellyfinApiUrl + "Items?Recursive=true&IncludeItemTypes=Movie&Limit=0";
                 String seriesUrl = jellyfinApiUrl + "Items?Recursive=true&IncludeItemTypes=Series&Limit=0";
                 String episodesUrl = jellyfinApiUrl + "Items?Recursive=true&IncludeItemTypes=Episode&Limit=0";
                 String albumsUrl = jellyfinApiUrl + "Items?Recursive=true&IncludeItemTypes=AudioAlbum&Limit=0";
                 String songsUrl = jellyfinApiUrl + "Items?Recursive=true&IncludeItemTypes=Audio&Recursive=true&Limit=0";
 
-                // Function to fetch data from Jellyfin API and handle errors
                 final class ApiFetch {
                     private int fetchCount(String url) throws Exception {
                         HttpRequest request = HttpRequest.newBuilder()
                                 .uri(URI.create(url))
-                                .header("X-MediaBrowser-Token", apiKey.get()) // Use the API key
+                                .header("X-MediaBrowser-Token", apiKey.get())
                                 .GET()
                                 .build();
                         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
                         if (response.statusCode() != 200) {
                             addLogEntry("Error", "Library", "Failed to fetch from " + url + ": HTTP " + response.statusCode() + " - " + response.body());
-                            return 0; // Return 0 on error to avoid crashing the whole method
+                            return 0;
                         }
 
                         JSONObject jsonResponse = new JSONObject(response.body());
@@ -908,21 +883,15 @@ public class JellyFinViewModel implements Initializable {
                     }
                 }
                 ApiFetch apiFetch = new ApiFetch();
-
-                // Fetch counts for each media type.
                 int moviesCount = apiFetch.fetchCount(moviesUrl);
                 int tvShowsCount = apiFetch.fetchCount(seriesUrl);
                 int episodesCount = apiFetch.fetchCount(episodesUrl);
                 int albumsCount = apiFetch.fetchCount(albumsUrl);
                 int songsCount = apiFetch.fetchCount(songsUrl);
 
-
-                //Simulate total size.  There is no direct API call for this in Jellyfin.
                 Random random = new Random();
                 double totalSize = 500 + random.nextInt(1500);
 
-
-                // Update UI on JavaFX thread
                 Platform.runLater(() -> {
                     moviesCountLabel.setText(String.valueOf(moviesCount));
                     tvShowsCountLabel.setText(String.valueOf(tvShowsCount));
@@ -971,18 +940,6 @@ public class JellyFinViewModel implements Initializable {
     }
 
     /**
-     * Apply filter to media library view
-     */
-    @FXML
-    private void applyMediaFilter() {
-        String filter = mediaFilter.getSelectionModel().getSelectedItem();
-        addLogEntry("Info", "UI", "Media filter applied: " + filter);
-
-        // In a real implementation, this would refresh the media display
-        // For now, we just log it
-    }
-
-    /**
      * Add a new log entry programmatically
      */
     private void addLogEntry(String level, String source, String message) {
@@ -990,15 +947,12 @@ public class JellyFinViewModel implements Initializable {
         String time = now.format(logTimeFormatter);
         LogEntry entry = new LogEntry(time, level, source, message);
 
-        // Add to main collection
         logEntries.add(0, entry);
 
-        // Keep collection at reasonable size
         while (logEntries.size() > 100) {
             logEntries.remove(logEntries.size() - 1);
         }
 
-        // Apply filtering
         filterLogs();
     }
 
@@ -1037,10 +991,6 @@ public class JellyFinViewModel implements Initializable {
                 JSONObject memoryData = systeminfo.optJSONObject("memory");
                 JSONArray disksData = systeminfo.optJSONArray("disks");
                 JSONObject networkData = systeminfo.optJSONObject("network");
-//                System.out.println("cpu "+ cpuData);
-//                System.out.println("memory "+ memoryData);
-//                System.out.println("disk "+ disksData);
-//                System.out.println("network " + networkData);
                 double systemCpuLoad = cpuData.getDouble("systemCpuLoad");
                 if (systemCpuLoad >= 80) {
                     level = "Warning";
@@ -1064,17 +1014,13 @@ public class JellyFinViewModel implements Initializable {
                 LogEntry entry = new LogEntry(time, level, source, message);
                 newLogs.add(entry);
 
-                // Update UI on JavaFX thread
                 Platform.runLater(() -> {
-                    // Add new logs
                     logEntries.addAll(0, newLogs);
 
-                    // Keep only the most recent 100 logs
                     while (logEntries.size() > 100) {
                         logEntries.remove(logEntries.size() - 1);
                     }
 
-                    // Apply filtering
                     filterLogs();
                 });
             } catch (Exception e) {
@@ -1097,7 +1043,6 @@ public class JellyFinViewModel implements Initializable {
         tile.setPrefWidth(280);
         tile.getStyleClass().add("stream-tile");
 
-        // Status indicator - active or idle
         HBox statusBar = new HBox(5);
         statusBar.setAlignment(Pos.CENTER_LEFT);
 
@@ -1115,11 +1060,9 @@ public class JellyFinViewModel implements Initializable {
 
         statusBar.getChildren().addAll(statusIndicator, statusLabel, topSpacer, lastActiveLabel);
 
-        // Header with user info
         HBox header = new HBox(5);
         header.setAlignment(Pos.CENTER_LEFT);
 
-        // User avatar circle
         Circle userAvatar = new Circle(15);
         userAvatar.setFill(Color.DARKGRAY);
         Text userInitial = new Text(session.getUsername().substring(0, 1).toUpperCase());
@@ -1139,7 +1082,6 @@ public class JellyFinViewModel implements Initializable {
         Region headerSpacer = new Region();
         HBox.setHgrow(headerSpacer, Priority.ALWAYS);
 
-        // Remote connection indicator if applicable
         Label remoteLabel = null;
         if (!"Local".equals(session.getRemoteAddress())) {
             remoteLabel = new Label("REMOTE");
@@ -1151,10 +1093,8 @@ public class JellyFinViewModel implements Initializable {
             header.getChildren().add(remoteLabel);
         }
 
-        // Media info section
         VBox mediaInfoBox = new VBox(6);
 
-        // Media title with year if available
         HBox titleBox = new HBox(8);
         Label titleLabel = new Label(session.getTitle());
         titleLabel.getStyleClass().add("tile-title");
@@ -1171,11 +1111,9 @@ public class JellyFinViewModel implements Initializable {
             titleBox.getChildren().add(yearLabel);
         }
 
-        // Technical specs in tags
         FlowPane techSpecs = new FlowPane(8, 8);
         techSpecs.setPrefWrapLength(280);
 
-        // Only add these if we have active media playing
         if (!"Idle".equals(session.getMediaType())) {
             Label mediaTypeTag = createTag(session.getMediaType());
             Label resolutionTag = createTag(session.getResolution());
@@ -1226,7 +1164,6 @@ public class JellyFinViewModel implements Initializable {
         progressBar.getStyleClass().add("media-progress");
         progressBox.getChildren().addAll(progressBar, progressLabels);
 
-        // Controls section
         HBox controls = new HBox(10);
         controls.setAlignment(Pos.CENTER);
 
@@ -1243,17 +1180,14 @@ public class JellyFinViewModel implements Initializable {
 
         controls.getChildren().addAll(playPauseButton, stopButton, infoButton);
 
-        // Source path (truncate and make subtle)
         Label pathLabel = new Label(session.getFilePath());
         pathLabel.getStyleClass().add("path-label");
         pathLabel.setWrapText(true);
         pathLabel.setVisible(!"Idle".equals(session.getMediaType()));
         pathLabel.setManaged(!"Idle".equals(session.getMediaType()));
 
-        // Add all elements to the tile
         tile.getChildren().addAll(statusBar, header, mediaInfoBox, progressBox, controls);
 
-        // Only add path if there's media playing
         if (!"Idle".equals(session.getMediaType())) {
             tile.getChildren().add(pathLabel);
         }
@@ -1261,14 +1195,12 @@ public class JellyFinViewModel implements Initializable {
         return tile;
     }
 
-    // Helper method to create tag labels
     private Label createTag(String text) {
         Label tag = new Label(text);
         tag.getStyleClass().add("tech-tag");
         return tag;
     }
 
-    // Helper method to format time in HH:MM:SS
     private String formatTime(int seconds) {
         int hours = seconds / 3600;
         int minutes = (seconds % 3600) / 60;
@@ -1281,7 +1213,6 @@ public class JellyFinViewModel implements Initializable {
         }
     }
 
-    // Helper method to format datetime
     private String formatDateTime(String isoDateTime) {
         if (isoDateTime == null || "Unknown".equals(isoDateTime)) {
             return "Unknown";
@@ -1304,57 +1235,48 @@ public class JellyFinViewModel implements Initializable {
     private CompletableFuture<Void> fetchActiveSessions() {
         return CompletableFuture.runAsync(() -> {
             try {
-                // Construct the API URL to get active sessions.  You'll need the server URL.
                 String activeSessionsUrl = serverUrl.get() + "/Sessions";
                 HttpRequest request;
 
                 if (apiKey.get() != null && !apiKey.get().trim().isEmpty()) {
-                    // Include the API key if available
+
                     request = HttpRequest.newBuilder()
                             .uri(URI.create(activeSessionsUrl))
                             .header("X-MediaBrowser-Token", apiKey.get())
                             .GET()
                             .build();
                 } else {
-                    // If no API key, try without authentication (this might not work on most Jellyfin setups)
                     request = HttpRequest.newBuilder()
                             .uri(URI.create(activeSessionsUrl))
                             .GET()
                             .build();
                 }
-                // Send the request and get the response
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
                 if (response.statusCode() != 200) {
-                    // Handle errors.  For now, just log and return.  A proper application would have better error handling.
                     addLogEntry("Error", "Active Sessions", "Failed to fetch active sessions: HTTP " + response.statusCode() + " - " + response.body());
                     Platform.runLater(() -> {
-                        activeStreamsLabel.setText("0"); // Or some error indicator
+                        activeStreamsLabel.setText("0");
                         activeStreamsTilesPane.getChildren().clear();
                         Label errorLabel = new Label("Failed to load active sessions.");
-                        errorLabel.getStyleClass().add("error-text"); // You can define this in your CSS
+                        errorLabel.getStyleClass().add("error-text");
                         activeStreamsTilesPane.getChildren().add(errorLabel);
 
                     });
-                    return; // IMPORTANT: Exit the CompletableFuture
+                    return;
                 }
-
-                // Parse the JSON response
                 JSONArray sessionsJson = new JSONArray(response.body());
                 List<StreamSession> sessions = new ArrayList<>();
 
                 for (int i = 0; i < sessionsJson.length(); i++) {
                     JSONObject sessionJson = sessionsJson.getJSONObject(i);
                     StreamSession session = new StreamSession();
-                    // Extract basic user information
                     session.setUsername(sessionJson.optString("UserName", "Unknown User"));
                     session.setDevice(sessionJson.optString("DeviceName", "Unknown Device"));
                     session.setClient(sessionJson.optString("Client", "Unknown Client"));
 
-                    // Get remote connection information
                     session.setRemoteAddress(sessionJson.optString("RemoteEndPoint", "Local"));
 
-                    // Extract playback state
                     JSONObject playState = sessionJson.optJSONObject("PlayState");
                     if (playState != null) {
                         session.setPlaying(!playState.optBoolean("IsPaused", false));
@@ -1363,26 +1285,23 @@ public class JellyFinViewModel implements Initializable {
                         session.setCanSeek(playState.optBoolean("CanSeek", false));
                     }
 
-                    // Check for active playback
                     JSONArray nowPlayingQueueItems = sessionJson.optJSONArray("NowPlayingQueueFullItems");
                     if (nowPlayingQueueItems != null && !nowPlayingQueueItems.isEmpty()) {
                         JSONObject mediaItem = nowPlayingQueueItems.getJSONObject(0);
 
-                        // Basic media information
                         session.setTitle(mediaItem.optString("Name", "Unknown Title"));
                         session.setMediaType(mediaItem.optString("MediaType", "Unknown"));
                         session.setYear(mediaItem.optInt("ProductionYear", 0));
                         session.setOverview(mediaItem.optString("Overview", ""));
 
-                        // In the parsing method where we extract session data:
                         long runtimeTicks = mediaItem.optLong("RunTimeTicks", 0);
-                        session.setRuntime(runtimeTicks > 0 ? (int) (runtimeTicks / 10000000) : 0); // Convert ticks to seconds
+                        session.setRuntime(runtimeTicks > 0 ? (int) (runtimeTicks / 10000000) : 0);
 
 
                         JSONObject userData = mediaItem.optJSONObject("UserData");
                         if (userData != null && userData.has("PlaybackPositionTicks")) {
                             long positionTicks = userData.optLong("PlaybackPositionTicks", 0);
-                            session.setProgress((int) (positionTicks / 10000000)); // Convert ticks to seconds
+                            session.setProgress((int) (positionTicks / 10000000));
                         } else {
                             playState = sessionJson.optJSONObject("PlayState");
                             if (playState != null) {
@@ -1404,7 +1323,6 @@ public class JellyFinViewModel implements Initializable {
                             }
                         }
 
-                        // Get video stream details if available
                         JSONArray mediaStreams = mediaItem.optJSONArray("MediaStreams");
                         if (mediaStreams != null) {
                             for (int j = 0; j < mediaStreams.length(); j++) {
@@ -1412,12 +1330,10 @@ public class JellyFinViewModel implements Initializable {
                                 String streamType = stream.optString("Type", "");
 
                                 if ("Video".equals(streamType)) {
-                                    // Resolution information
                                     int width = stream.optInt("Width", 0);
                                     int height = stream.optInt("Height", 0);
                                     session.setResolution(width > 0 && height > 0 ? width + "x" + height : "Unknown");
 
-                                    // Video codec and quality information
                                     session.setCodec(stream.optString("Codec", "Unknown"));
                                     session.setBitrate(Math.round(stream.optInt("BitRate", 0) / 1000000.0f)); // Convert to Mbps
                                     session.setFrameRate(stream.optDouble("RealFrameRate", 0));
@@ -1427,7 +1343,6 @@ public class JellyFinViewModel implements Initializable {
                             }
                         }
 
-                        // Get path and location information
                         session.setFilePath(mediaItem.optString("Path", ""));
                         session.setSourceType(mediaItem.optString("LocationType", "Unknown"));
                     } else {
@@ -1438,27 +1353,21 @@ public class JellyFinViewModel implements Initializable {
                         session.setResolution("None");
                         session.setPlaying(false);
                     }
-
-                    // Add other session metadata
                     session.setLastActivity(sessionJson.optString("LastActivityDate", "Unknown"));
                     session.setDeviceId(sessionJson.optString("DeviceId", "Unknown"));
 
                     sessions.add(session);
                 }
 
-                // Update UI on JavaFX thread
                 Platform.runLater(() -> {
                     activeStreamsLabel.setText(String.valueOf(sessions.size()));
 
-                    // Clear existing tiles
                     activeStreamsTilesPane.getChildren().clear();
 
-                    // Create new tiles for each active session
                     for (StreamSession session : sessions) {
                         activeStreamsTilesPane.getChildren().add(createStreamTile(session));
                     }
 
-                    // Add placeholder if no active streams
                     if (sessions.isEmpty()) {
                         Label placeholder = new Label("No active streams");
                         placeholder.getStyleClass().add("placeholder-text");
@@ -1466,17 +1375,32 @@ public class JellyFinViewModel implements Initializable {
                     }
                 });
             } catch (Exception e) {
-                // Catch any exceptions (e.g., network errors, JSON parsing errors)
                 addLogEntry("Error", "Active Sessions", "Error fetching active sessions: " + e.getMessage());
                 Platform.runLater(() -> {
-                    activeStreamsLabel.setText("0"); // Or some error indicator
+                    activeStreamsLabel.setText("0");
                     activeStreamsTilesPane.getChildren().clear();
                     Label errorLabel = new Label("Error loading active sessions.");
-                    errorLabel.getStyleClass().add("error-text"); // You can define this in your CSS
+                    errorLabel.getStyleClass().add("error-text");
                     activeStreamsTilesPane.getChildren().add(errorLabel);
 
                 });
             }
         });
+    }
+
+    private String formatNetworkUsage(double downloadKBps, double uploadKBps) {
+        String downloadText;
+        if (downloadKBps < 1000) {
+            downloadText = String.format("%.1f KB/s", downloadKBps);
+        } else {
+            downloadText = String.format("%.2f MB/s", downloadKBps / 1024.0);
+        }
+        String uploadText;
+        if (uploadKBps < 1000) {
+            uploadText = String.format("%.1f KB/s", uploadKBps);
+        } else {
+            uploadText = String.format("%.2f MB/s", uploadKBps / 1024.0);
+        }
+        return String.format("Down: %s / Up: %s", downloadText, uploadText);
     }
 }

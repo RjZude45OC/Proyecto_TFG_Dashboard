@@ -48,26 +48,46 @@ public class SonarrViewModel {
     public TableView downloadQueueTable;
     @FXML
     public TableColumn titleColumn;
+    @FXML
     public Label lastUpdateLabel;
+    @FXML
     public TableColumn messageColumn;
+    @FXML
     public TableColumn levelColumn;
+    @FXML
     public TableView logTable;
+    @FXML
     public TableColumn timeColumn;
+    @FXML
     public TableColumn componentColumn;
+    @FXML
     public ComboBox logLevelFilter;
     public TableColumn sizeColumn;
+    @FXML
     public TableColumn statusColumn;
+    @FXML
     public TableColumn progressColumn;
+    @FXML
     public TableColumn speedColumn;
+    @FXML
     public TableView historyTable;
+    @FXML
     public TableColumn historyDateColumn;
+    @FXML
     public TableColumn historySeriesColumn;
+    @FXML
     public TableColumn historyEpisodeColumn;
+    @FXML
     public TableColumn historyQualityColumn;
+    @FXML
     public TableColumn historyStatusColumn;
+    @FXML
     public TableColumn historySourceColumn;
+    @FXML
     public ComboBox historyFilterCombo;
+    @FXML
     public TableColumn actionsColumn;
+    @FXML
     public TableColumn etaColumn;
 
     public void refreshHistory(ActionEvent actionEvent) {

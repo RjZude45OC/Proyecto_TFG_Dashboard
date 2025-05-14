@@ -3,7 +3,6 @@ package com.tfg.dashboard_tfg.viewmodel;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 
 public class SonarrViewModel {
@@ -11,10 +10,6 @@ public class SonarrViewModel {
     public Label serverStatusLabel;
     @FXML
     public ToggleButton autoRefreshToggle;
-    @FXML
-    public TextField searchField;
-    @FXML
-    public ComboBox statusFilter;
     @FXML
     public Label activeDownloadsLabel;
     @FXML
@@ -46,19 +41,9 @@ public class SonarrViewModel {
     @FXML
     public Label seriesCountLabel;
     @FXML
-    public Label seasonsCountLabel;
-    @FXML
     public Label episodesCountLabel;
     @FXML
-    public Label missingEpisodesLabel;
-    @FXML
-    public Label monitoredSeriesLabel;
-    @FXML
     public Label totalSizeLabel;
-    @FXML
-    public ListView upcomingEpisodesList;
-    @FXML
-    public FlowPane seriesTilesPane;
     @FXML
     public TableView downloadQueueTable;
     @FXML
@@ -94,22 +79,7 @@ public class SonarrViewModel {
     public void clearCompletedDownloads(ActionEvent actionEvent) {
     }
 
-    public void refreshLibrary(ActionEvent actionEvent) {
-    }
-
-    public void addNewSeries(ActionEvent actionEvent) {
-    }
-
     public void clearLogs(ActionEvent actionEvent) {
-    }
-
-    public void goToToday(ActionEvent actionEvent) {
-    }
-
-    public void goToThisWeek(ActionEvent actionEvent) {
-    }
-
-    public void goToNextMonth(ActionEvent actionEvent) {
     }
 
     public void refreshServerStatus(ActionEvent actionEvent) {

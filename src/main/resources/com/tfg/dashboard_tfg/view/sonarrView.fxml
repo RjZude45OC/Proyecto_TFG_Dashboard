@@ -1,22 +1,247 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
+<?import javafx.collections.FXCollections?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Text?>
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.tfg.dashboard_tfg.viewmodel.SonarrViewModel">
+            fx:controller="com.tfg.dashboard_tfg.viewmodel.SonarrViewModel"
+            styleClass="main-background">
 
-    <VBox spacing="20.0"
-          AnchorPane.bottomAnchor="20.0"
-          AnchorPane.leftAnchor="20.0"
-          AnchorPane.rightAnchor="20.0"
-          AnchorPane.topAnchor="20.0"
-          style="-fx-border-width: 1;
-                 -fx-padding: 20 40 0 40;"
-          styleClass="view">
+    <BorderPane AnchorPane.bottomAnchor="0.0"
+                AnchorPane.leftAnchor="0.0"
+                AnchorPane.rightAnchor="0.0"
+                AnchorPane.topAnchor="0.0">
 
-        <Label text="Sonarr"
-               style="-fx-font-size: 28px; -fx-font-weight: bold;"/>
-    </VBox>
+        <top>
+            <VBox spacing="5.0" styleClass="header-panel">
+                <padding>
+                    <Insets top="15" right="20" bottom="15" left="20"/>
+                </padding>
+                <HBox alignment="CENTER_LEFT" spacing="15.0">
+                    <Text text="Sonarr Monitor" styleClass="header-title"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="serverStatusLabel" text="Not Connected" styleClass="connection-status"/>
+                    <Button text="Refresh" onAction="#refreshServerStatus" styleClass="console-button"/>
+                    <ToggleButton fx:id="autoRefreshToggle" text="Auto Refresh" onAction="#toggleAutoRefresh"
+                                  styleClass="console-button"/>
+                </HBox>
+
+                <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="filter-bar">
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <HBox spacing="5" alignment="CENTER" styleClass="counter-badge">
+                        <Label text="Active Downloads:"/>
+                        <Label fx:id="activeDownloadsLabel" text="0" styleClass="counter-value"/>
+                    </HBox>
+                </HBox>
+            </VBox>
+        </top>
+
+        <left>
+            <VBox spacing="10.0" styleClass="side-panel">
+                <padding>
+                    <Insets top="10" right="10" left="10"/>
+                </padding>
+
+                <TitledPane text="Connection Settings" styleClass="settings-pane">
+                    <VBox spacing="10" styleClass="settings-container">
+                        <GridPane fx:id="connectionPane" hgap="10" vgap="10">
+                            <columnConstraints>
+                                <ColumnConstraints hgrow="NEVER" minWidth="100"/>
+                                <ColumnConstraints hgrow="ALWAYS"/>
+                            </columnConstraints>
+
+                            <Label text="Server URL:" GridPane.columnIndex="0" GridPane.rowIndex="0"
+                                   styleClass="setting-label"/>
+                            <TextField fx:id="serverUrlField" promptText="http://localhost:8989"
+                                       GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="setting-field"/>
+
+                            <Label text="API Key:" GridPane.columnIndex="0" GridPane.rowIndex="1"
+                                   styleClass="setting-label"/>
+                            <PasswordField fx:id="apiKeyField" promptText="Enter API key"
+                                           GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="setting-field"/>
+
+                            <Button fx:id="connectButton" text="Connect"
+                                    GridPane.columnIndex="1" GridPane.rowIndex="2"
+                                    styleClass="console-button"/>
+                        </GridPane>
+                    </VBox>
+                </TitledPane>
+
+                <TitledPane text="Server Stats" styleClass="settings-pane">
+                    <VBox spacing="5" styleClass="settings-container">
+                        <HBox>
+                            <VBox spacing="5" prefWidth="120">
+                                <Label text="CPU Usage:" styleClass="setting-label"/>
+                                <Label text="Memory Usage:" styleClass="setting-label"/>
+                                <Label text="Storage:" styleClass="setting-label"/>
+                                <Label text="Network:" styleClass="setting-label"/>
+                                <Label text="Version:" styleClass="setting-label"/>
+                                <Label text="Uptime:" styleClass="setting-label"/>
+                            </VBox>
+
+                            <VBox spacing="5" HBox.hgrow="ALWAYS" maxWidth="170">
+                                <ProgressBar fx:id="cpuUsageBar" progress="0.0" styleClass="stat-progress" maxWidth="Infinity"/>
+                                <ProgressBar fx:id="memoryUsageBar" progress="0.0" styleClass="stat-progress" maxWidth="Infinity"/>
+                                <ProgressBar fx:id="storageUsageBar" progress="0.0" styleClass="stat-progress" maxWidth="Infinity"/>
+                                <Label fx:id="networkUsageLabel" text="down:0B/up:0B" maxWidth="Infinity"/>
+                                <Label fx:id="versionLabel" text="N/A" styleClass="stat-value"/>
+                                <Label fx:id="uptimeLabel" text="N/A" styleClass="stat-value"/>
+                            </VBox>
+                            <Region prefWidth="5"/>
+                            <VBox spacing="5" prefWidth="50">
+                                <Label fx:id="cpuUsageLabel" text="0%"/>
+                                <Label fx:id="memoryUsageLabel" text="0%"/>
+                                <Label fx:id="storageUsageLabel" text="0%"/>
+                            </VBox>
+                        </HBox>
+                    </VBox>
+                </TitledPane>
+
+                <TitledPane text="Library Stats" VBox.vgrow="ALWAYS" styleClass="history-pane">
+                    <GridPane hgap="10" vgap="5">
+                        <columnConstraints>
+                            <ColumnConstraints hgrow="NEVER" minWidth="120"/>
+                            <ColumnConstraints hgrow="ALWAYS"/>
+                        </columnConstraints>
+
+                        <Label text="Series Count:" GridPane.columnIndex="0" GridPane.rowIndex="0"
+                               styleClass="setting-label"/>
+                        <Label fx:id="seriesCountLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="0"
+                               styleClass="stat-value"/>
+
+                        <Label text="Episodes:" GridPane.columnIndex="0" GridPane.rowIndex="1"
+                               styleClass="setting-label"/>
+                        <Label fx:id="episodesCountLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="1"
+                               styleClass="stat-value"/>
+
+                        <Label text="Total Size:" GridPane.columnIndex="0" GridPane.rowIndex="2"
+                               styleClass="setting-label"/>
+                        <Label fx:id="totalSizeLabel" text="0 GB" GridPane.columnIndex="1" GridPane.rowIndex="2"
+                               styleClass="stat-value"/>
+                    </GridPane>
+                </TitledPane>
+            </VBox>
+        </left>
+
+        <center>
+            <SplitPane orientation="VERTICAL" dividerPositions="0.5" styleClass="content-pane">
+                <VBox spacing="10">
+                    <padding>
+                        <Insets top="10" right="10" bottom="10" left="10"/>
+                    </padding>
+
+                    <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="terminal-header">
+                        <Label text="Download Queue" styleClass="terminal-title"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button text="Refresh" onAction="#refreshQueue" styleClass="console-button"/>
+                        <Button text="Clear Completed" onAction="#clearCompletedDownloads" styleClass="console-button"/>
+                    </HBox>
+
+                    <TableView fx:id="downloadQueueTable" VBox.vgrow="ALWAYS" styleClass="log-table">
+                        <columns>
+                            <TableColumn fx:id="titleColumn" text="Title" prefWidth="250"/>
+                            <TableColumn fx:id="sizeColumn" text="Size" prefWidth="100"/>
+                            <TableColumn fx:id="statusColumn" text="Status" prefWidth="100"/>
+                            <TableColumn fx:id="progressColumn" text="Progress" prefWidth="100"/>
+                            <TableColumn fx:id="speedColumn" text="Speed" prefWidth="100"/>
+                            <TableColumn fx:id="etaColumn" text="ETA" prefWidth="100"/>
+                            <TableColumn fx:id="actionsColumn" text="Actions" prefWidth="150"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+
+                <TabPane styleClass="tab-pane">
+                    <Tab text="History" closable="false">
+                        <VBox spacing="10">
+                            <padding>
+                                <Insets top="10" right="10" bottom="10" left="10"/>
+                            </padding>
+
+                            <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="terminal-header">
+                                <Label text="Download History" styleClass="terminal-title"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <ComboBox fx:id="historyFilterCombo" promptText="Filter" styleClass="filter-combo">
+                                    <items>
+                                        <FXCollections fx:factory="observableArrayList">
+                                            <String fx:value="All"/>
+                                            <String fx:value="Completed"/>
+                                            <String fx:value="Failed"/>
+                                            <String fx:value="Grabbed"/>
+                                        </FXCollections>
+                                    </items>
+                                    <value>
+                                        <String fx:value="All"/>
+                                    </value>
+                                </ComboBox>
+                                <Button text="Refresh" onAction="#refreshHistory" styleClass="console-button"/>
+                            </HBox>
+
+                            <TableView fx:id="historyTable" VBox.vgrow="ALWAYS" styleClass="log-table">
+                                <columns>
+                                    <TableColumn fx:id="historyDateColumn" text="Date" prefWidth="150"/>
+                                    <TableColumn fx:id="historySeriesColumn" text="Series" prefWidth="200"/>
+                                    <TableColumn fx:id="historyEpisodeColumn" text="Episode" prefWidth="150"/>
+                                    <TableColumn fx:id="historyQualityColumn" text="Quality" prefWidth="100"/>
+                                    <TableColumn fx:id="historyStatusColumn" text="Status" prefWidth="100"/>
+                                    <TableColumn fx:id="historySourceColumn" text="Source" prefWidth="150"/>
+                                </columns>
+                            </TableView>
+                        </VBox>
+                    </Tab>
+                    <Tab text="Logs" closable="false">
+                        <VBox spacing="10">
+                            <padding>
+                                <Insets top="10" right="10" bottom="10" left="10"/>
+                            </padding>
+
+                            <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="terminal-header">
+                                <Label text="System Logs" styleClass="terminal-title"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <ComboBox fx:id="logLevelFilter" prefWidth="100.0" styleClass="filter-combo">
+                                    <items>
+                                        <FXCollections fx:factory="observableArrayList">
+                                            <String fx:value="All"/>
+                                            <String fx:value="Info"/>
+                                            <String fx:value="Warning"/>
+                                            <String fx:value="Error"/>
+                                            <String fx:value="Debug"/>
+                                        </FXCollections>
+                                    </items>
+                                    <value>
+                                        <String fx:value="All"/>
+                                    </value>
+                                </ComboBox>
+                                <Button text="Clear" onAction="#clearLogs" styleClass="console-button"/>
+                            </HBox>
+
+                            <TableView fx:id="logTable" VBox.vgrow="ALWAYS" styleClass="log-table">
+                                <columns>
+                                    <TableColumn fx:id="timeColumn" text="Time" prefWidth="150"/>
+                                    <TableColumn fx:id="levelColumn" text="Level" prefWidth="100"/>
+                                    <TableColumn fx:id="componentColumn" text="Component" prefWidth="150"/>
+                                    <TableColumn fx:id="messageColumn" text="Message" prefWidth="450"/>
+                                </columns>
+                            </TableView>
+                        </VBox>
+                    </Tab>
+                </TabPane>
+            </SplitPane>
+        </center>
+
+        <bottom>
+            <HBox alignment="CENTER_LEFT" spacing="10" styleClass="status-bar">
+                <padding>
+                    <Insets top="5" right="10" bottom="5" left="10"/>
+                </padding>
+                <Label text="Sonarr Monitor v1.0" styleClass="status-text"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="lastUpdateLabel" text="Last update: Never" styleClass="status-text"/>
+            </HBox>
+        </bottom>
+    </BorderPane>
 </AnchorPane>

@@ -621,6 +621,7 @@ public class DockerViewModel {
                     tile.setThreshold(80);
                     tile.setThresholdVisible(true);
                     System.out.println(cpuUsage);
+                    System.out.println(tile.getValue());
                 });
                 break;
 

@@ -1,5 +1,7 @@
 package com.tfg.dashboard_tfg.viewmodel;
 
+import com.tfg.dashboard_tfg.model.NetworkData;
+import com.tfg.dashboard_tfg.model.ProcessedData;
 import eu.hansolo.tilesfx.Section;
 import eu.hansolo.tilesfx.Tile;
 import eu.hansolo.tilesfx.chart.ChartData;
@@ -147,6 +149,7 @@ public class DashboardController {
         scheduler.scheduleAtFixedRate(this::fetchAndUpdateData, 0, 5, TimeUnit.SECONDS);
         ChartData chartData = new ChartData("Network", 0);
         networkTile.addChartData(chartData);
+
     }
 
     @FXML
@@ -179,30 +182,6 @@ public class DashboardController {
 
     private String getNetworkUrl() {
         return apiBaseUrl.get() + "/network";
-    }
-
-    public static class ProcessedData {
-        double cpuUsage;
-        String cpuDescription;
-        double memoryUsage;
-        String memoryDescription;
-        double storagePercentage;
-        String storageDescription;
-        NetworkData networkData;
-        double systemHealth;
-        String systemHealthDescription;
-        double dockerUsage;
-        String dockerDescription;
-        double temperature;
-        String temperatureDescription;
-        boolean jellyfinActive;
-    }
-
-    // Helper class for network data
-    public static class NetworkData {
-        double kbPerSecond;
-        String description;
-        long currentBytes;
     }
 
     private void fetchAndUpdateData() {

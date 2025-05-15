@@ -69,21 +69,17 @@ public class DockerViewModel {
         }
     }
 
-    // Data structures
     private final Map<String, ContainerTile> containerTiles = new HashMap<>();
     private ScheduledExecutorService scheduler;
-
     private String dockerApiUrl;
 
     public void clearTerminal(ActionEvent actionEvent) {
     }
 
-    // Enum to track which metric is currently displayed
     private enum MetricType {
         NAME, CPU, MEMORY, NETWORK, STATUS, UPTIME
     }
 
-    // Container tile class to store container data and current display metric
     private static class ContainerTile {
         String id;
         String name;
@@ -101,7 +97,7 @@ public class DockerViewModel {
     public void initialize() {
         // Set default values
         if (serverPortField != null) {
-            serverPortField.setText("2375");  // Default Docker API port
+            serverPortField.setText("2375");
         }
 
         // Initialize connect button
@@ -115,12 +111,12 @@ public class DockerViewModel {
                 executeCommand();
             }
         });
-        // Add this in your initialization method
+
         if (containerTilesPane.getParent() instanceof ScrollPane) {
             ScrollPane scrollPane = (ScrollPane) containerTilesPane.getParent();
             scrollPane.viewportBoundsProperty().addListener((obs, oldBounds, newBounds) -> {
                 if (newBounds.getWidth() > 0) {
-                    refreshContainers(); // Your method to refresh container display
+                    refreshContainers();
                 }
             });
         }

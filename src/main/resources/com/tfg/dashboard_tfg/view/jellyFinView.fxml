@@ -155,10 +155,8 @@
             </VBox>
         </left>
 
-        <!-- Main content area -->
         <center>
             <SplitPane orientation="VERTICAL" dividerPositions="0.6" styleClass="content-pane">
-                <!-- Active streams tiles area -->
                 <VBox spacing="10">
                     <padding>
                         <Insets top="10" right="10" left="10"/>

@@ -129,7 +129,7 @@
         </left>
 
         <center>
-            <SplitPane orientation="VERTICAL" dividerPositions="0.5" styleClass="content-pane">
+            <SplitPane orientation="VERTICAL" dividerPositions="0.6" styleClass="content-pane">
                 <VBox spacing="10">
                     <padding>
                         <Insets top="10" right="10" bottom="10" left="10"/>

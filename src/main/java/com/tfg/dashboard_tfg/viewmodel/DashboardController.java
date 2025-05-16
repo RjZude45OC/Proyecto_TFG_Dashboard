@@ -273,13 +273,7 @@ public class DashboardController {
         double systemCpuLoad = cpuData.getDouble("systemCpuLoad");
         double totalLoad = 0;
         for (int i = 0; i < perProcessorLoad.length(); i++) {
-            System.out.println(perProcessorLoad.getDouble(i));
             totalLoad += perProcessorLoad.getDouble(i);
-        }
-        System.out.println(totalLoad);
-        System.out.println("----------------");
-        if (totalLoad > 100) {
-            totalLoad = 100;
         }
         return systemCpuLoad;
     }

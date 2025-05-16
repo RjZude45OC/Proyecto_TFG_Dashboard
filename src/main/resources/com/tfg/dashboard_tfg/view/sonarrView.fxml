@@ -84,11 +84,14 @@
                                 <Label text="Uptime:" styleClass="setting-label"/>
                             </VBox>
 
-                            <VBox spacing="5" HBox.hgrow="ALWAYS" maxWidth="170">
-                                <ProgressBar fx:id="cpuUsageBar" progress="0.0" styleClass="stat-progress" maxWidth="Infinity"/>
-                                <ProgressBar fx:id="memoryUsageBar" progress="0.0" styleClass="stat-progress" maxWidth="Infinity"/>
-                                <ProgressBar fx:id="storageUsageBar" progress="0.0" styleClass="stat-progress" maxWidth="Infinity"/>
-                                <Label fx:id="networkUsageLabel" text="down:0B/up:0B" maxWidth="Infinity"/>
+                            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                <ProgressBar fx:id="cpuUsageBar" progress="0.0" styleClass="stat-progress"
+                                             maxWidth="Infinity"/>
+                                <ProgressBar fx:id="memoryUsageBar" progress="0.0" styleClass="stat-progress"
+                                             maxWidth="Infinity"/>
+                                <ProgressBar fx:id="storageUsageBar" progress="0.0" styleClass="stat-progress"
+                                             maxWidth="Infinity"/>
+                                <Label fx:id="networkUsageLabel" text="Down:0B/Up:0B" maxWidth="Infinity"/>
                                 <Label fx:id="versionLabel" text="N/A" styleClass="stat-value"/>
                                 <Label fx:id="uptimeLabel" text="N/A" styleClass="stat-value"/>
                             </VBox>

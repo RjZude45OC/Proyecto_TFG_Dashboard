@@ -86,16 +86,16 @@
                 <TitledPane text="Server Stats" styleClass="settings-pane">
                     <VBox spacing="5" styleClass="settings-container">
                         <HBox>
-                            <VBox spacing="5" prefWidth="120">
+                            <VBox spacing="5" prefWidth="150">
                                 <Label text="CPU Usage:" styleClass="setting-label"/>
                                 <Label text="Memory Usage:" styleClass="setting-label"/>
                                 <Label text="Storage:" styleClass="setting-label"/>
-                                <Label text="Network:" styleClass="setting-label"/>
+                                <Label text="Network:" styleClass="setting-label" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
                                 <Label text="Version:" styleClass="setting-label"/>
                                 <Label text="Uptime:" styleClass="setting-label"/>
                             </VBox>
 
-                            <VBox spacing="5" HBox.hgrow="ALWAYS" maxWidth="170">
+                            <VBox spacing="5" HBox.hgrow="ALWAYS" >
                                 <ProgressBar fx:id="cpuUsageBar" progress="0.0" styleClass="stat-progress"
                                              maxWidth="Infinity"/>
                                 <ProgressBar fx:id="memoryUsageBar" progress="0.0" styleClass="stat-progress"

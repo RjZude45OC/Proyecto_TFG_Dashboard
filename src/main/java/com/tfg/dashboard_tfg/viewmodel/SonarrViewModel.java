@@ -4,6 +4,7 @@ import com.tfg.dashboard_tfg.model.DownloadQueueItem;
 import com.tfg.dashboard_tfg.model.HistoryItem;
 import com.tfg.dashboard_tfg.model.LogEntry;
 import com.tfg.dashboard_tfg.model.NetworkData;
+import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -46,6 +47,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
+
 
 public class SonarrViewModel implements Initializable {
     @FXML
@@ -352,20 +354,23 @@ public class SonarrViewModel implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        CompletableFuture<Void> systemInfo = fetchSystemInfo();
-        CompletableFuture<Void> logs = fetchRecentLogs();
+        httpClient = HttpClient.newBuilder().build();
         executorService = Executors.newFixedThreadPool(3);
         loadPropertiesIfNeeded();
-        CompletableFuture.allOf(
-                systemInfo,
-//                libraryStats,
-                logs
-        ).thenRun(() -> {
-            addLogEntry("Info", "System", "Server status refreshed");
-        });
         autoRefreshTimeline = new Timeline(new KeyFrame(javafx.util.Duration.seconds(Double.parseDouble(autoUpdateInterval.getValue())), e -> {
             refreshServerStatus();
         }));
+        autoRefreshTimeline.setCycleCount(Animation.INDEFINITE);
+        serverStatusLabel.textProperty().bind(
+                Bindings.when(connected)
+                        .then("Connected")
+                        .otherwise("Not Connected")
+        );
+        serverStatusLabel.styleProperty().bind(
+                Bindings.when(connected)
+                        .then("-fx-text-fill: green;")
+                        .otherwise("-fx-text-fill: red;")
+        );
         setupLogTable();
         setupDownloadQueueTable();
         initializeHistoryTable();
@@ -575,31 +580,36 @@ public class SonarrViewModel implements Initializable {
         CompletableFuture<Void> logs = fetchRecentLogs();
 
         CompletableFuture.allOf(
-                systemInfo
+                systemInfo,
 //                libraryStats,
 //                activeSessions,
-//                logs
+                logs
         ).thenRun(() -> {
             addLogEntry("Info", "System", "Server status refreshed");
         });
     }
 
-    public void toggleAutoRefresh(ActionEvent actionEvent) {
+    @FXML
+    private void toggleAutoRefresh() {
+        if (autoRefreshToggle.isSelected()) {
+            autoRefreshTimeline.play();
+            addLogEntry("Info", "System", "Auto-refresh enabled (" + autoUpdateInterval.get() + " second interval)");
+        } else {
+            autoRefreshTimeline.stop();
+            addLogEntry("Info", "System", "Auto-refresh disabled");
+        }
     }
+
     private CompletableFuture<Void> fetchRecentLogs() {
-        // Guard against null executorService - this prevents NullPointerException
         if (executorService == null) {
-            // Create the executor service if it doesn't exist yet
             executorService = Executors.newFixedThreadPool(3);
         }
-
         return CompletableFuture.runAsync(() -> {
             try {
                 List<LogEntry> newLogs = new ArrayList<>();
                 LocalDateTime now = LocalDateTime.now();
                 String time = now.format(logTimeFormatter);
 
-                // Process CPU information
                 if (systeminfo != null) {
                     JSONObject cpuData = systeminfo.optJSONObject("cpu");
                     if (cpuData != null) {
@@ -618,7 +628,6 @@ public class SonarrViewModel implements Initializable {
                         }
                     }
 
-                    // Process memory information
                     JSONObject memoryData = systeminfo.optJSONObject("memory");
                     if (memoryData != null) {
                         long total = memoryData.optLong("total", 0);
@@ -747,7 +756,6 @@ public class SonarrViewModel implements Initializable {
         }, executorService);
     }
     private CompletableFuture<Void> fetchSystemInfo() {
-        System.out.println("fetch system info");
         return CompletableFuture.runAsync(() -> {
             try {
                 HttpRequest request = HttpRequest.newBuilder()
@@ -756,9 +764,7 @@ public class SonarrViewModel implements Initializable {
                         .build();
 
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-                System.out.println(response);
                 if (response.statusCode() != 200) {
-
                     addLogEntry("Error", "System", "Failed to fetch system info: HTTP " + response.statusCode() + " - " + response.body());
                     Platform.runLater(() -> {
                         versionLabel.setText("N/A");
@@ -769,7 +775,6 @@ public class SonarrViewModel implements Initializable {
                     });
                     return;
                 }
-
                 JSONObject systemInfo = new JSONObject(response.body());
                 JSONObject cpuData = systemInfo.optJSONObject("cpu");
                 JSONObject memoryData = systemInfo.optJSONObject("memory");
@@ -777,8 +782,8 @@ public class SonarrViewModel implements Initializable {
                 JSONObject networkData = systemInfo.optJSONObject("network");
                 systeminfo = systemInfo;
                 double cpuUsage = cpuData != null ? processCpuUsage(cpuData) : 0;
-//                long totalMemory = memoryData != null ? memoryData.optLong("totalMemory", 0) : 0;
-//                long usedMemory = memoryData != null ? memoryData.optLong("usedMemory", 0) : 0;
+                long totalMemory = memoryData != null ? memoryData.optLong("totalMemory", 0) : 0;
+                long usedMemory = memoryData != null ? memoryData.optLong("usedMemory", 0) : 0;
                 double memoryUsagePercentage = memoryData != null ? memoryData.optDouble("memoryUsagePercentage", 0) / 100.0 : 0;
                 double totalSpace = 0;
                 double usedSpace = 0;
@@ -803,15 +808,15 @@ public class SonarrViewModel implements Initializable {
                 String uptime = "N/A";
                 if (apiKey.get() != null && !apiKey.get().trim().isEmpty()) {
                     try {
-                        HttpRequest jellyfinSystemRequest = HttpRequest.newBuilder()
-                                .uri(URI.create(serverUrl.get() + "/System/Info"))
-                                .header("X-MediaBrowser-Token", apiKey.get())
+                        HttpRequest sonarrSystemRequest = HttpRequest.newBuilder()
+                                .uri(URI.create(serverUrl.get() + "/api/v3/system/status"))
+                                .header("X-Api-Key", apiKey.get())
                                 .GET()
                                 .build();
-                        HttpResponse<String> jellyfinSystemResponse = httpClient.send(jellyfinSystemRequest, HttpResponse.BodyHandlers.ofString());
-                        if (jellyfinSystemResponse.statusCode() == 200) {
-                            JSONObject jellyfinSystemInfo = new JSONObject(jellyfinSystemResponse.body());
-                            version = jellyfinSystemInfo.optString("Version", "N/A");
+                        HttpResponse<String> sonarrSystemResponse = httpClient.send(sonarrSystemRequest, HttpResponse.BodyHandlers.ofString());
+                        if (sonarrSystemResponse.statusCode() == 200) {
+                            JSONObject sonarrSystemInfo = new JSONObject(sonarrSystemResponse.body());
+                            version = sonarrSystemInfo.optString("version", "N/A");
                         }
                     } catch (Exception ex) {
                         addLogEntry("Warning", "System", "Failed to get version from Jellyfin: " + ex.getMessage());

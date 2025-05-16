@@ -42,7 +42,6 @@
             </VBox>
         </top>
 
-        <!-- Left Side Connection Settings -->
         <left>
             <VBox spacing="10.0" styleClass="side-panel">
                 <padding>
@@ -171,7 +170,6 @@
                     </ScrollPane>
                 </VBox>
 
-                <!-- Activity log area -->
                 <VBox spacing="10" styleClass="terminal-panel">
                     <padding>
                         <Insets top="10" right="10" bottom="10" left="10"/>

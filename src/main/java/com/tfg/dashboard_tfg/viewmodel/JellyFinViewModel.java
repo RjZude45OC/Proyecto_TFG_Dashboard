@@ -63,8 +63,6 @@ public class JellyFinViewModel implements Initializable {
     @FXML
     private ProgressBar storageUsageBar;
     @FXML
-    private ProgressBar networkUsageBar;
-    @FXML
     private Label versionLabel;
     @FXML
     private Label uptimeLabel;
@@ -92,8 +90,6 @@ public class JellyFinViewModel implements Initializable {
     private Label activeStreamsLabel;
     @FXML
     private Label lastUpdateLabel;
-    @FXML
-    private ComboBox<String> mediaFilter;
     @FXML
     private FlowPane activeStreamsTilesPane;
     @FXML

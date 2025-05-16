@@ -50,62 +50,8 @@
                         <RowConstraints percentHeight="50"/>
                     </rowConstraints>
 
-                    <Tile fx:id="systemStatusTile"
-                          GridPane.columnIndex="0"
-                          GridPane.rowIndex="0"
-                          title="Server Status"
-                          description="Media Server Health"
-                          text=""
-                          textSize="BIGGER"
-                          valueColor="#2ecc71"
-                          animated="true"
-                          skinType="GAUGE"
-                          decimals="1"
-                          minValue="0"
-                          maxValue="100"
-                          startFromZero="false"
-                          threshold="25"
-                          thresholdVisible="true"
-                          onMouseClicked="#onclicktile"
-                    />
-
-                    <Tile fx:id="storageTile"
-                          GridPane.columnIndex="1"
-                          GridPane.rowIndex="0"
-                          title="Storage"
-                          description="Total Space"
-                          text=""
-                          textSize="BIGGER"
-                          animated="true"
-                          skinType="GAUGE"
-                          unit="\%"
-                          decimals="1"
-                          minValue="0"
-                          maxValue="100"
-                          thresholdVisible="true"
-                          threshold="85"
-                          shadowsEnabled="true"
-                          onMouseClicked="#onclicktile"
-                    />
-
-                    <Tile fx:id="networkTile"
-                          GridPane.columnIndex="2"
-                          GridPane.rowIndex="0"
-                          title="Network"
-                          description="Bandwidth"
-                          textSize="BIGGER"
-                          animated="true"
-                          skinType="SMOOTH_AREA_CHART"
-                          unit="Kbps"
-                          smoothing="true"
-                          chartGridColor="rgba(255,255,255,0.1)"
-                          minValue="0"
-                          maxValue="100"
-                          onMouseClicked="#onclicktile"
-                    />
-
                     <Tile fx:id="cpuTile"
-                          GridPane.columnIndex="3"
+                          GridPane.columnIndex="0"
                           GridPane.rowIndex="0"
                           title="CPU Usage"
                           description="Processing Load"
@@ -124,9 +70,25 @@
                           onMouseClicked="#onclicktile"
                     />
 
+                    <Tile fx:id="networkTile"
+                          GridPane.columnIndex="1"
+                          GridPane.rowIndex="0"
+                          title="Network"
+                          description="Bandwidth"
+                          textSize="BIGGER"
+                          animated="true"
+                          skinType="SMOOTH_AREA_CHART"
+                          unit="Kbps"
+                          smoothing="true"
+                          chartGridColor="rgba(255,255,255,0.1)"
+                          minValue="0"
+                          maxValue="100"
+                          onMouseClicked="#onclicktile"
+                    />
+
                     <Tile fx:id="memoryTile"
-                          GridPane.columnIndex="0"
-                          GridPane.rowIndex="1"
+                          GridPane.columnIndex="2"
+                          GridPane.rowIndex="0"
                           title="Memory"
                           description="RAM Usage"
                           textSize="BIGGER"
@@ -142,6 +104,46 @@
                           thresholdVisible="true"
                           onMouseClicked="#onclicktile"
                     />
+
+                    <Tile fx:id="storageTile"
+                          GridPane.columnIndex="3"
+                          GridPane.rowIndex="0"
+                          title="Storage"
+                          description="Total Space"
+                          text=""
+                          textSize="BIGGER"
+                          animated="true"
+                          skinType="GAUGE"
+                          unit="\%"
+                          decimals="1"
+                          minValue="0"
+                          maxValue="100"
+                          thresholdVisible="true"
+                          threshold="85"
+                          shadowsEnabled="true"
+                          onMouseClicked="#onclicktile"
+                    />
+
+                    <Tile fx:id="systemStatusTile"
+                          GridPane.columnIndex="0"
+                          GridPane.rowIndex="1"
+                          title="Server Status"
+                          description="Media Server Health"
+                          text=""
+                          textSize="BIGGER"
+                          valueColor="#2ecc71"
+                          animated="true"
+                          skinType="GAUGE"
+                          decimals="1"
+                          minValue="0"
+                          maxValue="100"
+                          startFromZero="false"
+                          threshold="25"
+                          thresholdVisible="true"
+                          onMouseClicked="#onclicktile"
+                    />
+
+
 
                     <Tile fx:id="temperatureTile"
                           GridPane.columnIndex="1"
@@ -197,9 +199,9 @@
                           onMouseClicked="#onclicktile"
                     >
                         <gradientStops>
-                            <Stop color="#3498db" />
-                            <Stop offset="0.5" color="#2ecc71" />
-                            <Stop offset="1.0" color="#e74c3c" />
+                            <Stop color="#3498db"/>
+                            <Stop offset="0.5" color="#2ecc71"/>
+                            <Stop offset="1.0" color="#e74c3c"/>
                         </gradientStops>
                     </Tile>
                 </GridPane>

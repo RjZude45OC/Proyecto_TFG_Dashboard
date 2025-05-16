@@ -96,9 +96,12 @@
                             </VBox>
 
                             <VBox spacing="5" HBox.hgrow="ALWAYS" maxWidth="170">
-                                <ProgressBar fx:id="cpuUsageBar" progress="0.0" styleClass="stat-progress" maxWidth="Infinity"/>
-                                <ProgressBar fx:id="memoryUsageBar" progress="0.0" styleClass="stat-progress" maxWidth="Infinity"/>
-                                <ProgressBar fx:id="storageUsageBar" progress="0.0" styleClass="stat-progress" maxWidth="Infinity"/>
+                                <ProgressBar fx:id="cpuUsageBar" progress="0.0" styleClass="stat-progress"
+                                             maxWidth="Infinity"/>
+                                <ProgressBar fx:id="memoryUsageBar" progress="0.0" styleClass="stat-progress"
+                                             maxWidth="Infinity"/>
+                                <ProgressBar fx:id="storageUsageBar" progress="0.0" styleClass="stat-progress"
+                                             maxWidth="Infinity"/>
                                 <Label fx:id="networkUsageLabel" text="down:0B/up:0B" maxWidth="Infinity"/>
                                 <Label fx:id="versionLabel" text="N/A" styleClass="stat-value"/>
                                 <Label fx:id="uptimeLabel" text="N/A" styleClass="stat-value"/>
@@ -198,8 +201,8 @@
                         <columns>
                             <TableColumn fx:id="timeColumn" text="Time" prefWidth="200"/>
                             <TableColumn fx:id="levelColumn" text="Level" prefWidth="100"/>
-                            <TableColumn fx:id="sourceColumn" text="Source" prefWidth="150"/>
-                            <TableColumn fx:id="messageColumn" text="Message" prefWidth="300"/>
+                            <TableColumn fx:id="sourceColumn" text="Source" prefWidth="100"/>
+                            <TableColumn fx:id="messageColumn" text="Message" prefWidth="550"/>
                         </columns>
                     </TableView>
                 </VBox>

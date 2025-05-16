@@ -3,10 +3,10 @@
 <?import java.lang.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-
-<?import javafx.collections.FXCollections?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.text.Text?>
+<?import javafx.collections.FXCollections?>
+
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.tfg.dashboard_tfg.viewmodel.SonarrViewModel"
@@ -218,12 +218,12 @@
                                 <Button text="Clear" onAction="#clearLogs" styleClass="console-button"/>
                             </HBox>
 
-                            <TableView fx:id="logTable" VBox.vgrow="ALWAYS" styleClass="log-table">
+                            <TableView fx:id="logTable" VBox.vgrow="ALWAYS" styleClass="log-table" >
                                 <columns>
                                     <TableColumn fx:id="timeColumn" text="Time" prefWidth="200"/>
                                     <TableColumn fx:id="levelColumn" text="Level" prefWidth="100"/>
-                                    <TableColumn fx:id="sourceColumn" text="Source" prefWidth="150"/>
-                                    <TableColumn fx:id="messageColumn" text="Message" prefWidth="300"/>
+                                    <TableColumn fx:id="sourceColumn" text="Source" prefWidth="100"/>
+                                    <TableColumn fx:id="messageColumn" text="Message" prefWidth="550"/>
                                 </columns>
                             </TableView>
                         </VBox>

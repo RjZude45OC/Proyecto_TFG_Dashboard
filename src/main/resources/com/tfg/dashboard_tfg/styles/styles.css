@@ -826,9 +826,11 @@
 /* Cell text */
 .table-cell {
     -fx-alignment: CENTER;
-    -fx-wrap-text: false;
+    -fx-wrap-text: true;
 }
-
+.table-row-cell > .table-cell > .text-field-table-cell > .text {
+    -fx-text-overrun: clip;
+}
 /* Light theme TableView */
 .light-theme .table-view {
     -fx-background-color: #f0f1f5;

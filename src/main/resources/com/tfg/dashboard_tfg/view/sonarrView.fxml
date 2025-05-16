@@ -200,7 +200,7 @@
                             </padding>
 
                             <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="terminal-header">
-                                <Label text="System Logs" styleClass="terminal-title"/>
+                                <Label text="Activity Log" styleClass="terminal-title"/>
                                 <Region HBox.hgrow="ALWAYS"/>
                                 <ComboBox fx:id="logLevelFilter" prefWidth="100.0" styleClass="filter-combo">
                                     <items>
@@ -209,7 +209,6 @@
                                             <String fx:value="Info"/>
                                             <String fx:value="Warning"/>
                                             <String fx:value="Error"/>
-                                            <String fx:value="Debug"/>
                                         </FXCollections>
                                     </items>
                                     <value>
@@ -221,10 +220,10 @@
 
                             <TableView fx:id="logTable" VBox.vgrow="ALWAYS" styleClass="log-table">
                                 <columns>
-                                    <TableColumn fx:id="timeColumn" text="Time" prefWidth="150"/>
+                                    <TableColumn fx:id="timeColumn" text="Time" prefWidth="200"/>
                                     <TableColumn fx:id="levelColumn" text="Level" prefWidth="100"/>
-                                    <TableColumn fx:id="componentColumn" text="Component" prefWidth="150"/>
-                                    <TableColumn fx:id="messageColumn" text="Message" prefWidth="450"/>
+                                    <TableColumn fx:id="sourceColumn" text="Source" prefWidth="150"/>
+                                    <TableColumn fx:id="messageColumn" text="Message" prefWidth="300"/>
                                 </columns>
                             </TableView>
                         </VBox>

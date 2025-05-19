@@ -18,7 +18,6 @@
                 AnchorPane.rightAnchor="0.0"
                 AnchorPane.topAnchor="0.0">
 
-        <!-- Top Header -->
         <top>
             <VBox spacing="5.0" styleClass="header-panel">
                 <padding>
@@ -57,7 +56,6 @@
             </VBox>
         </top>
 
-        <!-- Left Side Connection Settings -->
         <left>
             <VBox spacing="10.0" styleClass="side-panel">
                 <padding>
@@ -95,10 +93,8 @@
             </VBox>
         </left>
 
-        <!-- Main content area -->
         <center>
             <SplitPane orientation="VERTICAL" dividerPositions="0.6" styleClass="content-pane">
-                <!-- Container tiles area -->
                 <ScrollPane fitToWidth="true" styleClass="containers-scroll">
                     <FlowPane fx:id="containerTilesPane" hgap="15" vgap="15" styleClass="tiles-pane">
                         <padding>
@@ -107,7 +103,6 @@
                     </FlowPane>
                 </ScrollPane>
 
-                <!-- Terminal area -->
                 <VBox spacing="10" styleClass="terminal-panel">
                     <padding>
                         <Insets top="10" right="10" bottom="10" left="10"/>

@@ -4,6 +4,8 @@ import eu.hansolo.tilesfx.Tile;
 import eu.hansolo.tilesfx.TileBuilder;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.ObservableList;
+import javafx.collections.ObservableListBase;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -56,6 +58,7 @@ public class DockerViewModel {
     private final Properties appProperties = new Properties();
     private final File configFile = new File("connection.properties");
     private String url;
+    private List<String> commandList = new ArrayList<>();
 
     public void loadProperties() {
         try (FileInputStream fis = new FileInputStream(configFile)) {
@@ -69,7 +72,9 @@ public class DockerViewModel {
     private ScheduledExecutorService scheduler;
     private String dockerApiUrl;
 
-    public void clearTerminal(ActionEvent actionEvent) {
+    @FXML
+    public void clearTerminal() {
+        cliOutput.clear();
     }
 
     private enum MetricType {
@@ -105,6 +110,7 @@ public class DockerViewModel {
             }
         });
 
+
         if (containerTilesPane.getParent() instanceof ScrollPane) {
             ScrollPane scrollPane = (ScrollPane) containerTilesPane.getParent();
             scrollPane.viewportBoundsProperty().addListener((obs, oldBounds, newBounds) -> {
@@ -116,6 +122,13 @@ public class DockerViewModel {
         loadProperties();
         url = appProperties.getProperty("dockerApi");
         connectToDockerAPI();
+        commandHistoryList.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                System.out.println("Selected command: " + newVal);
+                cliInput.setText((String) newVal);
+            }
+        });
+
     }
 
     private void connectToDockerAPI() {
@@ -126,8 +139,7 @@ public class DockerViewModel {
             if (url.isEmpty()) {
                 connectionStatusLabel.setText("Please provide host");
                 return;
-            }
-            else {
+            } else {
                 host = url;
             }
         }
@@ -200,7 +212,6 @@ public class DockerViewModel {
                     });
                     return;
                 }
-
                 String action = parts[1];
                 String apiPath = "";
                 String method = "GET";
@@ -261,12 +272,33 @@ public class DockerViewModel {
                             apiPath = "/containers/" + parts[2] + "/stats?stream=false";
                         }
                         break;
+                    case "-help":
+                        cliOutput.appendText(
+                                "Docker CLI (API Mode) Commands:\n\n" +
+                                        "ps [-a]                 List running containers. Use -a to list all containers.\n" +
+                                        "inspect <containerId>   Show detailed information about a container.\n" +
+                                        "logs <containerId>      Show stdout/stderr logs for a container.\n" +
+                                        "start <containerId>     Start a stopped container.\n" +
+                                        "stop <containerId>      Stop a running container.\n" +
+                                        "restart <containerId>   Restart a container.\n" +
+                                        "stats                   Show CPU and memory usage for all running containers.\n" +
+                                        "stats <containerId>     Show stats for a specific container.\n\n"
+                        );
+                        break;
+
                     default:
                         Platform.runLater(() -> {
                             cliOutput.appendText("Error: Unsupported command in API mode: " + action + "\n");
                             statusLabel.setText("Command error");
                         });
                         return;
+                }
+                if (action.equals("-help")) {
+                    commandList.add(command);
+                    Platform.runLater(() -> {
+                        commandHistoryList.getItems().setAll(commandList);
+                    });
+                    return;
                 }
 
                 URL url = new URL(dockerApiUrl + apiPath);
@@ -276,7 +308,6 @@ public class DockerViewModel {
                 int responseCode = connection.getResponseCode();
 
                 if (responseCode >= 200 && responseCode < 300) {
-                    // Success response
                     BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
                     StringBuilder response = new StringBuilder();
                     String line;
@@ -288,7 +319,8 @@ public class DockerViewModel {
                     final String output = response.toString();
                     boolean finalNeedsRefresh = needsRefresh;
                     Platform.runLater(() -> {
-                        // Format JSON response if possible
+                        commandList.add(command);
+                        commandHistoryList.getItems().setAll(commandList);
                         try {
                             if (output.trim().startsWith("{") || output.trim().startsWith("[")) {
                                 JSONObject json = new JSONObject(output);
@@ -306,7 +338,6 @@ public class DockerViewModel {
                         }
                     });
                 } else {
-                    // Error response
                     BufferedReader errorReader = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
                     StringBuilder errorResponse = new StringBuilder();
                     String errorLine;
@@ -335,6 +366,10 @@ public class DockerViewModel {
         new Thread(() -> {
             try {
                 ProcessBuilder builder = new ProcessBuilder();
+                if (command.equals("cls") || command.equals("clear")) {
+                    clearTerminal();
+                    return;
+                }
                 builder.command("cmd.exe", "/c", command);
                 builder.redirectErrorStream(true);
 
@@ -352,6 +387,8 @@ public class DockerViewModel {
                 final String result = output.toString();
 
                 Platform.runLater(() -> {
+                    commandList.add(command);
+                    commandHistoryList.getItems().setAll(commandList);
                     cliOutput.appendText(result);
                     statusLabel.setText(exitCode == 0 ? "Command completed" : "Command failed with code " + exitCode);
                 });
@@ -394,7 +431,6 @@ public class DockerViewModel {
                         containerTilesPane.getChildren().add(containerTile.tile);
                     }
 
-                    // Update container count
                     containerCountLabel.setText(String.valueOf(containerTiles.size()));
                     statusLabel.setText("Ready");
                 });
@@ -494,10 +530,10 @@ public class DockerViewModel {
                 .animated(true)
                 .build();
 
-        // Create context menu with view options
+
         final ContextMenu contextMenu = new ContextMenu();
 
-        // Add metric display options
+
         Menu metricsMenu = new Menu("Switch Metric");
         for (MetricType metricType : MetricType.values()) {
             MenuItem metricMenuItem = new MenuItem(metricType.name());
@@ -511,21 +547,19 @@ public class DockerViewModel {
             metricsMenu.getItems().add(metricMenuItem);
         }
 
-        // Add inspect container option
         MenuItem inspectItem = new MenuItem("Inspect Container");
         inspectItem.setOnAction(event -> {
             cliInput.setText("docker inspect " + id);
             executeCommand();
         });
 
-        // Add logs container option
+
         MenuItem logsItem = new MenuItem("View Container Logs");
         logsItem.setOnAction(event -> {
             cliInput.setText("docker logs " + id);
             executeCommand();
         });
 
-        // Add container actions
         MenuItem startItem = new MenuItem("Start Container");
         startItem.setOnAction(event -> {
             cliInput.setText("docker start " + id);
@@ -548,7 +582,6 @@ public class DockerViewModel {
                 inspectItem, logsItem, new SeparatorMenuItem(),
                 startItem, stopItem, restartItem);
 
-        // Attach context menu to tile
         tile.setOnContextMenuRequested(e ->
                 contextMenu.show(tile, e.getScreenX(), e.getScreenY()));
 
@@ -565,7 +598,6 @@ public class DockerViewModel {
 
         Tile tile = containerTile.tile;
 
-        // Update the tile based on the current metric type
         switch (containerTile.currentMetric) {
             case NAME:
                 tile.setSkinType(Tile.SkinType.CHARACTER);
@@ -575,7 +607,6 @@ public class DockerViewModel {
                 break;
 
             case CPU:
-                // Get real-time CPU stats
                 fetchContainerCpuStats(id, (cpuUsage) -> {
                     tile.setSkinType(Tile.SkinType.GAUGE);
                     tile.setTitle("CPU");
@@ -585,13 +616,10 @@ public class DockerViewModel {
                     tile.setMaxValue(100);
                     tile.setThreshold(80);
                     tile.setThresholdVisible(true);
-                    System.out.println(cpuUsage);
-                    System.out.println(tile.getValue());
                 });
                 break;
 
             case MEMORY:
-                // Get real-time memory stats
                 fetchContainerMemoryStats(id, (memUsage) -> {
                     tile.setSkinType(Tile.SkinType.CIRCULAR_PROGRESS);
                     tile.setTitle("Memory");
@@ -608,7 +636,6 @@ public class DockerViewModel {
                     tile.setTitle("Network");
                     tile.setDescription(name);
 
-                    // Format with proper units
                     String displayValue;
                     if (netIO >= 1024) {
                         displayValue = String.format("%.2f GB/s", netIO / 1024);
@@ -723,10 +750,8 @@ public class DockerViewModel {
 
             JSONObject json = new JSONObject(response.toString());
 
-            // Memory calculation logic based on Docker stats API
             JSONObject memStats = json.getJSONObject("memory_stats");
 
-            // Some containers might not have memory metrics
             if (!memStats.has("usage") || !memStats.has("limit")) {
                 return 0.0;
             }
@@ -770,7 +795,6 @@ public class DockerViewModel {
 
             JSONObject json = new JSONObject(response.toString());
 
-            // Network calculation logic based on Docker stats API
             JSONObject networks = json.optJSONObject("networks");
             if (networks == null) {
                 return 0.0;
@@ -785,8 +809,6 @@ public class DockerViewModel {
                 txBytes += netInterface.getLong("tx_bytes");
             }
 
-            // Since we can't calculate the rate directly (need two samples),
-            // we'll just return the total amount in MB
             return (rxBytes + txBytes) / (1024.0 * 1024.0);
         }
     }
@@ -813,17 +835,13 @@ public class DockerViewModel {
         scheduler = Executors.newSingleThreadScheduledExecutor();
         scheduler.scheduleAtFixedRate(() -> {
             Platform.runLater(() -> {
-                // First, update the container list to catch any new/removed containers
                 refreshContainers();
-
-                // Then update metrics for each container based on its current display type
                 for (ContainerTile containerTile : containerTiles.values()) {
                     String containerId = containerTile.id;
                     Map<String, String> containerInfo = new HashMap<>();
                     containerInfo.put("id", containerTile.id);
                     containerInfo.put("name", containerTile.name);
 
-                    // Update metrics based on what's currently being displayed
                     switch (containerTile.currentMetric) {
                         case CPU:
                             fetchContainerCpuStats(containerId, (cpuUsage) -> {
@@ -837,7 +855,6 @@ public class DockerViewModel {
                             break;
                         case NETWORK:
                             fetchContainerNetworkStats(containerId, (netIO) -> {
-                                // Format with proper units
                                 String displayValue;
                                 if (netIO >= 1024) {
                                     displayValue = String.format("%.2f GB/s", netIO / 1024);
@@ -862,7 +879,6 @@ public class DockerViewModel {
         statusLabel.setText("Auto-refresh enabled");
     }
 
-    // Helper method to update basic container information
     private void updateContainerInfo(ContainerTile containerTile) {
         String id = containerTile.id;
 
@@ -910,7 +926,6 @@ public class DockerViewModel {
                 containerInfo.put("image", image);
                 containerInfo.put("startedAt", startedAt);
 
-                // Calculate running for
                 containerInfo.put("runningFor", calculateRunningFor(startedAt));
 
                 Platform.runLater(() -> updateTileWithMetric(containerTile, containerInfo));
@@ -922,7 +937,6 @@ public class DockerViewModel {
 
     private String calculateRunningFor(String startedAt) {
         try {
-            // Parse ISO timestamp
             java.time.OffsetDateTime startTime = java.time.OffsetDateTime.parse(startedAt);
             java.time.OffsetDateTime now = java.time.OffsetDateTime.now();
 
@@ -953,7 +967,6 @@ public class DockerViewModel {
         statusLabel.setText("Auto-refresh disabled");
     }
 
-    // Cleanup method to be called when the application is closing
     public void cleanup() {
         stopAutoRefresh();
     }

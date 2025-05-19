@@ -153,9 +153,13 @@ public class DockerViewModel {
             connectionStatusLabel.setText("Invalid port number");
             return;
         }
-
-        dockerApiUrl = "http://" + host + ":" + portNum;
-        serverHostField.setText("http://" + host);
+        if (!serverHostField.getText().startsWith("http://")){
+            serverHostField.setText("http://" + host);
+            dockerApiUrl = "http://" + host + ":" + portNum;
+        }
+        else {
+            dockerApiUrl = host + ":" + portNum;
+        }
         connectionStatusLabel.setText("Testing connection to Docker API...");
 
         new Thread(() -> {

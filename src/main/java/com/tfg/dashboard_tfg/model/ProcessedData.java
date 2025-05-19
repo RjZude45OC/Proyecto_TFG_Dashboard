@@ -12,7 +12,12 @@ public class ProcessedData {
     public String systemHealthDescription;
     public double dockerUsage;
     public String dockerDescription;
-    public double temperature;
-    public String temperatureDescription;
+    public String uptime;
+    public String uptimeDescription;
     public boolean jellyfinActive;
+    public double jellyfinUsage;
+    public double jellyseerUsage;
+    public double qbittorrentUsage;
+    public double prowlarrUsage;
+    public double sonarrUsage;
 }

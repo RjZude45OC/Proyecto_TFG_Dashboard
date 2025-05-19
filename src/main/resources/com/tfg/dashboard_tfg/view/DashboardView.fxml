@@ -131,38 +131,21 @@
                           description="Media Server Health"
                           text=""
                           textSize="BIGGER"
-                          valueColor="#2ecc71"
                           animated="true"
-                          skinType="GAUGE"
-                          decimals="1"
-                          minValue="0"
-                          maxValue="100"
-                          startFromZero="false"
-                          threshold="25"
-                          thresholdVisible="true"
+                          skinType="TEXT"
                           onMouseClicked="#onclicktile"
                     />
 
-
-
-                    <Tile fx:id="temperatureTile"
+                    <Tile fx:id="uptimeTile"
                           GridPane.columnIndex="1"
                           GridPane.rowIndex="1"
-                          title="Server Temp"
-                          description="Hardware Monitoring"
+                          title="System Uptime"
+                          description="Server Runtime"
                           textSize="BIGGER"
-                          unit="°C"
                           animated="true"
                           animationDuration="1000"
-                          skinType="GAUGE"
-                          decimals="1"
-                          minValue="0"
-                          maxValue="100"
-                          averagingPeriod="10"
-                          threshold="80"
-                          thresholdVisible="true"
-                          sectionsVisible="true"
-                          sectionIconsVisible="true"
+                          skinType="TEXT"
+                          text=""
                           shadowsEnabled="true"
                           onMouseClicked="#onclicktile"
                     />
@@ -188,7 +171,7 @@
                           textSize="BIGGER"
                           animated="true"
                           animationDuration="1000"
-                          skinType="RADAR_CHART"
+                          skinType="BAR_CHART"
                           unit="\%"
                           decimals="1"
                           minValue="0"
@@ -197,13 +180,8 @@
                           threshold="85"
                           shadowsEnabled="true"
                           onMouseClicked="#onclicktile"
-                    >
-                        <gradientStops>
-                            <Stop color="#3498db"/>
-                            <Stop offset="0.5" color="#2ecc71"/>
-                            <Stop offset="1.0" color="#e74c3c"/>
-                        </gradientStops>
-                    </Tile>
+                    />
+
                 </GridPane>
             </VBox>
         </HBox>

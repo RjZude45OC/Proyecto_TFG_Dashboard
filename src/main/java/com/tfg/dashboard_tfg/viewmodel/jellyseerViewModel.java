@@ -50,7 +50,7 @@ public class jellyseerViewModel implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         // Initialize the WebEngine
         webEngine = webView.getEngine();
-
+        loadUrl("http://192.168.30.2:5055/");
         // Set up URL field to trigger navigation on Enter key
         urlField.setOnAction(event -> handleNavigate());
 

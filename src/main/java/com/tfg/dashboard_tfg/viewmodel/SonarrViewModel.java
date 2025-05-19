@@ -267,23 +267,18 @@ public class SonarrViewModel implements Initializable {
         serverStatusLabel.setText("Connecting...");
         serverStatusLabel.setStyle("-fx-text-fill: orange;");
 
-        System.out.println("DEBUG: Starting async request...");
-
         HttpClient timeoutClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(5))
                 .build();
 
         CompletableFuture.supplyAsync(() -> {
             try {
-                System.out.println("Building request");
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(URI.create(url + "/api/v3/system/status"))
                         .timeout(Duration.ofSeconds(5))
                         .header("X-Api-Key", key)
                         .GET()
                         .build();
-
-                System.out.println("Sending request to: " + url + "/api/v3/system/status");
 
                 CompletableFuture<HttpResponse<String>> responseFuture =
                         CompletableFuture.supplyAsync(() -> {
@@ -295,9 +290,6 @@ public class SonarrViewModel implements Initializable {
                         });
 
                 HttpResponse<String> response = responseFuture.get(8, TimeUnit.SECONDS);
-
-                System.out.println("Response received with status code: " + response.statusCode());
-
                 if (response.statusCode() != 200) {
                     return "Failed to connect: HTTP " + response.statusCode() + " - " + response.body();
                 }

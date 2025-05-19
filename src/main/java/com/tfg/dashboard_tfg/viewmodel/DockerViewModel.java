@@ -23,9 +23,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class DockerViewModel {
-
-
-    // Docker Terminal Components
     @FXML
     private TextArea cliOutput;
     @FXML
@@ -34,7 +31,7 @@ public class DockerViewModel {
     private Label statusLabel;
     @FXML
     public GridPane connectionPane;
-    // Container Tiles Components
+
     @FXML
     private FlowPane containerTilesPane;
     @FXML
@@ -44,7 +41,6 @@ public class DockerViewModel {
     @FXML
     private Label containerCountLabel;
 
-    // Remote Connection Components
     @FXML
     private TextField serverHostField;
     @FXML
@@ -95,17 +91,14 @@ public class DockerViewModel {
 
     @FXML
     public void initialize() {
-        // Set default values
         if (serverPortField != null) {
             serverPortField.setText("2375");
         }
 
-        // Initialize connect button
         if (connectButton != null) {
             connectButton.setOnAction(event -> connectToDockerAPI());
         }
 
-        // Set up CLI input handler
         cliInput.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ENTER) {
                 executeCommand();
@@ -158,7 +151,7 @@ public class DockerViewModel {
                 URL url = new URL(dockerApiUrl + "/containers/json");
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("GET");
-                connection.setConnectTimeout(5000); // 5 second timeout
+                connection.setConnectTimeout(5000);
 
                 int responseCode = connection.getResponseCode();
                 if (responseCode == 200) {
@@ -184,27 +177,22 @@ public class DockerViewModel {
         String command = cliInput.getText().trim();
         if (command.isEmpty()) return;
 
-        // Show command in output
         cliOutput.appendText("$ " + command + "\n");
 
-        // Execute Docker API command if command start with docker
         if (command.startsWith("docker ")) {
             executeDockerAPICommand(command);
         } else {
             executeLocalCommand(command);
         }
 
-        // Clear input field
         cliInput.clear();
     }
 
     private void executeDockerAPICommand(String command) {
-        // For simplicity, we'll parse basic commands and translate them to API calls
         new Thread(() -> {
             try {
                 String[] parts = command.split(" ");
 
-                // Check if it's a Docker command
                 if (parts.length < 2 || !parts[0].equals("docker")) {
                     Platform.runLater(() -> {
                         cliOutput.appendText("Error: Only docker commands are supported in API mode\n");
@@ -218,12 +206,11 @@ public class DockerViewModel {
                 String method = "GET";
                 boolean needsRefresh = false;
 
-                // Handle different command types
                 switch (action) {
                     case "ps":
                         apiPath = "/containers/json?all=true";
                         if (parts.length > 2 && !parts[2].equals("-a")) {
-                            apiPath = "/containers/json";  // Just running containers
+                            apiPath = "/containers/json";
                         }
                         break;
                     case "inspect":
@@ -269,7 +256,7 @@ public class DockerViewModel {
                         break;
                     case "stats":
                         if (parts.length < 3) {
-                            apiPath = "/containers/json?all=false";  // Just get running containers
+                            apiPath = "/containers/json?all=false";
                         } else {
                             apiPath = "/containers/" + parts[2] + "/stats?stream=false";
                         }
@@ -282,7 +269,6 @@ public class DockerViewModel {
                         return;
                 }
 
-                // Execute the API call
                 URL url = new URL(dockerApiUrl + apiPath);
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod(method);
@@ -349,9 +335,8 @@ public class DockerViewModel {
         new Thread(() -> {
             try {
                 ProcessBuilder builder = new ProcessBuilder();
-                // Use cmd /c to execute the full command on Windows
                 builder.command("cmd.exe", "/c", command);
-                builder.redirectErrorStream(true);  // Merge stderr with stdout
+                builder.redirectErrorStream(true);
 
                 Process process = builder.start();
 
@@ -385,20 +370,16 @@ public class DockerViewModel {
         statusLabel.setText("Refreshing containers...");
         containerTilesPane.getChildren().clear();
 
-        // Get filter setting
         String filter = containerFilter.getValue();
         if (filter == null) filter = "All Containers";
 
-        // Run in background thread
         String finalFilter = filter;
         new Thread(() -> {
             try {
                 List<Map<String, String>> containers = getContainersViaAPI(finalFilter);
 
-                // Clear existing tiles map
                 containerTiles.clear();
 
-                // Create tiles for each container
                 for (Map<String, String> container : containers) {
                     Tile tile = createContainerTile(container);
                     ContainerTile containerTile = new ContainerTile(
@@ -408,9 +389,7 @@ public class DockerViewModel {
                     containerTiles.put(container.get("id"), containerTile);
                 }
 
-                // Update UI on JavaFX thread
                 Platform.runLater(() -> {
-                    // Add tiles to the pane
                     for (ContainerTile containerTile : containerTiles.values()) {
                         containerTilesPane.getChildren().add(containerTile.tile);
                     }
@@ -451,8 +430,6 @@ public class DockerViewModel {
         while ((line = reader.readLine()) != null) {
             response.append(line);
         }
-
-        // Parse JSON response
         List<Map<String, String>> containers = new ArrayList<>();
 
         try {
@@ -467,8 +444,6 @@ public class DockerViewModel {
                 container.put("image", containerJson.getString("Image"));
                 container.put("status", containerJson.getString("Status"));
                 container.put("runningFor", containerJson.getString("Status").replaceAll("^(Up|Exited) ", ""));
-                container.put("size", "");  // Not readily available in API response
-
                 containers.add(container);
             }
         } catch (Exception e) {
@@ -479,35 +454,29 @@ public class DockerViewModel {
     }
 
     private Tile createContainerTile(Map<String, String> container) {
-        // Create a basic tile with container name
         String name = container.get("name");
         String id = container.get("id");
         String image = container.get("image");
         String status = container.get("status");
         boolean isRunning = status.toLowerCase().contains("up");
 
-        // Set tile color based on container status
         Color tileColor = isRunning ? Color.valueOf("#2ecc71") : Color.valueOf("#e74c3c");
 
-        // Calculate tile width to have 5 tiles per row
         double flowPaneWidth = containerTilesPane.getWidth();
         if (flowPaneWidth <= 0) {
-            // If FlowPane has no width yet, try to get parent width
             ScrollPane scrollPane = (ScrollPane) containerTilesPane.getParent();
             flowPaneWidth = scrollPane.getWidth();
 
-            // If still no width, use default viewport width
             if (flowPaneWidth <= 0) {
                 flowPaneWidth = scrollPane.getPrefViewportWidth();
                 if (flowPaneWidth <= 0) {
-                    flowPaneWidth = 800; // Default fallback width
+                    flowPaneWidth = 800;
                 }
             }
         }
 
-        // Calculate tile width: (container width - padding - gaps) / 5
         double paddingWidth = containerTilesPane.getPadding().getLeft() + containerTilesPane.getPadding().getRight();
-        double gapWidth = containerTilesPane.getHgap() * 4; // 4 gaps for 5 tiles
+        double gapWidth = containerTilesPane.getHgap() * 4;
         double tileWidth = (flowPaneWidth - paddingWidth - gapWidth) / 4.0;
 
         tileWidth = Math.max(tileWidth, 120);
@@ -883,7 +852,6 @@ public class DockerViewModel {
                         case STATUS:
                         case NAME:
                         case UPTIME:
-                            // For these metrics, we need to get fresh container data
                             updateContainerInfo(containerTile);
                             break;
                     }
@@ -906,7 +874,6 @@ public class DockerViewModel {
 
                 updateContainerInfoViaAPI(containerTile, containerInfo);
             } catch (Exception e) {
-                // Log error but don't disrupt auto-refresh
                 System.err.println("Error updating container info: " + e.getMessage());
             }
         }).start();

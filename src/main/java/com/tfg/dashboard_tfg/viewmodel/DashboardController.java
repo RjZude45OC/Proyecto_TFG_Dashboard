@@ -284,7 +284,7 @@ public class DashboardController {
                 if (status.startsWith("Up ")) {
                     uptime = "Up for " + status.replaceAll("^Up ", "").split("\\(")[0].trim();
                 } else {
-                    uptime = "Server Down";
+                    uptime = "Down";
                 }
             }
         } catch (Exception e) {
@@ -418,7 +418,7 @@ public class DashboardController {
         dockerStatusTile.setDescription("Docker Usage: " + String.format("%.2f", data.dockerUsage) + "%");
 
         uptimeTile.setText(String.valueOf(data.uptime));
-        uptimeTile.setDescription("Server been");
+        uptimeTile.setDescription("Server Is");
 
         jellyfinStatusTile.setActive(data.jellyfinActive);
         if (data.jellyfinActive) {

@@ -128,7 +128,7 @@
                           GridPane.columnIndex="0"
                           GridPane.rowIndex="1"
                           title="Server Status"
-                          description="Media Server Health"
+                          description="System Health"
                           text=""
                           textSize="BIGGER"
                           animated="true"

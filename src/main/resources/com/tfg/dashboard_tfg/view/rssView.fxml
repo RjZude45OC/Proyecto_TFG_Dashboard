@@ -69,7 +69,6 @@
                 </VBox>
             </Tab>
 
-            <!-- Tags Tab -->
             <Tab text="Tags" closable="false">
                 <VBox spacing="10.0" styleClass="terminal-container">
                     <HBox spacing="10.0" alignment="CENTER_LEFT" styleClass="monitoring-toolbar">
@@ -93,7 +92,6 @@
                 </VBox>
             </Tab>
 
-            <!-- Stats Tab -->
             <Tab text="Stats" closable="false">
                 <VBox spacing="10.0" styleClass="terminal-container">
                     <HBox spacing="10.0" alignment="CENTER_LEFT" styleClass="monitoring-toolbar">
@@ -133,7 +131,6 @@
                 </VBox>
             </Tab>
 
-            <!-- Settings Tab -->
             <Tab text="Settings" closable="false">
                 <VBox spacing="10.0" styleClass="terminal-container">
                     <TitledPane text="General Settings" expanded="true">

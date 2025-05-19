@@ -298,7 +298,6 @@ public class RssViewModel implements Initializable {
                 }
             }
         });
-        // Add action buttons to table
         setupIndexerActionColumn();
 
         // Set the items
@@ -310,7 +309,6 @@ public class RssViewModel implements Initializable {
         tagIdColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
         tagLabelColumn.setCellValueFactory(new PropertyValueFactory<>("label"));
 
-        // Add action buttons to table
         setupTagActionColumn();
 
         // Set the items

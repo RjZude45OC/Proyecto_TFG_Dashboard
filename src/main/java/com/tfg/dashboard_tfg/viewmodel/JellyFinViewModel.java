@@ -790,9 +790,6 @@ public class JellyFinViewModel implements Initializable {
         }, executorService);
     }
 
-    /**
-     * Creates a visual tile for an active stream session
-     */
     private VBox createStreamTile(StreamSession session) {
         VBox tile = new VBox(10);
         tile.setPadding(new Insets(10));
@@ -926,15 +923,13 @@ public class JellyFinViewModel implements Initializable {
         controls.setAlignment(Pos.CENTER);
 
         Button playPauseButton = new Button(session.isPlaying() ? "Pause" : "Play");
-        playPauseButton.getStyleClass().add("control-button");
+        playPauseButton.getStyleClass().add("table-button");
 
         Button stopButton = new Button("Stop");
-        stopButton.getStyleClass().add("control-button");
-        stopButton.getStyleClass().add("stop-button");
+        stopButton.getStyleClass().add("table-button");
 
         Button infoButton = new Button("Details");
-        infoButton.getStyleClass().add("control-button");
-        infoButton.getStyleClass().add("info-button");
+        infoButton.getStyleClass().add("table-button");
 
         controls.getChildren().addAll(playPauseButton, stopButton, infoButton);
 
@@ -987,9 +982,6 @@ public class JellyFinViewModel implements Initializable {
         }
     }
 
-    /**
-     * Fetch active sessions from the server
-     */
     private CompletableFuture<Void> fetchActiveSessions() {
         return CompletableFuture.runAsync(() -> {
             try {

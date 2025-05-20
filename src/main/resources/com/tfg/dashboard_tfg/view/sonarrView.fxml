@@ -182,6 +182,7 @@
                                     </value>
                                 </ComboBox>
                                 <Button text="Refresh" onAction="#refreshHistory" styleClass="console-button"/>
+                                <Button text="Clear History" onAction="#clearHistory" styleClass="console-button"/>
                             </HBox>
 
                             <TableView fx:id="historyTable" VBox.vgrow="ALWAYS" styleClass="log-table">

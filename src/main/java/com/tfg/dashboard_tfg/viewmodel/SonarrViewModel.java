@@ -155,11 +155,11 @@ public class SonarrViewModel implements Initializable {
     private Timeline autoRefreshTimeline;
     private final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
     private JSONObject systeminfo;
-    private final ObservableList<LogEntry> logEntries = FXCollections.observableArrayList();
-    private final ObservableList<LogEntry> filteredLogEntries = FXCollections.observableArrayList();
-    private final ObservableList<DownloadQueueItem> queueItems = FXCollections.observableArrayList();
-    private final ObservableList<HistoryItem> historyItems = FXCollections.observableArrayList();
-    private final ObservableList<LogEntry> logItems = FXCollections.observableArrayList();
+    private ObservableList<LogEntry> logEntries = FXCollections.observableArrayList();
+    private ObservableList<LogEntry> filteredLogEntries = FXCollections.observableArrayList();
+    private ObservableList<DownloadQueueItem> queueItems = FXCollections.observableArrayList();
+    private ObservableList<HistoryItem> historyItems = FXCollections.observableArrayList();
+    private ObservableList<LogEntry> logItems = FXCollections.observableArrayList();
 
 
     private void loadPropertiesIfNeeded() {
@@ -376,18 +376,13 @@ public class SonarrViewModel implements Initializable {
     }
 
     private void setupDownloadQueueTable() {
-        // Set up table columns
         titleColumn.setCellValueFactory(new PropertyValueFactory<>("title"));
         sizeColumn.setCellValueFactory(new PropertyValueFactory<>("size"));
         statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
         progressColumn.setCellValueFactory(new PropertyValueFactory<>("progress"));
         speedColumn.setCellValueFactory(new PropertyValueFactory<>("speed"));
         etaColumn.setCellValueFactory(new PropertyValueFactory<>("eta"));
-
-        // Set up progress bar cell
         progressColumn.setCellFactory(ProgressBarTableCell.forTableColumn());
-
-        // Custom status cell coloring
         statusColumn.setCellFactory(column -> new TableCell<>() {
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -423,10 +418,9 @@ public class SonarrViewModel implements Initializable {
                             private final Button pauseButton = new Button("Pause");
                             private final Button removeButton = new Button("Remove");
                             private final HBox pane = new HBox(5, pauseButton, removeButton);
-
                             {
-                                pauseButton.getStyleClass().add("action-button");
-                                removeButton.getStyleClass().add("action-button");
+                                pauseButton.getStyleClass().add("table-button");
+                                removeButton.getStyleClass().add("table-button");
                                 pane.setAlignment(Pos.CENTER);
 
                                 pauseButton.setOnAction(event -> {
@@ -446,7 +440,6 @@ public class SonarrViewModel implements Initializable {
                                 if (empty) {
                                     setGraphic(null);
                                 } else {
-                                    // Update button text based on status
                                     DownloadQueueItem downloadItem = getTableView().getItems().get(getIndex());
                                     if (downloadItem.getStatus().equals("Paused")) {
                                         pauseButton.setText("Resume");
@@ -546,18 +539,32 @@ public class SonarrViewModel implements Initializable {
         }
     }
 
-    public void refreshHistory(ActionEvent actionEvent) {
+    @FXML
+    public void refreshHistory() {
+        CompletableFuture<Void> history = fetchHistory();
+        CompletableFuture.allOf(
+                history
+        ).thenRun(() -> {
+            addLogEntry("Info", "History", "History updated");
+        });
     }
-
+    @FXML
     public void refreshQueue(ActionEvent actionEvent) {
+        CompletableFuture<Void> downloadQueue = fetchDownloadQueue();
+        CompletableFuture.allOf(
+                downloadQueue
+        ).thenRun(() -> {
+            addLogEntry("Info", "Queue", "History updated");
+        });
     }
-
-    public void clearCompletedDownloads(ActionEvent actionEvent) {
-    }
-
+    @FXML
     public void clearLogs(ActionEvent actionEvent) {
+        logTable.getItems().clear();
     }
-
+    @FXML
+    public void clearHistory(ActionEvent actionEvent) {
+        historyTable.getItems().clear();
+    }
     @FXML
     private void refreshServerStatus() {
         if (!connected.get()) {
@@ -567,20 +574,228 @@ public class SonarrViewModel implements Initializable {
         lastUpdateLabel.setText("Last update: " + timeFormat.format(new Date()));
 
         CompletableFuture<Void> systemInfo = fetchSystemInfo();
-//        CompletableFuture<Void> libraryStats = fetchLibraryStats();
-//        CompletableFuture<Void> activeSessions = fetchActiveSessions();
+        CompletableFuture<Void> downloadQueue = fetchDownloadQueue();
+        CompletableFuture<Void> history = fetchHistory();
         CompletableFuture<Void> logs = fetchRecentLogs();
 
         CompletableFuture.allOf(
                 systemInfo,
-//                libraryStats,
-//                activeSessions,
+                downloadQueue,
+                history,
                 logs
         ).thenRun(() -> {
             addLogEntry("Info", "System", "Server status refreshed");
         });
     }
 
+    private CompletableFuture<Void> fetchHistory() {
+        if (!connected.get()) {
+            return CompletableFuture.completedFuture(null);
+        }
+
+        return CompletableFuture.runAsync(() -> {
+            try {
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(serverUrl.get() + "/api/v3/history?page=1&pageSize=50&sortDirection=descending&sortKey=date"))
+                        .header("X-Api-Key", apiKey.get())
+                        .GET()
+                        .build();
+
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+                if (response.statusCode() != 200) {
+                    addLogEntry("Error", "History", "Failed to fetch history: HTTP " + response.statusCode());
+                    return;
+                }
+
+                JSONObject historyData = new JSONObject(response.body());
+                JSONArray records = historyData.getJSONArray("records");
+
+                List<HistoryItem> items = new ArrayList<>();
+                DateTimeFormatter inputFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
+                DateTimeFormatter outputFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+                for (int i = 0; i < records.length(); i++) {
+                    JSONObject record = records.getJSONObject(i);
+
+                    String date = record.optString("date", "");
+                    String formattedDate = "";
+                    try {
+                        LocalDateTime dateTime = LocalDateTime.parse(date, inputFormat);
+                        formattedDate = dateTime.format(outputFormat);
+                    } catch (Exception e) {
+                        formattedDate = date;
+                    }
+
+                    JSONObject episodeInfo = record.optJSONObject("episode");
+                    JSONObject seriesInfo = record.optJSONObject("series");
+                    JSONObject qualityInfo = record.optJSONObject("quality");
+
+                    String seriesTitle = seriesInfo != null ? seriesInfo.optString("title", "Unknown") : "Unknown";
+
+                    String episodeTitle = "Unknown";
+                    if (episodeInfo != null) {
+                        int seasonNumber = episodeInfo.optInt("seasonNumber", 0);
+                        int episodeNumber = episodeInfo.optInt("episodeNumber", 0);
+                        String title = episodeInfo.optString("title", "");
+                        episodeTitle = String.format("S%02dE%02d - %s", seasonNumber, episodeNumber, title);
+                    }
+
+                    String quality = "Unknown";
+                    if (qualityInfo != null) {
+                        JSONObject qualityData = qualityInfo.optJSONObject("quality");
+                        if (qualityData != null) {
+                            quality = qualityData.optString("name", "Unknown");
+                        }
+                    }
+
+                    String eventType = record.optString("eventType", "Unknown");
+                    String status = eventType;
+
+                    switch (eventType.toLowerCase()) {
+                        case "grabbed":
+                            status = "Grabbed";
+                            break;
+                        case "downloadfolderimported":
+                            status = "Completed";
+                            break;
+                        case "downloadfailed":
+                            status = "Failed";
+                            break;
+                        case "episodefiledeleted":
+                            status = "Deleted";
+                            break;
+                        default:
+                            status = eventType;
+                    }
+
+                    String source = "N/A";
+                    if (record.has("data")) {
+                        try {
+                            JSONObject data = record.getJSONObject("data");
+                            if (data.has("indexer")) {
+                                source = data.getString("indexer");
+                            } else if (data.has("downloadClient")) {
+                                source = data.getString("downloadClient");
+                            }
+                        } catch (Exception e) {
+                            System.out.println(e);
+                        }
+                    }
+
+                    HistoryItem item = new HistoryItem(formattedDate, seriesTitle, episodeTitle, quality, status, source);
+                    items.add(item);
+                }
+
+                Platform.runLater(() -> {
+                    historyItems.clear();
+                    historyItems.addAll(items);
+                    addLogEntry("Info", "History", "Updated history: " + items.size() + " items");
+
+                    if (historyFilterCombo.getItems().isEmpty()) {
+                        Set<String> statusTypes = items.stream().map(HistoryItem::getStatus).collect(Collectors.toSet());
+                        historyFilterCombo.getItems().add("All");
+                        historyFilterCombo.getItems().addAll(statusTypes);
+                        historyFilterCombo.getSelectionModel().select("All");
+                    }
+                });
+
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    addLogEntry("Error", "History", "Failed to fetch history: " + e.getMessage());
+                });
+            }
+        }, executorService);
+    }
+    private CompletableFuture<Void> fetchDownloadQueue() {
+        if (!connected.get()) {
+            return CompletableFuture.completedFuture(null);
+        }
+
+        return CompletableFuture.runAsync(() -> {
+            try {
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(serverUrl.get() + "/api/v3/queue"))
+                        .header("X-Api-Key", apiKey.get())
+                        .GET()
+                        .build();
+
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+                if (response.statusCode() != 200) {
+                    addLogEntry("Error", "Queue", "Failed to fetch download queue: HTTP " + response.statusCode());
+                    return;
+                }
+
+                JSONObject queueData = new JSONObject(response.body());
+                JSONArray records = queueData.getJSONArray("records");
+
+                List<DownloadQueueItem> items = new ArrayList<>();
+
+                for (int i = 0; i < records.length(); i++) {
+                    JSONObject record = records.getJSONObject(i);
+
+                    String title = record.optString("title", "Unknown");
+                    long size = record.optLong("size", 0);
+                    String sizeFormatted = formatBytes(size);
+
+                    String status = record.optString("status", "Unknown");
+                    status = status;
+
+                    double progress = record.optDouble("sizeleft", 0) / size;
+                    progress = 1.0 - progress;
+                        if (Double.isNaN(progress) || Double.isInfinite(progress)) {
+                        progress = 0;
+                    }
+
+                    String speed = "N/A";
+                    if (record.has("downloadSpeed")) {
+                        long downloadSpeed = record.optLong("downloadSpeed", 0);
+                        speed = formatBytes(downloadSpeed) + "/s";
+                    }
+
+                    String estimatedCompletionTime = record.optString("estimatedCompletionTime", "");
+                    String eta = "N/A";
+                    if (!estimatedCompletionTime.isEmpty()) {
+                        try {
+                            LocalDateTime completionTime = LocalDateTime.parse(estimatedCompletionTime,
+                                    DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'"));
+                            LocalDateTime now = LocalDateTime.now(java.time.ZoneOffset.UTC);
+                            Duration duration = Duration.between(now, completionTime);
+
+                            long hours = duration.toHours();
+                            long minutes = duration.toMinutesPart();
+
+                            if (hours > 0) {
+                                eta = hours + "h " + minutes + "m";
+                            } else {
+                                eta = minutes + "m";
+                            }
+                        } catch (Exception e) {
+                            eta = "N/A";
+                        }
+                    }
+
+                    int id = record.optInt("id", 0);
+
+                    DownloadQueueItem item = new DownloadQueueItem(id, title, sizeFormatted, status, progress, speed, eta);
+                    items.add(item);
+                }
+
+                Platform.runLater(() -> {
+                    queueItems.clear();
+                    queueItems.addAll(items);
+                    activeDownloadsLabel.setText(String.valueOf(items.size()));
+                    addLogEntry("Info", "Queue", "Updated download queue: " + items.size() + " items");
+                });
+
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    addLogEntry("Error", "Queue", "Failed to fetch download queue: " + e.getMessage());
+                });
+            }
+        }, executorService);
+    }
     @FXML
     private void toggleAutoRefresh() {
         if (autoRefreshToggle.isSelected()) {
@@ -637,7 +852,6 @@ public class SonarrViewModel implements Initializable {
                         }
                     }
 
-                    // Process disks information
                     JSONArray disksData = systeminfo.optJSONArray("disks");
                     if (disksData != null) {
                         for (int i = 0; i < disksData.length(); i++) {
@@ -661,7 +875,6 @@ public class SonarrViewModel implements Initializable {
                         }
                     }
 
-                    // Process network information
                     JSONObject networkData = systeminfo.optJSONObject("network");
                     if (networkData != null) {
                         try {
@@ -681,7 +894,6 @@ public class SonarrViewModel implements Initializable {
                                 long totalTraffic = receivedBytes + sentBytes;
                                 String source = "Network";
 
-                                // Calculate network speed if we have previous measurements
                                 String networkKey = "total";
                                 long currentTime = System.currentTimeMillis();
 
@@ -696,20 +908,18 @@ public class SonarrViewModel implements Initializable {
                                         double downloadSpeed = receivedDiff / timeDiffSeconds;
                                         double uploadSpeed = sentDiff / timeDiffSeconds;
 
-                                        // Log high network activity
-                                        if (downloadSpeed > 5_000_000) { // 5MB/s
+                                        if (downloadSpeed > 5_000_000) {
                                             newLogs.add(new LogEntry(time, "Info", source,
                                                     "High download speed: " + formatBytes((long)downloadSpeed) + "/s"));
                                         }
 
-                                        if (uploadSpeed > 2_000_000) { // 2MB/s
+                                        if (uploadSpeed > 2_000_000) {
                                             newLogs.add(new LogEntry(time, "Info", source,
                                                     "High upload speed: " + formatBytes((long)uploadSpeed) + "/s"));
                                         }
                                     }
                                 }
 
-                                // Store current values for next calculation
                                 if (previousBytesReceived != null && previousBytesSent != null) {
                                     previousBytesReceived.put(networkKey, receivedBytes);
                                     previousBytesSent.put(networkKey, sentBytes);
@@ -717,14 +927,12 @@ public class SonarrViewModel implements Initializable {
                                 }
                             }
                         } catch (Exception e) {
-                            // In case of any JSON parsing exceptions, add an error log
+
                             newLogs.add(new LogEntry(time, "Error", "Network",
                                     "Error processing network data: " + e.getMessage()));
                         }
                     }
                 }
-
-                // Add a generic system status entry if no specific issues were detected
                 if (newLogs.isEmpty()) {
                     newLogs.add(new LogEntry(time, "Info", "System", "System running normally"));
                 }
@@ -732,11 +940,9 @@ public class SonarrViewModel implements Initializable {
                 Platform.runLater(() -> {
                     logEntries.addAll(0, newLogs);
 
-                    // Keep log size manageable
                     while (logEntries.size() > 100) {
                         logEntries.remove(logEntries.size() - 1);
                     }
-
                     filterLogs();
                 });
             } catch (Exception e) {
@@ -937,14 +1143,18 @@ public class SonarrViewModel implements Initializable {
 
     private void filterLogs() {
         String selectedLevel = logLevelFilter.getSelectionModel().getSelectedItem();
-        filteredLogEntries.clear();
 
-        for (LogEntry entry : logEntries) {
-            if ("All".equals(selectedLevel) || selectedLevel.equals(entry.getLevel())) {
-                filteredLogEntries.add(entry);
+        Platform.runLater(() -> {
+            filteredLogEntries.clear();
+
+            for (LogEntry entry : logEntries) {
+                if ("All".equals(selectedLevel) || selectedLevel.equals(entry.getLevel())) {
+                    filteredLogEntries.add(entry);
+                }
             }
-        }
+        });
     }
+
 
     private void addLogEntry(String level, String source, String message) {
         LocalDateTime now = LocalDateTime.now();
@@ -973,6 +1183,7 @@ public class SonarrViewModel implements Initializable {
         queueItems.removeAll(completedItems);
         addLogEntry("Info", "Queue", "Cleared " + completedItems.size() + " completed downloads");
     }
+
     private void handlePauseDownload(DownloadQueueItem item) {
         int index = queueItems.indexOf(item);
         if (index >= 0) {
@@ -1005,4 +1216,6 @@ public class SonarrViewModel implements Initializable {
         String pre = "KMGTPE".charAt(exp-1) + "";
         return String.format("%.1f %sB", bytes / Math.pow(1024, exp), pre);
     }
+
+
 }

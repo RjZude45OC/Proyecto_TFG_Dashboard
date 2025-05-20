@@ -6,6 +6,8 @@ public class ProcessedData {
     public double memoryUsage;
     public String memoryDescription;
     public double storagePercentage;
+    public double storageFreeSpace;
+    public double storageUsedSpace;
     public String storageDescription;
     public NetworkData networkData;
     public double systemHealth;

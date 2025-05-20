@@ -1,13 +1,304 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
+<?import javafx.collections.FXCollections?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.chart.PieChart?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.chart.CategoryAxis?>
+
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.tfg.dashboard_tfg.viewmodel.DownloaderClientView">
+            fx:controller="com.tfg.dashboard_tfg.viewmodel.DownloaderClientView"
+            styleClass="main-background">
 
+    <BorderPane AnchorPane.bottomAnchor="0.0"
+                AnchorPane.leftAnchor="0.0"
+                AnchorPane.rightAnchor="0.0"
+                AnchorPane.topAnchor="0.0">
+        <top>
+            <VBox spacing="2.0" styleClass="header-panel">
+                <padding>
+                    <Insets top="5" right="20" bottom="5" left="20"/>
+                </padding>
+                <HBox alignment="CENTER_LEFT" spacing="15.0">
+                    <Text text="qBittorrent Manager" styleClass="header-title"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="clientStatusLabel" text="Not Connected" styleClass="connection-status"/>
+                    <Button text="Refresh" onAction="#refreshClientStatus" styleClass="console-button"/>
+                    <ToggleButton fx:id="autoRefreshToggle" text="Auto Refresh"
+                                  styleClass="console-button" onAction="#toggleAutoRefresh" />
+                </HBox>
+
+                <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="filter-bar">
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <HBox spacing="5" alignment="CENTER" styleClass="counter-badge">
+                        <Label text="Active Torrents:"/>
+                        <Label fx:id="activeTorrentsLabel" text="0" styleClass="counter-value"/>
+                    </HBox>
+                    <HBox spacing="5" alignment="CENTER" styleClass="counter-badge">
+                        <Label text="Total Torrents:"/>
+                        <Label fx:id="totalTorrentsLabel" text="0" styleClass="counter-value"/>
+                    </HBox>
+                </HBox>
+            </VBox>
+        </top>
+
+        <left>
+            <VBox spacing="5.0" styleClass="side-panel">
+                <padding>
+                    <Insets right="10" left="10"/>
+                </padding>
+
+                <TitledPane text="Connection Settings" styleClass="settings-pane">
+                    <VBox spacing="5" styleClass="settings-container">
+                        <GridPane fx:id="connectionPane" hgap="10" vgap="10">
+                            <columnConstraints>
+                                <ColumnConstraints hgrow="NEVER" minWidth="100"/>
+                                <ColumnConstraints hgrow="ALWAYS"/>
+                            </columnConstraints>
+
+                            <Label text="Host:" GridPane.columnIndex="0" GridPane.rowIndex="0"
+                                   styleClass="setting-label"/>
+                            <TextField fx:id="hostField" promptText="http://192.168.1.72:8080"
+                                       GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="setting-field"/>
+
+                            <Label text="Username:" GridPane.columnIndex="0" GridPane.rowIndex="1"
+                                   styleClass="setting-label"/>
+                            <TextField fx:id="usernameField" promptText="Enter username"
+                                       GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="setting-field"/>
+
+                            <Label text="Password:" GridPane.columnIndex="0" GridPane.rowIndex="2"
+                                   styleClass="setting-label"/>
+                            <PasswordField fx:id="passwordField" promptText="Enter password"
+                                           GridPane.columnIndex="1" GridPane.rowIndex="2" styleClass="setting-field"/>
+
+                            <Button fx:id="connectButton" text="Connect"
+                                    GridPane.columnIndex="1" GridPane.rowIndex="3"
+                                    styleClass="console-button"/>
+                        </GridPane>
+                    </VBox>
+                </TitledPane>
+
+                <TitledPane text="Transfer Stats" styleClass="settings-pane">
+                    <VBox spacing="3" styleClass="settings-container">
+                        <HBox>
+                            <VBox spacing="2" prefWidth="150">
+                                <Label text="Download Speed:" styleClass="setting-label"/>
+                                <Label text="Upload Speed:" styleClass="setting-label"/>
+                                <Label text="Session Downloaded:" styleClass="setting-label"/>
+                                <Label text="Session Uploaded:" styleClass="setting-label"/>
+                                <Label text="All-time Download:" styleClass="setting-label"/>
+                                <Label text="All-time Upload:" styleClass="setting-label"/>
+                                <Label text="Ratio:" styleClass="setting-label"/>
+                            </VBox>
+
+                            <VBox spacing="3" HBox.hgrow="ALWAYS">
+                                <Label fx:id="downloadSpeedLabel" text="0 KiB/s" styleClass="stat-value"/>
+                                <Label fx:id="uploadSpeedLabel" text="0 KiB/s" styleClass="stat-value"/>
+                                <Label fx:id="sessionDownloadedLabel" text="0 MiB" styleClass="stat-value"/>
+                                <Label fx:id="sessionUploadedLabel" text="0 MiB" styleClass="stat-value"/>
+                                <Label fx:id="allTimeDownloadLabel" text="0 GiB" styleClass="stat-value"/>
+                                <Label fx:id="allTimeUploadLabel" text="0 GiB" styleClass="stat-value"/>
+                                <Label fx:id="ratioLabel" text="0.00" styleClass="stat-value"/>
+                            </VBox>
+                        </HBox>
+
+                        <LineChart fx:id="speedHistoryChart"
+                                   createSymbols="false" animated="false" prefHeight="150">
+                            <xAxis>
+                                <CategoryAxis label="Time" fx:id="timeAxis"/>
+                            </xAxis>
+                            <yAxis>
+                                <NumberAxis label="Speed (KiB/s)" fx:id="speedAxis"/>
+                            </yAxis>
+                        </LineChart>
+                    </VBox>
+                </TitledPane>
+
+                <TitledPane text="Storage Stats" styleClass="settings-pane" maxHeight="180">
+                    <VBox spacing="3" styleClass="settings-container">
+                        <PieChart fx:id="storageChart" title="Disk Usage"/>
+                        <HBox alignment="CENTER" spacing="10">
+                            <Label fx:id="freeSpaceLabel" text="Free: 0 GB" styleClass="stat-value"/>
+                            <Label fx:id="usedSpaceLabel" text="Used: 0 GB" styleClass="stat-value"/>
+                        </HBox>
+                    </VBox>
+                </TitledPane>
+            </VBox>
+        </left>
+
+        <center>
+            <SplitPane orientation="VERTICAL" dividerPositions="0.7" styleClass="content-pane">
+                <VBox spacing="5">
+                    <padding>
+                        <Insets top="10" right="10" left="10"/>
+                    </padding>
+
+                    <HBox alignment="CENTER_LEFT" spacing="5">
+                        <Label text="Torrent List" styleClass="section-header"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <ComboBox fx:id="statusFilter" prefWidth="150">
+                            <items>
+                                <FXCollections fx:factory="observableArrayList">
+                                    <String fx:value="All"/>
+                                    <String fx:value="Downloading"/>
+                                    <String fx:value="Seeding"/>
+                                    <String fx:value="Completed"/>
+                                    <String fx:value="Paused"/>
+                                    <String fx:value="Error"/>
+                                </FXCollections>
+                            </items>
+                            <value>
+                                <String fx:value="All"/>
+                            </value>
+                        </ComboBox>
+                       <Button text="Add Torrent" onAction="#showAddTorrentDialog" styleClass="console-button"/>
+                    </HBox>
+
+                    <TableView fx:id="torrentTable" VBox.vgrow="ALWAYS" styleClass="torrent-table">
+                        <columns>
+                            <TableColumn fx:id="nameColumn" text="Name" prefWidth="300"/>
+                            <TableColumn fx:id="sizeColumn" text="Size" prefWidth="100"/>
+                            <TableColumn fx:id="progressColumn" text="Progress" prefWidth="100"/>
+                            <TableColumn fx:id="statusColumn" text="Status" prefWidth="100"/>
+                            <TableColumn fx:id="downloadSpeedColumn" text="Down Speed" prefWidth="100"/>
+                            <TableColumn fx:id="uploadSpeedColumn" text="Up Speed" prefWidth="100"/>
+                            <TableColumn fx:id="etaColumn" text="ETA" prefWidth="100"/>
+                            <TableColumn fx:id="ratioColumn" text="Ratio"/>
+                            <TableColumn fx:id="actionsColumn" text="Actions" prefWidth="120"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+
+                <VBox spacing="10" styleClass="terminal-panel">
+                    <padding>
+                        <Insets top="10" right="10" bottom="10" left="10"/>
+                    </padding>
+
+                    <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="terminal-header">
+                        <Label text="Torrent Details" styleClass="terminal-title"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button text="View Files" fx:id="viewFilesButton" styleClass="console-button"/>
+                        <Button text="View Trackers" fx:id="viewTrackersButton" styleClass="console-button"/>
+                        <Button text="View Peers" fx:id="viewPeersButton" styleClass="console-button"/>
+                    </HBox>
+
+                    <TabPane fx:id="detailsTabPane" VBox.vgrow="ALWAYS">
+                        <Tab text="General" closable="false">
+                            <GridPane hgap="15" vgap="10">
+                                <padding>
+                                    <Insets top="10" right="10" bottom="10" left="10"/>
+                                </padding>
+                                <columnConstraints>
+                                    <ColumnConstraints hgrow="NEVER" minWidth="150"/>
+                                    <ColumnConstraints hgrow="ALWAYS"/>
+                                </columnConstraints>
+
+                                <Label text="Hash:" GridPane.columnIndex="0" GridPane.rowIndex="0"
+                                       styleClass="detail-label"/>
+                                <Label fx:id="hashLabel" text="N/A" GridPane.columnIndex="1" GridPane.rowIndex="0"
+                                       styleClass="detail-value"/>
+
+                                <Label text="Save Path:" GridPane.columnIndex="0" GridPane.rowIndex="1"
+                                       styleClass="detail-label"/>
+                                <Label fx:id="savePathLabel" text="N/A" GridPane.columnIndex="1" GridPane.rowIndex="1"
+                                       styleClass="detail-value"/>
+
+                                <Label text="Creation Date:" GridPane.columnIndex="0" GridPane.rowIndex="2"
+                                       styleClass="detail-label"/>
+                                <Label fx:id="creationDateLabel" text="N/A" GridPane.columnIndex="1" GridPane.rowIndex="2"
+                                       styleClass="detail-value"/>
+
+                                <Label text="Added On:" GridPane.columnIndex="0" GridPane.rowIndex="3"
+                                       styleClass="detail-label"/>
+                                <Label fx:id="addedOnLabel" text="N/A" GridPane.columnIndex="1" GridPane.rowIndex="3"
+                                       styleClass="detail-value"/>
+
+                                <Label text="Last Activity:" GridPane.columnIndex="0" GridPane.rowIndex="4"
+                                       styleClass="detail-label"/>
+                                <Label fx:id="lastActivityLabel" text="N/A" GridPane.columnIndex="1" GridPane.rowIndex="4"
+                                       styleClass="detail-value"/>
+
+                                <Label text="Time Active:" GridPane.columnIndex="0" GridPane.rowIndex="5"
+                                       styleClass="detail-label"/>
+                                <Label fx:id="timeActiveLabel" text="N/A" GridPane.columnIndex="1" GridPane.rowIndex="5"
+                                       styleClass="detail-value"/>
+
+                                <Label text="Download Limit:" GridPane.columnIndex="0" GridPane.rowIndex="6"
+                                       styleClass="detail-label"/>
+                                <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="6">
+                                    <Label fx:id="downloadLimitLabel" text="N/A" styleClass="detail-value"/>
+                                    <Button text="Set Limit" fx:id="setDownloadLimitButton" styleClass="small-button"/>
+                                </HBox>
+
+                                <Label text="Upload Limit:" GridPane.columnIndex="0" GridPane.rowIndex="7"
+                                       styleClass="detail-label"/>
+                                <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="7">
+                                    <Label fx:id="uploadLimitLabel" text="N/A" styleClass="detail-value"/>
+                                    <Button text="Set Limit" fx:id="setUploadLimitButton" styleClass="small-button"/>
+                                </HBox>
+
+                                <Label text="Connections:" GridPane.columnIndex="0" GridPane.rowIndex="8"
+                                       styleClass="detail-label"/>
+                                <Label fx:id="connectionsLabel" text="N/A" GridPane.columnIndex="1" GridPane.rowIndex="8"
+                                       styleClass="detail-value"/>
+                            </GridPane>
+                        </Tab>
+                        <Tab text="Trackers" closable="false">
+                            <TableView fx:id="trackersTable" VBox.vgrow="ALWAYS">
+                                <columns>
+                                    <TableColumn fx:id="trackerUrlColumn" text="URL" prefWidth="400"/>
+                                    <TableColumn fx:id="trackerStatusColumn" text="Status" prefWidth="100"/>
+                                    <TableColumn fx:id="trackerTierColumn" text="Tier" prefWidth="50"/>
+                                    <TableColumn fx:id="trackerPeersColumn" text="Peers" prefWidth="80"/>
+                                    <TableColumn fx:id="trackerSeedsColumn" text="Seeds" prefWidth="80"/>
+                                    <TableColumn fx:id="trackerLeechesColumn" text="Leeches" prefWidth="80"/>
+                                </columns>
+                            </TableView>
+                        </Tab>
+                        <Tab text="Files" closable="false">
+                            <TableView fx:id="filesTable" VBox.vgrow="ALWAYS">
+                                <columns>
+                                    <TableColumn fx:id="fileNameColumn" text="Name" prefWidth="400"/>
+                                    <TableColumn fx:id="fileSizeColumn" text="Size" prefWidth="100"/>
+                                    <TableColumn fx:id="fileProgressColumn" text="Progress" prefWidth="100"/>
+                                    <TableColumn fx:id="filePriorityColumn" text="Priority" prefWidth="100"/>
+                                </columns>
+                            </TableView>
+                        </Tab>
+                        <Tab text="Peers" closable="false">
+                            <TableView fx:id="peersTable" VBox.vgrow="ALWAYS">
+                                <columns>
+                                    <TableColumn fx:id="peerAddressColumn" text="Address" prefWidth="150"/>
+                                    <TableColumn fx:id="peerClientColumn" text="Client" prefWidth="150"/>
+                                    <TableColumn fx:id="peerProgressColumn" text="Progress" prefWidth="100"/>
+                                    <TableColumn fx:id="peerDownSpeedColumn" text="Down Speed" prefWidth="100"/>
+                                    <TableColumn fx:id="peerUpSpeedColumn" text="Up Speed" prefWidth="100"/>
+                                    <TableColumn fx:id="peerRelevanceColumn" text="Relevance" prefWidth="100"/>
+                                </columns>
+                            </TableView>
+                        </Tab>
+                    </TabPane>
+                </VBox>
+            </SplitPane>
+        </center>
+
+        <bottom>
+            <HBox alignment="CENTER_LEFT" spacing="10" styleClass="status-bar">
+                <padding>
+                    <Insets top="5" right="10" bottom="5" left="10"/>
+                </padding>
+                <Label text="qBittorrent Manager v1.0" styleClass="status-text"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="qbittorrentVersionLabel" text="Version: Unknown" styleClass="status-text"/>
+                <Label fx:id="lastUpdateLabel" text="Last update: Never" styleClass="status-text"/>
+            </HBox>
+        </bottom>
+    </BorderPane>
 </AnchorPane>

@@ -1,4 +1,751 @@
 package com.tfg.dashboard_tfg.viewmodel;
 
-public class DownloaderClientView {
+import com.tfg.dashboard_tfg.model.*;
+import com.tfg.dashboard_tfg.services.QbittorrentApiClient;
+import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.*;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
+import javafx.geometry.Pos;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.PieChart;
+import javafx.scene.chart.XYChart;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.ProgressBarTableCell;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.util.Callback;
+
+import java.net.URL;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+public class DownloaderClientView implements Initializable {
+
+    @FXML
+    private GridPane connectionPane;
+    @FXML
+    private TextField hostField;
+    @FXML
+    private TextField usernameField;
+    @FXML
+    private PasswordField passwordField;
+    @FXML
+    private Button connectButton;
+    @FXML
+    private Label clientStatusLabel;
+    @FXML
+    private ToggleButton autoRefreshToggle;
+
+    // Stats fields
+    @FXML
+    private Label activeTorrentsLabel;
+    @FXML
+    private Label totalTorrentsLabel;
+    @FXML
+    private Label downloadSpeedLabel;
+    @FXML
+    private Label uploadSpeedLabel;
+    @FXML
+    private Label sessionDownloadedLabel;
+    @FXML
+    private Label sessionUploadedLabel;
+    @FXML
+    private Label allTimeDownloadLabel;
+    @FXML
+    private Label allTimeUploadLabel;
+    @FXML
+    private Label ratioLabel;
+    @FXML
+    private Label freeSpaceLabel;
+    @FXML
+    private Label usedSpaceLabel;
+    @FXML
+    private Label qbittorrentVersionLabel;
+    @FXML
+    private Label lastUpdateLabel;
+
+    // Charts
+    @FXML
+    private LineChart<String, Number> speedHistoryChart;
+    @FXML
+    private PieChart storageChart;
+
+    // Tables
+    @FXML
+    private TableView<TorrentData> torrentTable;
+    @FXML
+    private TableColumn<TorrentData, String> nameColumn;
+    @FXML
+    private TableColumn<TorrentData, String> sizeColumn;
+    @FXML
+    private TableColumn<TorrentData, Double> progressColumn;
+    @FXML
+    private TableColumn<TorrentData, String> statusColumn;
+    @FXML
+    private TableColumn<TorrentData, String> downloadSpeedColumn;
+    @FXML
+    private TableColumn<TorrentData, String> uploadSpeedColumn;
+    @FXML
+    private TableColumn<TorrentData, String> etaColumn;
+    @FXML
+    private TableColumn<TorrentData, Double> ratioColumn;
+    @FXML
+    private TableColumn<TorrentData, String> actionsColumn;
+
+    // Details tabs and fields
+    @FXML
+    private TabPane detailsTabPane;
+    @FXML
+    private Label hashLabel;
+    @FXML
+    private Label savePathLabel;
+    @FXML
+    private Label creationDateLabel;
+    @FXML
+    private Label addedOnLabel;
+    @FXML
+    private Label lastActivityLabel;
+    @FXML
+    private Label timeActiveLabel;
+    @FXML
+    private Label downloadLimitLabel;
+    @FXML
+    private Label uploadLimitLabel;
+    @FXML
+    private Label connectionsLabel;
+    @FXML
+    private Button setDownloadLimitButton;
+    @FXML
+    private Button setUploadLimitButton;
+
+    // Trackers table
+    @FXML
+    private TableView<TrackerData> trackersTable;
+    @FXML
+    private TableColumn<TrackerData, String> trackerUrlColumn;
+    @FXML
+    private TableColumn<TrackerData, String> trackerStatusColumn;
+    @FXML
+    private TableColumn<TrackerData, Integer> trackerTierColumn;
+    @FXML
+    private TableColumn<TrackerData, Integer> trackerPeersColumn;
+    @FXML
+    private TableColumn<TrackerData, Integer> trackerSeedsColumn;
+    @FXML
+    private TableColumn<TrackerData, Integer> trackerLeechesColumn;
+
+    // Files table
+    @FXML
+    private TableView<FileData> filesTable;
+    @FXML
+    private TableColumn<FileData, String> fileNameColumn;
+    @FXML
+    private TableColumn<FileData, String> fileSizeColumn;
+    @FXML
+    private TableColumn<FileData, Double> fileProgressColumn;
+    @FXML
+    private TableColumn<FileData, String> filePriorityColumn;
+
+    // Peers table
+    @FXML
+    private TableView<PeerData> peersTable;
+    @FXML
+    private TableColumn<PeerData, String> peerAddressColumn;
+    @FXML
+    private TableColumn<PeerData, String> peerClientColumn;
+    @FXML
+    private TableColumn<PeerData, Double> peerProgressColumn;
+    @FXML
+    private TableColumn<PeerData, String> peerDownSpeedColumn;
+    @FXML
+    private TableColumn<PeerData, String> peerUpSpeedColumn;
+    @FXML
+    private TableColumn<PeerData, Double> peerRelevanceColumn;
+
+    // Filter combo
+    @FXML
+    private ComboBox<String> statusFilter;
+
+    // Data collections
+    private final ObservableList<TorrentData> torrents = FXCollections.observableArrayList();
+    private final ObservableList<TrackerData> trackers = FXCollections.observableArrayList();
+    private final ObservableList<FileData> files = FXCollections.observableArrayList();
+    private final ObservableList<PeerData> peers = FXCollections.observableArrayList();
+
+    // Chart data
+    private XYChart.Series<String, Number> downloadSeries;
+    private XYChart.Series<String, Number> uploadSeries;
+    private static final int MAX_DATA_POINTS = 20;
+    private final Queue<String> timeLabels = new LinkedList<>();
+
+    // Properties
+    private final BooleanProperty connected = new SimpleBooleanProperty(false);
+    private final StringProperty selectedTorrentHash = new SimpleStringProperty();
+
+    // Utility
+    private ScheduledExecutorService scheduler;
+    private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+
+    // Mock API service - would be replaced with actual API client
+    private QbittorrentApiClient apiClient;
+
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        apiClient = new QbittorrentApiClient();
+
+        // Initialize connection settings
+        hostField.setText("http://localhost:8080");
+        connectButton.setOnAction(event -> connectToClient());
+
+        // Setup binding for connection status
+        clientStatusLabel.textProperty().bind(
+                Bindings.when(connected)
+                        .then("Connected")
+                        .otherwise("Not Connected")
+        );
+        clientStatusLabel.styleProperty().bind(
+                Bindings.when(connected)
+                        .then("-fx-text-fill: green;")
+                        .otherwise("-fx-text-fill: red;")
+        );
+
+        // Initialize charts
+        initializeCharts();
+
+        // Initialize tables
+        initializeTorrentTable();
+        initializeTrackerTable();
+        initializeFileTable();
+        initializePeerTable();
+
+        // Setup status filter
+        statusFilter.getSelectionModel().selectedItemProperty().addListener(
+                (observable, oldValue, newValue) -> filterTorrents(newValue)
+        );
+
+        // Setup selected torrent listener
+        torrentTable.getSelectionModel().selectedItemProperty().addListener(
+                (obs, oldSelection, newSelection) -> {
+                    if (newSelection != null) {
+                        selectedTorrentHash.set(newSelection.getHash());
+                        loadTorrentDetails(newSelection);
+                    }
+                }
+        );
+
+        // Setup actions for detail buttons
+        setDownloadLimitButton.setOnAction(e -> showSpeedLimitDialog("download"));
+        setUploadLimitButton.setOnAction(e -> showSpeedLimitDialog("upload"));
+    }
+
+    private void initializeCharts() {
+        // Initialize speed history chart
+        downloadSeries = new XYChart.Series<>();
+        downloadSeries.setName("Download");
+
+        uploadSeries = new XYChart.Series<>();
+        uploadSeries.setName("Upload");
+
+        speedHistoryChart.getData().add(downloadSeries);
+        speedHistoryChart.getData().add(uploadSeries);
+
+        // Initialize storage chart
+        ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList(
+                new PieChart.Data("Free", 100),
+                new PieChart.Data("Used", 0)
+        );
+        storageChart.setData(pieChartData);
+    }
+
+    private void initializeTorrentTable() {
+        // Configure torrent table columns
+        nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+        sizeColumn.setCellValueFactory(new PropertyValueFactory<>("size"));
+        progressColumn.setCellValueFactory(new PropertyValueFactory<>("progress"));
+        progressColumn.setCellFactory(ProgressBarTableCell.forTableColumn());
+        statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
+        downloadSpeedColumn.setCellValueFactory(new PropertyValueFactory<>("downloadSpeed"));
+        uploadSpeedColumn.setCellValueFactory(new PropertyValueFactory<>("uploadSpeed"));
+        etaColumn.setCellValueFactory(new PropertyValueFactory<>("eta"));
+        ratioColumn.setCellValueFactory(new PropertyValueFactory<>("ratio"));
+
+        // Configure actions column with buttons
+        actionsColumn.setCellFactory(param -> new TableCell<>() {
+            private final Button pauseButton = new Button("Pause");
+            private final Button resumeButton = new Button("Resume");
+            private final Button deleteButton = new Button("Delete");
+
+            {
+                pauseButton.getStyleClass().add("small-button");
+                resumeButton.getStyleClass().add("small-button");
+                deleteButton.getStyleClass().add("delete-button");
+
+                pauseButton.setOnAction(event -> {
+                    TorrentData torrent = getTableView().getItems().get(getIndex());
+                    pauseTorrent(torrent.getHash());
+                });
+
+                resumeButton.setOnAction(event -> {
+                    TorrentData torrent = getTableView().getItems().get(getIndex());
+                    resumeTorrent(torrent.getHash());
+                });
+
+                deleteButton.setOnAction(event -> {
+                    TorrentData torrent = getTableView().getItems().get(getIndex());
+                    showDeleteConfirmation(torrent);
+                });
+            }
+
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    TorrentData torrent = getTableView().getItems().get(getIndex());
+                    HBox buttons = new HBox(5);
+                    buttons.setAlignment(Pos.CENTER);
+
+                    if ("Paused".equals(torrent.getStatus())) {
+                        buttons.getChildren().add(resumeButton);
+                    } else {
+                        buttons.getChildren().add(pauseButton);
+                    }
+
+                    buttons.getChildren().add(deleteButton);
+                    setGraphic(buttons);
+                }
+            }
+        });
+
+        torrentTable.setItems(torrents);
+    }
+
+    private void initializeTrackerTable() {
+        trackerUrlColumn.setCellValueFactory(new PropertyValueFactory<>("url"));
+        trackerStatusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
+        trackerTierColumn.setCellValueFactory(new PropertyValueFactory<>("tier"));
+        trackerPeersColumn.setCellValueFactory(new PropertyValueFactory<>("peers"));
+        trackerSeedsColumn.setCellValueFactory(new PropertyValueFactory<>("seeds"));
+        trackerLeechesColumn.setCellValueFactory(new PropertyValueFactory<>("leeches"));
+
+        trackersTable.setItems(trackers);
+    }
+
+    private void initializeFileTable() {
+        fileNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+        fileSizeColumn.setCellValueFactory(new PropertyValueFactory<>("size"));
+        fileProgressColumn.setCellValueFactory(new PropertyValueFactory<>("progress"));
+        fileProgressColumn.setCellFactory(ProgressBarTableCell.forTableColumn());
+        filePriorityColumn.setCellValueFactory(new PropertyValueFactory<>("priority"));
+
+        filesTable.setItems(files);
+    }
+
+    private void initializePeerTable() {
+        peerAddressColumn.setCellValueFactory(new PropertyValueFactory<>("address"));
+        peerClientColumn.setCellValueFactory(new PropertyValueFactory<>("client"));
+        peerProgressColumn.setCellValueFactory(new PropertyValueFactory<>("progress"));
+        peerProgressColumn.setCellFactory(ProgressBarTableCell.forTableColumn());
+        peerDownSpeedColumn.setCellValueFactory(new PropertyValueFactory<>("downloadSpeed"));
+        peerUpSpeedColumn.setCellValueFactory(new PropertyValueFactory<>("uploadSpeed"));
+        peerRelevanceColumn.setCellValueFactory(new PropertyValueFactory<>("relevance"));
+
+        peersTable.setItems(peers);
+    }
+
+    @FXML
+    private void connectToClient() {
+        String host = hostField.getText();
+        String username = usernameField.getText();
+        String password = passwordField.getText();
+
+        // Attempt to connect
+        boolean success = apiClient.login(host, username, password);
+
+        if (success) {
+            connected.set(true);
+            updateUI();
+
+            // Start auto-refresh if enabled
+            if (autoRefreshToggle.isSelected()) {
+                startAutoRefresh();
+            }
+        } else {
+            showAlert(Alert.AlertType.ERROR, "Connection Error",
+                    "Failed to connect to qBittorrent",
+                    "Please check your credentials and ensure qBittorrent WebUI is running.");
+        }
+    }
+
+    @FXML
+    private void refreshClientStatus() {
+        if (connected.get()) {
+            updateUI();
+        } else {
+            showAlert(Alert.AlertType.WARNING, "Not Connected",
+                    "Client is not connected",
+                    "Please connect to qBittorrent first.");
+        }
+    }
+
+    @FXML
+    private void toggleAutoRefresh() {
+        if (autoRefreshToggle.isSelected()) {
+            startAutoRefresh();
+        } else {
+            stopAutoRefresh();
+        }
+    }
+
+    @FXML
+    private void showAddTorrentDialog() {
+        if (!connected.get()) {
+            showAlert(Alert.AlertType.WARNING, "Not Connected",
+                    "Client is not connected",
+                    "Please connect to qBittorrent first.");
+            return;
+        }
+
+        // Create a dialog for adding torrents
+        Dialog<String> dialog = new Dialog<>();
+        dialog.setTitle("Add Torrent");
+        dialog.setHeaderText("Enter magnet link or torrent URL");
+
+        // Set the button types
+        ButtonType addButtonType = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
+
+        // Create the torrent URL field
+        TextField urlField = new TextField();
+        urlField.setPromptText("Magnet link or URL");
+        urlField.setPrefWidth(400);
+
+        // Layout
+        dialog.getDialogPane().setContent(urlField);
+
+        // Request focus on the URL field by default
+        Platform.runLater(urlField::requestFocus);
+
+        // Convert the result
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == addButtonType) {
+                return urlField.getText();
+            }
+            return null;
+        });
+
+        // Show the dialog and process the result
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(url -> {
+            if (!url.isEmpty()) {
+                boolean success = apiClient.addTorrent(url);
+                if (success) {
+                    showAlert(Alert.AlertType.INFORMATION, "Success",
+                            "Torrent added successfully",
+                            "The torrent has been added to qBittorrent.");
+                    updateUI();
+                } else {
+                    showAlert(Alert.AlertType.ERROR, "Error",
+                            "Failed to add torrent",
+                            "Please check the URL and try again.");
+                }
+            }
+        });
+    }
+
+    private void showDeleteConfirmation(TorrentData torrent) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Confirm Delete");
+        alert.setHeaderText("Delete Torrent");
+        alert.setContentText("Are you sure you want to delete '" + torrent.getName() + "'?\n\nCheck to also delete files from disk:");
+
+        // Add checkbox for deleting files
+        CheckBox deleteFiles = new CheckBox("Delete Files");
+        alert.getDialogPane().setContent(deleteFiles);
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            boolean success = apiClient.deleteTorrent(torrent.getHash(), deleteFiles.isSelected());
+            if (success) {
+                updateUI();
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Error",
+                        "Failed to delete torrent",
+                        "An error occurred while trying to delete the torrent.");
+            }
+        }
+    }
+
+    private void showSpeedLimitDialog(String type) {
+        if (selectedTorrentHash.get() == null) {
+            return;
+        }
+
+        String title = type.equals("download") ? "Set Download Limit" : "Set Upload Limit";
+
+        // Create a dialog for setting speed limit
+        Dialog<String> dialog = new Dialog<>();
+        dialog.setTitle(title);
+        dialog.setHeaderText("Enter speed limit in KiB/s (0 for unlimited)");
+
+        // Set the button types
+        ButtonType setButtonType = new ButtonType("Set", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(setButtonType, ButtonType.CANCEL);
+
+        // Create the limit field
+        TextField limitField = new TextField();
+        limitField.setPromptText("KiB/s");
+
+        // Layout
+        dialog.getDialogPane().setContent(limitField);
+
+        // Request focus on the limit field by default
+        Platform.runLater(limitField::requestFocus);
+
+        // Convert the result
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == setButtonType) {
+                return limitField.getText();
+            }
+            return null;
+        });
+
+        // Show the dialog and process the result
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(limit -> {
+            try {
+                int limitValue = Integer.parseInt(limit);
+                boolean success;
+
+                if (type.equals("download")) {
+                    success = apiClient.setTorrentDownloadLimit(selectedTorrentHash.get(), limitValue);
+                } else {
+                    success = apiClient.setTorrentUploadLimit(selectedTorrentHash.get(), limitValue);
+                }
+
+                if (success) {
+                    // Update the torrent details to reflect the new limit
+                    loadTorrentDetails(torrentTable.getSelectionModel().getSelectedItem());
+                } else {
+                    showAlert(Alert.AlertType.ERROR, "Error",
+                            "Failed to set limit",
+                            "An error occurred while trying to set the speed limit.");
+                }
+            } catch (NumberFormatException e) {
+                showAlert(Alert.AlertType.ERROR, "Invalid Input",
+                        "Please enter a valid number",
+                        "The speed limit must be a whole number.");
+            }
+        });
+    }
+
+    private void pauseTorrent(String hash) {
+        if (apiClient.pauseTorrent(hash)) {
+            updateUI();
+        } else {
+            showAlert(Alert.AlertType.ERROR, "Error",
+                    "Failed to pause torrent",
+                    "An error occurred while trying to pause the torrent.");
+        }
+    }
+
+    private void resumeTorrent(String hash) {
+        if (apiClient.resumeTorrent(hash)) {
+            updateUI();
+        } else {
+            showAlert(Alert.AlertType.ERROR, "Error",
+                    "Failed to resume torrent",
+                    "An error occurred while trying to resume the torrent.");
+        }
+    }
+
+    private void updateUI() {
+        if (!connected.get()) {
+            return;
+        }
+
+        // Update global stats
+        TransferStats stats = apiClient.getTransferInfo();
+        downloadSpeedLabel.setText(formatSpeed(stats.getDownloadSpeed()));
+        uploadSpeedLabel.setText(formatSpeed(stats.getUploadSpeed()));
+        sessionDownloadedLabel.setText(formatSize(stats.getSessionDownloaded()));
+        sessionUploadedLabel.setText(formatSize(stats.getSessionUploaded()));
+        allTimeDownloadLabel.setText(formatSize(stats.getAllTimeDownloaded()));
+        allTimeUploadLabel.setText(formatSize(stats.getAllTimeUploaded()));
+        ratioLabel.setText(String.format("%.2f", stats.getRatio()));
+
+        // Update storage info
+        StorageInfo storage = apiClient.getStorageInfo();
+        freeSpaceLabel.setText("Free: " + formatSize(storage.getFreeSpace()));
+        usedSpaceLabel.setText("Used: " + formatSize(storage.getUsedSpace()));
+
+        // Update pie chart
+        updateStorageChart(storage);
+
+        // Update version info
+        String version = apiClient.getApiVersion();
+        qbittorrentVersionLabel.setText("Version: " + version);
+
+        // Update torrents
+        List<TorrentData> torrentList = apiClient.getTorrents();
+        int activeCount = 0;
+        for (TorrentData torrent : torrentList) {
+            if ("Downloading".equals(torrent.getStatus()) || "Uploading".equals(torrent.getStatus())) {
+                activeCount++;
+            }
+        }
+
+        activeTorrentsLabel.setText(String.valueOf(activeCount));
+        totalTorrentsLabel.setText(String.valueOf(torrentList.size()));
+
+        // Update torrent table
+        torrents.setAll(torrentList);
+
+        // Apply filter if one is selected
+        String filter = statusFilter.getValue();
+        if (filter != null && !filter.equals("All")) {
+            filterTorrents(filter);
+        }
+
+        // Update speed history chart
+        updateSpeedChart(stats.getDownloadSpeed(), stats.getUploadSpeed());
+
+        // Update the last updated time
+        lastUpdateLabel.setText("Last update: " + LocalDateTime.now().format(timeFormatter));
+    }
+
+    private void updateSpeedChart(long downloadSpeed, long uploadSpeed) {
+        // Add current time to labels
+        String timeLabel = LocalDateTime.now().format(timeFormatter);
+        timeLabels.add(timeLabel);
+
+        // Add new data points
+        downloadSeries.getData().add(new XYChart.Data<>(timeLabel, downloadSpeed / 1024.0));
+        uploadSeries.getData().add(new XYChart.Data<>(timeLabel, uploadSpeed / 1024.0));
+
+        // Ensure we don't exceed max data points
+        if (timeLabels.size() > MAX_DATA_POINTS) {
+            timeLabels.remove();
+            downloadSeries.getData().remove(0);
+            uploadSeries.getData().remove(0);
+        }
+    }
+
+    private void updateStorageChart(StorageInfo storage) {
+        double total = storage.getFreeSpace() + storage.getUsedSpace();
+        double freePercentage = (storage.getFreeSpace() / total) * 100;
+        double usedPercentage = (storage.getUsedSpace() / total) * 100;
+
+        storageChart.getData().get(0).setPieValue(freePercentage);
+        storageChart.getData().get(1).setPieValue(usedPercentage);
+    }
+
+    private void loadTorrentDetails(TorrentData torrent) {
+        if (torrent == null) {
+            return;
+        }
+
+        // Load general info
+        TorrentDetails details = apiClient.getTorrentDetails(torrent.getHash());
+        hashLabel.setText(details.getHash());
+        savePathLabel.setText(details.getSavePath());
+        creationDateLabel.setText(details.getCreationDate());
+        addedOnLabel.setText(details.getAddedOn());
+        lastActivityLabel.setText(details.getLastActivity());
+        timeActiveLabel.setText(details.getTimeActive());
+        downloadLimitLabel.setText(formatSpeed(details.getDownloadLimit()) + "/s");
+        uploadLimitLabel.setText(formatSpeed(details.getUploadLimit()) + "/s");
+        connectionsLabel.setText(String.valueOf(details.getConnections()));
+
+        // Load trackers
+        List<TrackerData> trackerList = apiClient.getTorrentTrackers(torrent.getHash());
+        trackers.setAll(trackerList);
+
+        // Load files
+        List<FileData> fileList = apiClient.getTorrentFiles(torrent.getHash());
+        files.setAll(fileList);
+
+        // Load peers
+        List<PeerData> peerList = apiClient.getTorrentPeers(torrent.getHash());
+        peers.setAll(peerList);
+    }
+
+    private void filterTorrents(String status) {
+        if (status == null || status.equals("All")) {
+            torrentTable.setItems(torrents);
+            return;
+        }
+
+        ObservableList<TorrentData> filteredList = FXCollections.observableArrayList();
+        for (TorrentData torrent : torrents) {
+            if (torrent.getStatus().equals(status)) {
+                filteredList.add(torrent);
+            }
+        }
+
+        torrentTable.setItems(filteredList);
+    }
+
+    private void startAutoRefresh() {
+        if (scheduler != null && !scheduler.isShutdown()) {
+            stopAutoRefresh();
+        }
+
+        scheduler = Executors.newSingleThreadScheduledExecutor();
+        scheduler.scheduleAtFixedRate(() -> {
+            if (connected.get()) {
+                Platform.runLater(this::updateUI);
+            }
+        }, 0, 2, TimeUnit.SECONDS);
+    }
+
+    private void stopAutoRefresh() {
+        if (scheduler != null) {
+            scheduler.shutdown();
+            scheduler = null;
+        }
+    }
+
+    private void showAlert(Alert.AlertType type, String title, String header, String content) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(header);
+        alert.setContentText(content);
+        alert.showAndWait();
+    }
+
+    private String formatSpeed(long bytesPerSecond) {
+        if (bytesPerSecond < 1024) {
+            return bytesPerSecond + " B/s";
+        } else if (bytesPerSecond < 1024 * 1024) {
+            return String.format("%.2f KiB/s", bytesPerSecond / 1024.0);
+        } else if (bytesPerSecond < 1024 * 1024 * 1024) {
+            return String.format("%.2f MiB/s", bytesPerSecond / (1024.0 * 1024.0));
+        } else {
+            return String.format("%.2f GiB/s", bytesPerSecond / (1024.0 * 1024.0 * 1024.0));
+        }
+    }
+
+    private String formatSize(long bytes) {
+        if (bytes < 1024) {
+            return bytes + " B";
+        } else if (bytes < 1024 * 1024) {
+            return String.format("%.2f KiB", bytes / 1024.0);
+        } else if (bytes < 1024 * 1024 * 1024) {
+            return String.format("%.2f MiB", bytes / (1024.0 * 1024.0));
+        } else {
+            return String.format("%.2f GiB", bytes / (1024.0 * 1024.0 * 1024.0));
+        }
+    }
 }

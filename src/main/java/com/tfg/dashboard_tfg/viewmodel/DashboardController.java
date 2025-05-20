@@ -68,6 +68,7 @@ public class DashboardController {
     private final Properties appProperties = new Properties();
     private final File configFile = new File("connection.properties");
     private String dockerApiUrl;
+    public static ProcessedData processedData = new ProcessedData();
 
     public void loadProperties() {
         try (FileInputStream fis = new FileInputStream(configFile)) {
@@ -156,7 +157,7 @@ public class DashboardController {
         try {
             JSONObject systemData = fetchJsonData();
 
-            final ProcessedData processedData = processAllData(systemData);
+            processedData = processAllData(systemData);
 
             javafx.application.Platform.runLater(() -> updateAllTiles(processedData));
         } catch (Exception e) {
@@ -195,6 +196,8 @@ public class DashboardController {
         data.storagePercentage = (usedSpace / totalSpace) * 100;
         double totalSpaceGB = totalSpace / (1024 * 1024 * 1024);
         double usedSpaceGB = usedSpace / (1024 * 1024 * 1024);
+        data.storageUsedSpace = usedSpaceGB;
+        data.storageFreeSpace = totalSpaceGB - usedSpaceGB;
         data.storageDescription = String.format("%.2f GB / %.2f GB (%.1f%%)",
                 usedSpaceGB, totalSpaceGB, data.storagePercentage);
 

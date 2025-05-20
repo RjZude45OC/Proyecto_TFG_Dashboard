@@ -3,10 +3,7 @@ package com.tfg.dashboard_tfg.viewmodel;
 import eu.hansolo.tilesfx.Tile;
 import eu.hansolo.tilesfx.TileBuilder;
 import javafx.application.Platform;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.collections.ObservableList;
-import javafx.collections.ObservableListBase;
-import javafx.event.ActionEvent;
+
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
@@ -540,11 +537,13 @@ public class DockerViewModel {
 
         Menu metricsMenu = new Menu("Switch Metric");
         for (MetricType metricType : MetricType.values()) {
-            MenuItem metricMenuItem = new MenuItem(metricType.name());
+            final MetricType selectedMetric = metricType;
+
+            MenuItem metricMenuItem = new MenuItem(selectedMetric.name());
             metricMenuItem.setOnAction(event -> {
                 ContainerTile containerTile = containerTiles.get(id);
                 if (containerTile != null) {
-                    containerTile.currentMetric = metricType;
+                    containerTile.currentMetric = selectedMetric;
                     updateTileWithMetric(containerTile, container);
                 }
             });

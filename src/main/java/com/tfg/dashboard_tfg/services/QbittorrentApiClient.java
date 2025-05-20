@@ -251,27 +251,6 @@ public class QbittorrentApiClient {
     }
 
     /**
-     * Get storage information
-     *
-     * @return StorageInfo object
-     */
-    public StorageInfo getStorageInfo() {
-        StorageInfo info = new StorageInfo();
-
-        // qBittorrent doesn't have a direct API for storage space
-        // This would normally need to be provided by a system API on the server
-        // For this demo, we'll generate mock data
-        long totalSpace = 1024L * 1024 * 1024 * 1024; // 1 TB
-        long usedSpace = totalSpace / 3; // 1/3 used
-
-        info.setTotalSpace(totalSpace);
-        info.setUsedSpace(usedSpace);
-        info.setFreeSpace(totalSpace - usedSpace);
-
-        return info;
-    }
-
-    /**
      * Get detailed information about a specific torrent
      *
      * @param hash Torrent hash
@@ -762,8 +741,6 @@ public class QbittorrentApiClient {
     private Map<String, String> parseJson(String json) {
         Map<String, String> result = new HashMap<>();
 
-        // Very simple JSON parser for demo purposes
-        // In a real app, use a proper JSON library like Jackson or Gson
         String[] entries = json.split(",\"");
         for (String entry : entries) {
             String processedEntry = entry.startsWith("\"") ? entry : "\"" + entry;

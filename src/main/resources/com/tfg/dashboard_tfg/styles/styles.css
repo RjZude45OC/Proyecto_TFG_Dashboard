@@ -1088,3 +1088,53 @@
 .light-theme .web-view {
     -fx-background-color: white;
 }
+/* charts*/
+.chart {
+    -fx-padding: 0;
+}
+.pie-chart {
+    -fx-padding: 0;
+    -fx-background-insets: 0;
+    -fx-background-color: transparent;
+}
+
+.chart-title {
+    -fx-padding: 0;
+    -fx-font-size: 0;
+}
+
+.chart-legend {
+    -fx-padding: 0;
+    -fx-background-insets: 0;
+}
+
+.chart-content {
+    -fx-padding: 0;
+}
+
+.chart-pie-label {
+    -fx-padding: 0;
+}
+
+.chart-plot-background {
+    -fx-padding: 0;
+}
+
+.chart-legend {
+    -fx-padding: 0;
+}
+
+.axis {
+    -fx-tick-label-padding: 0;
+    -fx-label-padding: 0;
+    -fx-padding: 0;
+}
+
+.chart-vertical-grid-lines,
+.chart-horizontal-grid-lines {
+    -fx-stroke-width: 0.5;
+}
+
+.category-axis, .number-axis {
+    -fx-padding: 0;
+}

@@ -32,7 +32,7 @@
                     <Label fx:id="clientStatusLabel" text="Not Connected" styleClass="connection-status"/>
                     <Button text="Refresh" onAction="#refreshClientStatus" styleClass="console-button"/>
                     <ToggleButton fx:id="autoRefreshToggle" text="Auto Refresh"
-                                  styleClass="console-button" onAction="#toggleAutoRefresh" />
+                                  styleClass="console-button" onAction="#toggleAutoRefresh"/>
                 </HBox>
 
                 <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="filter-bar">
@@ -50,97 +50,116 @@
         </top>
 
         <left>
-            <VBox spacing="5.0" styleClass="side-panel">
-                <padding>
-                    <Insets right="10" left="10"/>
-                </padding>
-
-                <TitledPane text="Connection Settings" styleClass="settings-pane">
-                    <VBox spacing="5" styleClass="settings-container">
-                        <GridPane fx:id="connectionPane" hgap="10" vgap="10">
-                            <columnConstraints>
-                                <ColumnConstraints hgrow="NEVER" minWidth="100"/>
-                                <ColumnConstraints hgrow="ALWAYS"/>
-                            </columnConstraints>
-
-                            <Label text="Host:" GridPane.columnIndex="0" GridPane.rowIndex="0"
-                                   styleClass="setting-label"/>
-                            <TextField fx:id="hostField" promptText="http://192.168.1.72:8080"
-                                       GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="setting-field"/>
-
-                            <Label text="Username:" GridPane.columnIndex="0" GridPane.rowIndex="1"
-                                   styleClass="setting-label"/>
-                            <TextField fx:id="usernameField" promptText="Enter username"
-                                       GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="setting-field"/>
-
-                            <Label text="Password:" GridPane.columnIndex="0" GridPane.rowIndex="2"
-                                   styleClass="setting-label"/>
-                            <PasswordField fx:id="passwordField" promptText="Enter password"
-                                           GridPane.columnIndex="1" GridPane.rowIndex="2" styleClass="setting-field"/>
-
-                            <Button fx:id="connectButton" text="Connect"
-                                    GridPane.columnIndex="1" GridPane.rowIndex="3"
-                                    styleClass="console-button"/>
-                        </GridPane>
-                    </VBox>
-                </TitledPane>
-
-                <TitledPane text="Transfer Stats" styleClass="settings-pane">
-                    <VBox spacing="3" styleClass="settings-container">
-                        <HBox>
-                            <VBox spacing="2" prefWidth="150">
-                                <Label text="Download Speed:" styleClass="setting-label"/>
-                                <Label text="Upload Speed:" styleClass="setting-label"/>
-                                <Label text="Session Downloaded:" styleClass="setting-label"/>
-                                <Label text="Session Uploaded:" styleClass="setting-label"/>
-                                <Label text="All-time Download:" styleClass="setting-label"/>
-                                <Label text="All-time Upload:" styleClass="setting-label"/>
-                                <Label text="Ratio:" styleClass="setting-label"/>
-                            </VBox>
-
-                            <VBox spacing="3" HBox.hgrow="ALWAYS">
-                                <Label fx:id="downloadSpeedLabel" text="0 KiB/s" styleClass="stat-value"/>
-                                <Label fx:id="uploadSpeedLabel" text="0 KiB/s" styleClass="stat-value"/>
-                                <Label fx:id="sessionDownloadedLabel" text="0 MiB" styleClass="stat-value"/>
-                                <Label fx:id="sessionUploadedLabel" text="0 MiB" styleClass="stat-value"/>
-                                <Label fx:id="allTimeDownloadLabel" text="0 GiB" styleClass="stat-value"/>
-                                <Label fx:id="allTimeUploadLabel" text="0 GiB" styleClass="stat-value"/>
-                                <Label fx:id="ratioLabel" text="0.00" styleClass="stat-value"/>
-                            </VBox>
-                        </HBox>
-
-                        <LineChart fx:id="speedHistoryChart"
-                                   createSymbols="false" animated="false" prefHeight="150">
-                            <xAxis>
-                                <CategoryAxis label="Time" fx:id="timeAxis"/>
-                            </xAxis>
-                            <yAxis>
-                                <NumberAxis label="Speed (KiB/s)" fx:id="speedAxis"/>
-                            </yAxis>
-                        </LineChart>
-                    </VBox>
-                </TitledPane>
-
-                <TitledPane text="Storage Stats" styleClass="settings-pane" >
-                    <VBox spacing="3" styleClass="settings-container" >
-                        <PieChart fx:id="storageChart" title="Disk Usage"/>
-                        <HBox alignment="CENTER" spacing="10">
-                            <Label fx:id="freeSpaceLabel" text="Free: 0 GB" styleClass="stat-value"/>
-                            <Label fx:id="usedSpaceLabel" text="Used: 0 GB" styleClass="stat-value"/>
-                        </HBox>
-                    </VBox>
-                </TitledPane>
-            </VBox>
-        </left>
-
-        <center>
-            <SplitPane orientation="VERTICAL" dividerPositions="0.7" styleClass="content-pane">
-                <VBox spacing="5">
+            <Pane prefHeight="650" maxHeight="650" maxWidth="400">
+                <VBox spacing="5.0" styleClass="side-panel" prefHeight="650" maxHeight="650" maxWidth="400">
                     <padding>
                         <Insets top="10" right="10" left="10"/>
                     </padding>
 
-                    <HBox alignment="CENTER_LEFT" spacing="5" maxHeight="10">
+                    <TitledPane text="Connection Settings" styleClass="settings-pane">
+                        <VBox spacing="5" styleClass="settings-container">
+                            <GridPane fx:id="connectionPane" hgap="10" vgap="10">
+                                <columnConstraints>
+                                    <ColumnConstraints hgrow="NEVER" minWidth="100"/>
+                                    <ColumnConstraints hgrow="ALWAYS"/>
+                                </columnConstraints>
+
+                                <Label text="Host:" GridPane.columnIndex="0" GridPane.rowIndex="0"
+                                       styleClass="setting-label"/>
+                                <TextField fx:id="hostField" promptText="http://192.168.1.72:8080"
+                                           GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="setting-field"/>
+
+                                <Label text="Username:" GridPane.columnIndex="0" GridPane.rowIndex="1"
+                                       styleClass="setting-label"/>
+                                <TextField fx:id="usernameField" promptText="Enter username"
+                                           GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="setting-field"/>
+
+                                <Label text="Password:" GridPane.columnIndex="0" GridPane.rowIndex="2"
+                                       styleClass="setting-label"/>
+                                <PasswordField fx:id="passwordField" promptText="Enter password"
+                                               GridPane.columnIndex="1" GridPane.rowIndex="2"
+                                               styleClass="setting-field"/>
+
+                                <Button fx:id="connectButton" text="Connect"
+                                        GridPane.columnIndex="1" GridPane.rowIndex="3"
+                                        styleClass="console-button"/>
+                            </GridPane>
+                        </VBox>
+                    </TitledPane>
+
+                    <TitledPane text="Transfer Stats" styleClass="settings-pane" maxHeight="100">
+                        <VBox spacing="3" styleClass="settings-container">
+                            <HBox spacing="30">
+                                <VBox spacing="5">
+                                    <HBox spacing="10">
+                                        <Label text="Download Speed:" styleClass="setting-label"/>
+                                        <Label fx:id="downloadSpeedLabel" text="0 KiB/s" styleClass="stat-value"/>
+                                    </HBox>
+                                    <HBox spacing="10">
+                                        <Label text="Upload Speed:" styleClass="setting-label"/>
+                                        <Label fx:id="uploadSpeedLabel" text="0 KiB/s" styleClass="stat-value"/>
+                                    </HBox>
+                                    <HBox spacing="10">
+                                        <Label text="Session Downloaded:" styleClass="setting-label"/>
+                                        <Label fx:id="sessionDownloadedLabel" text="0 MiB" styleClass="stat-value"/>
+                                    </HBox>
+                                    <HBox spacing="10">
+                                        <Label text="Session Uploaded:" styleClass="setting-label"/>
+                                        <Label fx:id="sessionUploadedLabel" text="0 MiB" styleClass="stat-value"/>
+                                    </HBox>
+                                </VBox>
+
+                                <VBox spacing="5">
+                                    <HBox spacing="10">
+                                        <Label text="All-time Download:" styleClass="setting-label"/>
+                                        <Label fx:id="allTimeDownloadLabel" text="0 GiB" styleClass="stat-value"/>
+                                    </HBox>
+                                    <HBox spacing="10">
+                                        <Label text="All-time Upload:" styleClass="setting-label"/>
+                                        <Label fx:id="allTimeUploadLabel" text="0 GiB" styleClass="stat-value"/>
+                                    </HBox>
+                                    <HBox spacing="10">
+                                        <Label text="Ratio:" styleClass="setting-label"/>
+                                        <Label fx:id="ratioLabel" text="0.00" styleClass="stat-value"/>
+                                    </HBox>
+                                </VBox>
+                            </HBox>
+
+                            <LineChart fx:id="speedHistoryChart"
+                                       createSymbols="false" animated="false">
+                                <xAxis>
+                                    <CategoryAxis label="Time" fx:id="timeAxis"/>
+                                </xAxis>
+                                <yAxis>
+                                    <NumberAxis label="Speed (KiB/s)" fx:id="speedAxis"/>
+                                </yAxis>
+                            </LineChart>
+                        </VBox>
+                    </TitledPane>
+
+                    <TitledPane text="Storage Stats" styleClass="settings-pane">
+                        <VBox styleClass="settings-container">
+                            <Label text="Disk Usage"/>
+                            <PieChart fx:id="storageChart" prefWidth="200" prefHeight="100" minWidth="200"
+                                      minHeight="100" styleClass="pie-chart" labelsVisible="false" legendSide="RIGHT"/>
+                            <HBox alignment="CENTER" spacing="3">
+                                <Label fx:id="freeSpaceLabel" text="Free: 0 GB" styleClass="stat-value"/>
+                                <Label fx:id="usedSpaceLabel" text="Used: 0 GB" styleClass="stat-value"/>
+                            </HBox>
+                        </VBox>
+                    </TitledPane>
+                </VBox>
+            </Pane>
+        </left>
+
+        <center>
+            <SplitPane orientation="VERTICAL" dividerPositions="0.7" styleClass="content-pane" maxHeight="650">
+                <VBox spacing="5">
+                    <padding>
+                        <Insets top="5" right="10" left="10"/>
+                    </padding>
+
+                    <HBox alignment="CENTER_LEFT" spacing="5">
                         <Label text="Torrent List" styleClass="section-header"/>
                         <Region HBox.hgrow="ALWAYS"/>
                         <ComboBox fx:id="statusFilter" prefWidth="150">
@@ -158,7 +177,7 @@
                                 <String fx:value="All"/>
                             </value>
                         </ComboBox>
-                       <Button text="Add Torrent" onAction="#showAddTorrentDialog" styleClass="console-button"/>
+                        <Button text="Add Torrent" onAction="#showAddTorrentDialog" styleClass="console-button"/>
                     </HBox>
 
                     <TableView fx:id="torrentTable" VBox.vgrow="ALWAYS" styleClass="torrent-table">
@@ -176,7 +195,7 @@
                     </TableView>
                 </VBox>
 
-                <VBox spacing="10" styleClass="terminal-panel">
+                <VBox spacing="10" styleClass="terminal-panel" alignment="CENTER">
                     <padding>
                         <Insets top="10" right="10" bottom="10" left="10"/>
                     </padding>
@@ -184,14 +203,11 @@
                     <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="terminal-header">
                         <Label text="Torrent Details" styleClass="terminal-title"/>
                         <Region HBox.hgrow="ALWAYS"/>
-                        <Button text="View Files" fx:id="viewFilesButton" styleClass="console-button"/>
-                        <Button text="View Trackers" fx:id="viewTrackersButton" styleClass="console-button"/>
-                        <Button text="View Peers" fx:id="viewPeersButton" styleClass="console-button"/>
                     </HBox>
 
                     <TabPane fx:id="detailsTabPane" VBox.vgrow="ALWAYS">
                         <Tab text="General" closable="false">
-                            <GridPane hgap="15" vgap="10">
+                            <GridPane hgap="15" vgap="10" alignment="CENTER">
                                 <padding>
                                     <Insets top="10" right="10" bottom="10" left="10"/>
                                 </padding>
@@ -212,7 +228,8 @@
 
                                 <Label text="Creation Date:" GridPane.columnIndex="0" GridPane.rowIndex="2"
                                        styleClass="detail-label"/>
-                                <Label fx:id="creationDateLabel" text="N/A" GridPane.columnIndex="1" GridPane.rowIndex="2"
+                                <Label fx:id="creationDateLabel" text="N/A" GridPane.columnIndex="1"
+                                       GridPane.rowIndex="2"
                                        styleClass="detail-value"/>
 
                                 <Label text="Added On:" GridPane.columnIndex="0" GridPane.rowIndex="3"
@@ -222,7 +239,8 @@
 
                                 <Label text="Last Activity:" GridPane.columnIndex="0" GridPane.rowIndex="4"
                                        styleClass="detail-label"/>
-                                <Label fx:id="lastActivityLabel" text="N/A" GridPane.columnIndex="1" GridPane.rowIndex="4"
+                                <Label fx:id="lastActivityLabel" text="N/A" GridPane.columnIndex="1"
+                                       GridPane.rowIndex="4"
                                        styleClass="detail-value"/>
 
                                 <Label text="Time Active:" GridPane.columnIndex="0" GridPane.rowIndex="5"
@@ -246,7 +264,8 @@
 
                                 <Label text="Connections:" GridPane.columnIndex="0" GridPane.rowIndex="8"
                                        styleClass="detail-label"/>
-                                <Label fx:id="connectionsLabel" text="N/A" GridPane.columnIndex="1" GridPane.rowIndex="8"
+                                <Label fx:id="connectionsLabel" text="N/A" GridPane.columnIndex="1"
+                                       GridPane.rowIndex="8"
                                        styleClass="detail-value"/>
                             </GridPane>
                         </Tab>
@@ -256,9 +275,9 @@
                                     <TableColumn fx:id="trackerUrlColumn" text="URL" prefWidth="400"/>
                                     <TableColumn fx:id="trackerStatusColumn" text="Status" prefWidth="100"/>
                                     <TableColumn fx:id="trackerTierColumn" text="Tier" prefWidth="50"/>
-                                    <TableColumn fx:id="trackerPeersColumn" text="Peers" prefWidth="80"/>
-                                    <TableColumn fx:id="trackerSeedsColumn" text="Seeds" prefWidth="80"/>
-                                    <TableColumn fx:id="trackerLeechesColumn" text="Leeches" prefWidth="80"/>
+                                    <TableColumn fx:id="trackerPeersColumn" text="Peers"/>
+                                    <TableColumn fx:id="trackerSeedsColumn" text="Seeds"/>
+                                    <TableColumn fx:id="trackerLeechesColumn" text="Leeches"/>
                                 </columns>
                             </TableView>
                         </Tab>

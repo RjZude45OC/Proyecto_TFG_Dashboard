@@ -48,30 +48,22 @@ public class jellyseerViewModel implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        // Initialize the WebEngine
         webEngine = webView.getEngine();
-        loadUrl("http://192.168.30.2:5055/");
-        // Set up URL field to trigger navigation on Enter key
         urlField.setOnAction(event -> handleNavigate());
 
-        // Configure WebEngine load state listeners
         configureLoadStateListeners();
 
-        // Configure history state listeners for back/forward buttons
         configureHistoryStateListeners();
     }
 
     @FXML
     public void handleNavigate() {
         String url = urlField.getText().trim();
-
-        // Add https:// prefix if protocol is missing
         if (!url.isEmpty() && !url.matches("^[a-zA-Z]+://.*")) {
             url = "http://" + url;
             urlField.setText(url);
         }
 
-        // Load the URL if not empty
         if (!url.isEmpty()) {
             loadUrl(url);
         }
@@ -126,7 +118,6 @@ public class jellyseerViewModel implements Initializable {
                     System.err.println("Error loading page:");
                     if (exception != null) {
                         exception.printStackTrace();
-                        // Display more user-friendly error message
                         String errorMsg = "Failed to load: " + exception.getMessage();
                         statusLabel.setText(errorMsg);
                     } else {
@@ -135,13 +126,11 @@ public class jellyseerViewModel implements Initializable {
                     }
                     System.err.println("URL tried: " + webEngine.getLocation());
 
-                    // Try to diagnose common issues
                     try {
                         URL url = new URL(webEngine.getLocation());
                         InetAddress address = InetAddress.getByName(url.getHost());
                         System.out.println("IP address: " + address.getHostAddress());
 
-                        // Try to check if port is reachable (may not work in all environments)
                         try (Socket socket = new Socket()) {
                             socket.connect(new InetSocketAddress(url.getHost(), url.getPort() == -1 ? 80 : url.getPort()), 3000);
                             System.out.println("Port is reachable");

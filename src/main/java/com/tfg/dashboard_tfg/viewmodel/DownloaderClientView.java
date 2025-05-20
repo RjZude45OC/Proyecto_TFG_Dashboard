@@ -18,8 +18,10 @@ import javafx.scene.control.cell.ProgressBarTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.util.Callback;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -45,7 +47,6 @@ public class DownloaderClientView implements Initializable {
     @FXML
     private ToggleButton autoRefreshToggle;
 
-    // Stats fields
     @FXML
     private Label activeTorrentsLabel;
     @FXML
@@ -73,13 +74,11 @@ public class DownloaderClientView implements Initializable {
     @FXML
     private Label lastUpdateLabel;
 
-    // Charts
     @FXML
     private LineChart<String, Number> speedHistoryChart;
     @FXML
     private PieChart storageChart;
 
-    // Tables
     @FXML
     private TableView<TorrentData> torrentTable;
     @FXML
@@ -101,7 +100,6 @@ public class DownloaderClientView implements Initializable {
     @FXML
     private TableColumn<TorrentData, String> actionsColumn;
 
-    // Details tabs and fields
     @FXML
     private TabPane detailsTabPane;
     @FXML
@@ -127,7 +125,6 @@ public class DownloaderClientView implements Initializable {
     @FXML
     private Button setUploadLimitButton;
 
-    // Trackers table
     @FXML
     private TableView<TrackerData> trackersTable;
     @FXML
@@ -143,7 +140,6 @@ public class DownloaderClientView implements Initializable {
     @FXML
     private TableColumn<TrackerData, Integer> trackerLeechesColumn;
 
-    // Files table
     @FXML
     private TableView<FileData> filesTable;
     @FXML
@@ -155,7 +151,6 @@ public class DownloaderClientView implements Initializable {
     @FXML
     private TableColumn<FileData, String> filePriorityColumn;
 
-    // Peers table
     @FXML
     private TableView<PeerData> peersTable;
     @FXML
@@ -171,42 +166,43 @@ public class DownloaderClientView implements Initializable {
     @FXML
     private TableColumn<PeerData, Double> peerRelevanceColumn;
 
-    // Filter combo
     @FXML
     private ComboBox<String> statusFilter;
 
-    // Data collections
     private final ObservableList<TorrentData> torrents = FXCollections.observableArrayList();
     private final ObservableList<TrackerData> trackers = FXCollections.observableArrayList();
     private final ObservableList<FileData> files = FXCollections.observableArrayList();
     private final ObservableList<PeerData> peers = FXCollections.observableArrayList();
 
-    // Chart data
     private XYChart.Series<String, Number> downloadSeries;
     private XYChart.Series<String, Number> uploadSeries;
     private static final int MAX_DATA_POINTS = 20;
     private final Queue<String> timeLabels = new LinkedList<>();
 
-    // Properties
-    private final BooleanProperty connected = new SimpleBooleanProperty(false);
-    private final StringProperty selectedTorrentHash = new SimpleStringProperty();
-
-    // Utility
     private ScheduledExecutorService scheduler;
     private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
-
-    // Mock API service - would be replaced with actual API client
     private QbittorrentApiClient apiClient;
 
+    private final BooleanProperty connected = new SimpleBooleanProperty(false);
+    private final StringProperty selectedTorrentHash = new SimpleStringProperty();
+    private final Properties appProperties = new Properties();
+    private final File configFile = new File("connection.properties");
+
+    public void loadProperties() {
+        try (FileInputStream fis = new FileInputStream(configFile)) {
+            appProperties.load(fis);
+        } catch (IOException e) {
+            System.err.println("Failed to load config: " + e.getMessage());
+        }
+    }
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         apiClient = new QbittorrentApiClient();
+        loadProperties();
 
-        // Initialize connection settings
-        hostField.setText("http://localhost:8080");
+        hostField.setText(appProperties.getProperty("qbittorrent-url"));
         connectButton.setOnAction(event -> connectToClient());
 
-        // Setup binding for connection status
         clientStatusLabel.textProperty().bind(
                 Bindings.when(connected)
                         .then("Connected")
@@ -218,21 +214,17 @@ public class DownloaderClientView implements Initializable {
                         .otherwise("-fx-text-fill: red;")
         );
 
-        // Initialize charts
         initializeCharts();
 
-        // Initialize tables
         initializeTorrentTable();
         initializeTrackerTable();
         initializeFileTable();
         initializePeerTable();
 
-        // Setup status filter
         statusFilter.getSelectionModel().selectedItemProperty().addListener(
                 (observable, oldValue, newValue) -> filterTorrents(newValue)
         );
 
-        // Setup selected torrent listener
         torrentTable.getSelectionModel().selectedItemProperty().addListener(
                 (obs, oldSelection, newSelection) -> {
                     if (newSelection != null) {
@@ -242,13 +234,12 @@ public class DownloaderClientView implements Initializable {
                 }
         );
 
-        // Setup actions for detail buttons
         setDownloadLimitButton.setOnAction(e -> showSpeedLimitDialog("download"));
         setUploadLimitButton.setOnAction(e -> showSpeedLimitDialog("upload"));
     }
 
     private void initializeCharts() {
-        // Initialize speed history chart
+
         downloadSeries = new XYChart.Series<>();
         downloadSeries.setName("Download");
 
@@ -258,7 +249,6 @@ public class DownloaderClientView implements Initializable {
         speedHistoryChart.getData().add(downloadSeries);
         speedHistoryChart.getData().add(uploadSeries);
 
-        // Initialize storage chart
         ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList(
                 new PieChart.Data("Free", 100),
                 new PieChart.Data("Used", 0)
@@ -267,7 +257,7 @@ public class DownloaderClientView implements Initializable {
     }
 
     private void initializeTorrentTable() {
-        // Configure torrent table columns
+
         nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
         sizeColumn.setCellValueFactory(new PropertyValueFactory<>("size"));
         progressColumn.setCellValueFactory(new PropertyValueFactory<>("progress"));
@@ -278,16 +268,15 @@ public class DownloaderClientView implements Initializable {
         etaColumn.setCellValueFactory(new PropertyValueFactory<>("eta"));
         ratioColumn.setCellValueFactory(new PropertyValueFactory<>("ratio"));
 
-        // Configure actions column with buttons
         actionsColumn.setCellFactory(param -> new TableCell<>() {
             private final Button pauseButton = new Button("Pause");
             private final Button resumeButton = new Button("Resume");
             private final Button deleteButton = new Button("Delete");
 
             {
-                pauseButton.getStyleClass().add("small-button");
-                resumeButton.getStyleClass().add("small-button");
-                deleteButton.getStyleClass().add("delete-button");
+                pauseButton.getStyleClass().add("table-button");
+                resumeButton.getStyleClass().add("table-button");
+                deleteButton.getStyleClass().add("table-button");
 
                 pauseButton.setOnAction(event -> {
                     TorrentData torrent = getTableView().getItems().get(getIndex());
@@ -370,14 +359,12 @@ public class DownloaderClientView implements Initializable {
         String username = usernameField.getText();
         String password = passwordField.getText();
 
-        // Attempt to connect
         boolean success = apiClient.login(host, username, password);
 
         if (success) {
             connected.set(true);
             updateUI();
 
-            // Start auto-refresh if enabled
             if (autoRefreshToggle.isSelected()) {
                 startAutoRefresh();
             }
@@ -417,27 +404,21 @@ public class DownloaderClientView implements Initializable {
             return;
         }
 
-        // Create a dialog for adding torrents
         Dialog<String> dialog = new Dialog<>();
         dialog.setTitle("Add Torrent");
         dialog.setHeaderText("Enter magnet link or torrent URL");
 
-        // Set the button types
         ButtonType addButtonType = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
 
-        // Create the torrent URL field
         TextField urlField = new TextField();
         urlField.setPromptText("Magnet link or URL");
         urlField.setPrefWidth(400);
 
-        // Layout
         dialog.getDialogPane().setContent(urlField);
 
-        // Request focus on the URL field by default
         Platform.runLater(urlField::requestFocus);
 
-        // Convert the result
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == addButtonType) {
                 return urlField.getText();
@@ -445,7 +426,6 @@ public class DownloaderClientView implements Initializable {
             return null;
         });
 
-        // Show the dialog and process the result
         Optional<String> result = dialog.showAndWait();
         result.ifPresent(url -> {
             if (!url.isEmpty()) {
@@ -470,7 +450,6 @@ public class DownloaderClientView implements Initializable {
         alert.setHeaderText("Delete Torrent");
         alert.setContentText("Are you sure you want to delete '" + torrent.getName() + "'?\n\nCheck to also delete files from disk:");
 
-        // Add checkbox for deleting files
         CheckBox deleteFiles = new CheckBox("Delete Files");
         alert.getDialogPane().setContent(deleteFiles);
 
@@ -494,26 +473,20 @@ public class DownloaderClientView implements Initializable {
 
         String title = type.equals("download") ? "Set Download Limit" : "Set Upload Limit";
 
-        // Create a dialog for setting speed limit
         Dialog<String> dialog = new Dialog<>();
         dialog.setTitle(title);
         dialog.setHeaderText("Enter speed limit in KiB/s (0 for unlimited)");
 
-        // Set the button types
         ButtonType setButtonType = new ButtonType("Set", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(setButtonType, ButtonType.CANCEL);
 
-        // Create the limit field
         TextField limitField = new TextField();
         limitField.setPromptText("KiB/s");
 
-        // Layout
         dialog.getDialogPane().setContent(limitField);
 
-        // Request focus on the limit field by default
         Platform.runLater(limitField::requestFocus);
 
-        // Convert the result
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == setButtonType) {
                 return limitField.getText();
@@ -521,7 +494,6 @@ public class DownloaderClientView implements Initializable {
             return null;
         });
 
-        // Show the dialog and process the result
         Optional<String> result = dialog.showAndWait();
         result.ifPresent(limit -> {
             try {
@@ -535,7 +507,6 @@ public class DownloaderClientView implements Initializable {
                 }
 
                 if (success) {
-                    // Update the torrent details to reflect the new limit
                     loadTorrentDetails(torrentTable.getSelectionModel().getSelectedItem());
                 } else {
                     showAlert(Alert.AlertType.ERROR, "Error",
@@ -575,7 +546,6 @@ public class DownloaderClientView implements Initializable {
             return;
         }
 
-        // Update global stats
         TransferStats stats = apiClient.getTransferInfo();
         downloadSpeedLabel.setText(formatSpeed(stats.getDownloadSpeed()));
         uploadSpeedLabel.setText(formatSpeed(stats.getUploadSpeed()));
@@ -585,19 +555,15 @@ public class DownloaderClientView implements Initializable {
         allTimeUploadLabel.setText(formatSize(stats.getAllTimeUploaded()));
         ratioLabel.setText(String.format("%.2f", stats.getRatio()));
 
-        // Update storage info
-        StorageInfo storage = apiClient.getStorageInfo();
-        freeSpaceLabel.setText("Free: " + formatSize(storage.getFreeSpace()));
-        usedSpaceLabel.setText("Used: " + formatSize(storage.getUsedSpace()));
+        ProcessedData data = DashboardController.processedData;
+        freeSpaceLabel.setText("Free: " + String.format("%.2f", data.storageFreeSpace) + " GB");
+        usedSpaceLabel.setText("Used: " + String.format("%.2f", data.storageUsedSpace) + " GB");
 
-        // Update pie chart
-        updateStorageChart(storage);
+        updateStorageChart(data);
 
-        // Update version info
         String version = apiClient.getApiVersion();
         qbittorrentVersionLabel.setText("Version: " + version);
 
-        // Update torrents
         List<TorrentData> torrentList = apiClient.getTorrents();
         int activeCount = 0;
         for (TorrentData torrent : torrentList) {
@@ -609,32 +575,25 @@ public class DownloaderClientView implements Initializable {
         activeTorrentsLabel.setText(String.valueOf(activeCount));
         totalTorrentsLabel.setText(String.valueOf(torrentList.size()));
 
-        // Update torrent table
         torrents.setAll(torrentList);
 
-        // Apply filter if one is selected
         String filter = statusFilter.getValue();
         if (filter != null && !filter.equals("All")) {
             filterTorrents(filter);
         }
 
-        // Update speed history chart
         updateSpeedChart(stats.getDownloadSpeed(), stats.getUploadSpeed());
 
-        // Update the last updated time
         lastUpdateLabel.setText("Last update: " + LocalDateTime.now().format(timeFormatter));
     }
 
     private void updateSpeedChart(long downloadSpeed, long uploadSpeed) {
-        // Add current time to labels
         String timeLabel = LocalDateTime.now().format(timeFormatter);
         timeLabels.add(timeLabel);
 
-        // Add new data points
         downloadSeries.getData().add(new XYChart.Data<>(timeLabel, downloadSpeed / 1024.0));
         uploadSeries.getData().add(new XYChart.Data<>(timeLabel, uploadSpeed / 1024.0));
 
-        // Ensure we don't exceed max data points
         if (timeLabels.size() > MAX_DATA_POINTS) {
             timeLabels.remove();
             downloadSeries.getData().remove(0);
@@ -642,13 +601,9 @@ public class DownloaderClientView implements Initializable {
         }
     }
 
-    private void updateStorageChart(StorageInfo storage) {
-        double total = storage.getFreeSpace() + storage.getUsedSpace();
-        double freePercentage = (storage.getFreeSpace() / total) * 100;
-        double usedPercentage = (storage.getUsedSpace() / total) * 100;
-
-        storageChart.getData().get(0).setPieValue(freePercentage);
-        storageChart.getData().get(1).setPieValue(usedPercentage);
+    private void updateStorageChart(ProcessedData data) {
+        storageChart.getData().get(0).setPieValue(100-data.storagePercentage);
+        storageChart.getData().get(1).setPieValue(data.storagePercentage);
     }
 
     private void loadTorrentDetails(TorrentData torrent) {
@@ -656,7 +611,6 @@ public class DownloaderClientView implements Initializable {
             return;
         }
 
-        // Load general info
         TorrentDetails details = apiClient.getTorrentDetails(torrent.getHash());
         hashLabel.setText(details.getHash());
         savePathLabel.setText(details.getSavePath());
@@ -668,15 +622,12 @@ public class DownloaderClientView implements Initializable {
         uploadLimitLabel.setText(formatSpeed(details.getUploadLimit()) + "/s");
         connectionsLabel.setText(String.valueOf(details.getConnections()));
 
-        // Load trackers
         List<TrackerData> trackerList = apiClient.getTorrentTrackers(torrent.getHash());
         trackers.setAll(trackerList);
 
-        // Load files
         List<FileData> fileList = apiClient.getTorrentFiles(torrent.getHash());
         files.setAll(fileList);
 
-        // Load peers
         List<PeerData> peerList = apiClient.getTorrentPeers(torrent.getHash());
         peers.setAll(peerList);
     }

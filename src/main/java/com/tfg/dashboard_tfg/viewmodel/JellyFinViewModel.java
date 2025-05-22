@@ -130,9 +130,6 @@ public class JellyFinViewModel implements Initializable {
     private boolean propertiesLoaded = false;
     private JSONObject systeminfo;
 
-    /**
-     * Loads application properties from the properties file if not already loaded
-     */
     private void loadPropertiesIfNeeded() {
         if (propertiesLoaded) {
             return;

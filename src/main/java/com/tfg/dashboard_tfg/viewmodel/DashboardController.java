@@ -70,6 +70,14 @@ public class DashboardController {
     private String dockerApiUrl;
     public static ProcessedData processedData = new ProcessedData();
 
+    private Tile expandedTile = null;
+    private GridPane originalParent = null;
+    private int originalColIndex = 0;
+    private int originalRowIndex = 0;
+    private Node[] hiddenTiles = null;
+
+
+    //load property
     public void loadProperties() {
         try (FileInputStream fis = new FileInputStream(configFile)) {
             appProperties.load(fis);
@@ -77,7 +85,7 @@ public class DashboardController {
             System.err.println("Failed to load config: " + e.getMessage());
         }
     }
-
+    //apply property
     public void applySettings(String newApiUrl) {
         if (!newApiUrl.startsWith("http://") && !newApiUrl.startsWith("https://")) {
             newApiUrl = "http://" + newApiUrl;
@@ -89,12 +97,6 @@ public class DashboardController {
             System.err.println("Failed to save config: " + e.getMessage());
         }
     }
-
-    private Tile expandedTile = null;
-    private GridPane originalParent = null;
-    private int originalColIndex = 0;
-    private int originalRowIndex = 0;
-    private Node[] hiddenTiles = null;
 
     private void updateTileColors(boolean isDarkMode) {
         for (Tile tile : tileList) {
@@ -153,6 +155,7 @@ public class DashboardController {
         }
     }
 
+    //<editor-fold desc="Data handling and tiles update">
     private void fetchAndUpdateData() {
         try {
             JSONObject systemData = fetchJsonData();
@@ -467,6 +470,7 @@ public class DashboardController {
             throw new RuntimeException(e);
         }
     }
+    //</editor-fold>
 
     @FXML
     public void onclicktile(MouseEvent event) {
@@ -556,7 +560,7 @@ public class DashboardController {
         expandedTile = null;
         hiddenTiles = null;
     }
-
+    //handle theme change
     private void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
         updateTileColors(newValue);
     }

@@ -9,7 +9,7 @@ public class StreamSession {
     private int progress;
     private int runtime;
     private String resolution;
-    private int bitrate;  // In Mbps
+    private int bitrate;
     private boolean playing;
     private boolean muted;
     private String repeatMode;

@@ -29,13 +29,11 @@ public class IndexerItem {
         this.tagIds = tagIds;
         this.jsonConfig = jsonConfig;
 
-        // Initialize optional fields from jsonConfig if possible
         try {
             JSONObject config = new JSONObject(jsonConfig);
             this.language = config.optString("language", "English");
             this.privacy = config.optString("privacy", "Public");
 
-            // Extract categories if available
             this.categories = new ArrayList<>();
             if (config.has("categories")) {
                 JSONArray categoriesArray = config.getJSONArray("categories");
@@ -44,7 +42,6 @@ public class IndexerItem {
                 }
             }
         } catch (Exception e) {
-            // Default values if parsing fails
             this.language = "English";
             this.privacy = "Public";
             this.categories = new ArrayList<>();

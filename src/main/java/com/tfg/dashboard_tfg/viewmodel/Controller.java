@@ -169,15 +169,12 @@ public class Controller {
     }
 
     // Authentication Methods
-
     public void setIsLoggedIn(boolean value) {
         isLoggedIn.set(value);
     }
 
-    // Add this field to the Controller class
     private String currentUsername = "";
 
-    // Add this method to update the login button text
     public void updateLoginButtonText() {
         if (isLoggedIn.get() && !currentUsername.isEmpty()) {
             loginMenuBtn.setText(currentUsername);
@@ -190,7 +187,7 @@ public class Controller {
         this.currentUsername = username;
     }
 
-    // Theme Methods
+    //<editor-fold desc="Theme Control">
     private void initializeThemeToggle() {
         // Load saved theme preference or use dark theme as default
         boolean savedDarkMode = prefs.getBoolean("darkMode", true);
@@ -292,8 +289,6 @@ public class Controller {
     private void applyLightThemeToButtons() {
         String activeStyle = "-fx-background-color: #e0e0e0; -fx-text-fill: #333333;";
         String inactiveStyle = "-fx-background-color: transparent; -fx-text-fill: #333333;";
-
-        // Get the active button and only apply active style to it
         Button activeButton = getActiveButton();
 
         dashboardBtn.setStyle(activeButton == dashboardBtn ? activeStyle : inactiveStyle);
@@ -316,7 +311,30 @@ public class Controller {
         return dashboardBtn; // Default
     }
 
-    // Navigation Methods
+    private void resetViewStyles() {
+        if (darkMode.get()) {
+            dashboardBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #CDD6F4;");
+            sonarrBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #CDD6F4;");
+            jellyfinBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #CDD6F4;");
+            dockerBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #CDD6F4;");
+            loginMenuBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #CDD6F4;");
+            rssBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #CDD6F4;");
+            DownloadBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #CDD6F4;");
+            JellyseerBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #CDD6F4;");
+        } else {
+            dashboardBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");
+            sonarrBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");
+            jellyfinBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");
+            dockerBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");
+            loginMenuBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");
+            rssBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");
+            DownloadBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");
+            JellyseerBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");
+        }
+    }
+    //</editor-fold>
+
+    //<editor-fold desc="Show view">
     @FXML
     public void showDashboardView() {
         resetViewStyles();
@@ -330,10 +348,10 @@ public class Controller {
 
     @FXML
     public void showSonarrView() {
-//        if (!isLoggedIn.get()) {
-//            showLoginForm();
-//            return;
-//        }
+        if (!isLoggedIn.get()) {
+            showLoginForm();
+            return;
+        }
 
         resetViewStyles();
         if (darkMode.get()) {
@@ -346,10 +364,10 @@ public class Controller {
 
     @FXML
     public void showJellyfinView() {
-//        if (!isLoggedIn.get()) {
-//            showLoginForm();
-//            return;
-//        }
+        if (!isLoggedIn.get()) {
+            showLoginForm();
+            return;
+        }
 
         resetViewStyles();
         if (darkMode.get()) {
@@ -362,10 +380,10 @@ public class Controller {
 
     @FXML
     public void showDockerView() {
-//        if (!isLoggedIn.get()) {
-//            showLoginForm();
-//            return;
-//        }
+        if (!isLoggedIn.get()) {
+            showLoginForm();
+            return;
+        }
 
         resetViewStyles();
         if (darkMode.get()) {
@@ -378,10 +396,10 @@ public class Controller {
 
     @FXML
     public void showRssView() {
-//        if (!isLoggedIn.get()) {
-//            showLoginForm();
-//            return;
-//        }
+        if (!isLoggedIn.get()) {
+            showLoginForm();
+            return;
+        }
 
         resetViewStyles();
         if (darkMode.get()) {
@@ -394,10 +412,10 @@ public class Controller {
 
     @FXML
     public void showDownloadView() {
-//        if (!isLoggedIn.get()) {
-//            showLoginForm();
-//            return;
-//        }
+        if (!isLoggedIn.get()) {
+            showLoginForm();
+            return;
+        }
 
         resetViewStyles();
         if (darkMode.get()) {
@@ -422,18 +440,20 @@ public class Controller {
 
     @FXML
     public void showLoginForm() {
+
         // If already logged in, this is a logout action
         if (isLoggedIn.get()) {
             // Log out the user
             setIsLoggedIn(false);
             setCurrentUsername("");
             updateLoginButtonText();
-            // Now show the dashboard rather than the login form
+
+            // redirect to dashboard view
             showDashboardView();
             return;
         }
 
-        // If not logged in, proceed with normal login form display
+        // If not logged in, show login view
         resetViewStyles();
         if (darkMode.get()) {
             loginMenuBtn.setStyle("-fx-background-color: #2e2e42; -fx-text-fill: #CDD6F4;");
@@ -443,7 +463,6 @@ public class Controller {
         setViewVisibility(loginView);
     }
 
-    // Add method to show register form
     @FXML
     public void showRegisterForm() {
         resetViewStyles();
@@ -454,33 +473,8 @@ public class Controller {
         }
         setViewVisibility(registerView);
     }
-
-    // Utility Methods
-    private void resetViewStyles() {
-        // Reset all button styles based on current theme
-        if (darkMode.get()) {
-            dashboardBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #CDD6F4;");
-            sonarrBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #CDD6F4;");
-            jellyfinBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #CDD6F4;");
-            dockerBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #CDD6F4;");
-            loginMenuBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #CDD6F4;");
-            rssBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #CDD6F4;");
-            DownloadBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #CDD6F4;");
-            JellyseerBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #CDD6F4;");
-        } else {
-            dashboardBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");
-            sonarrBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");
-            jellyfinBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");
-            dockerBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");
-            loginMenuBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");
-            rssBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");
-            DownloadBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");
-            JellyseerBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #333333;");
-        }
-    }
-
+    //set view all to not visible and set selected view to true
     private void setViewVisibility(AnchorPane activeView) {
-        // Hide all views
         dashboardView.setVisible(false);
         sonarrView.setVisible(false);
         jellyfinView.setVisible(false);
@@ -490,10 +484,12 @@ public class Controller {
         rssView.setVisible(false);
         DownloaderClientView.setVisible(false);
         jellyseerView.setVisible(false);
-        // Show the active view
         activeView.setVisible(true);
     }
+    //</editor-fold>
 
+    //<editor-fold desc="Load View">
+    //load view file from resources and load
     private void loadViews() throws IOException {
         String path = "";
         System.out.println("check null");
@@ -569,6 +565,7 @@ public class Controller {
         });
     }
 
+    //check path
     private void PathCheck(String filePath) throws FileNotFoundException {
         String RESET = "\u001B[0m";
         String RED = "\u001B[31m";
@@ -580,7 +577,10 @@ public class Controller {
             throw new FileNotFoundException("File '" + filePath + "' not found");
         }
     }
+    //</editor-fold>
 
+    //<editor-fold desc="Custom app bar handling">
+    //Custom handle close for app bar
     public void handleClose(ActionEvent actionEvent) {
         Button source = (Button) actionEvent.getSource();
         Stage stage = (Stage) source.getScene().getWindow();
@@ -598,7 +598,7 @@ public class Controller {
             System.out.println("full screen");
         }
     }
-
+    //Custom handle resize for app bar
     private void setupResizeListeners() {
         rootPane.setOnMouseMoved(event -> {
             double x = event.getX();
@@ -643,7 +643,7 @@ public class Controller {
 
             Cursor cursor = rootPane.getCursor();
 
-            // Store initial values before any changes
+            // Store initial values
             double initialX = stage.getX();
             double initialY = stage.getY();
             double initialWidth = stage.getWidth();
@@ -712,4 +712,5 @@ public class Controller {
             mouseY = event.getScreenY();
         });
     }
+    //</editor-fold>
 }

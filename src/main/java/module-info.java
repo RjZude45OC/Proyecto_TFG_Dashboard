@@ -5,11 +5,11 @@ module com.tfg.dashboard_tfg {
 
     requires org.controlsfx.controls;
     requires com.dlsc.formsfx;
-//    icon pack
+    //icon pack
     requires org.kordamp.ikonli.javafx;
     requires org.kordamp.bootstrapfx.core;
 
-//    graph pack
+    //graph pack
     requires eu.hansolo.tilesfx;
     requires java.prefs;
     requires org.json;

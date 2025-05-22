@@ -25,9 +25,6 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-/**
- * Client for interacting with the qBittorrent Web API
- */
 public class QbittorrentApiClient {
 
     private static final String API_PATH = "/api/v2";
@@ -54,20 +51,12 @@ public class QbittorrentApiClient {
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public QbittorrentApiClient() {
-        // Initialize cookie manager for session handling
+        //session handling
         cookieManager = new CookieManager();
         cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
         CookieHandler.setDefault(cookieManager);
     }
 
-    /**
-     * Login to qBittorrent Web API
-     *
-     * @param host     API host URL
-     * @param username Username for login
-     * @param password Password for login
-     * @return true if login was successful
-     */
     public boolean login(String host, String username, String password) {
         this.baseUrl = host.endsWith("/") ? host.substring(0, host.length() - 1) : host;
 
@@ -98,11 +87,6 @@ public class QbittorrentApiClient {
         return false;
     }
 
-    /**
-     * Logout from qBittorrent Web API
-     *
-     * @return true if logout was successful
-     */
     public boolean logout() {
         if (!isLoggedIn) {
             return false;
@@ -125,11 +109,6 @@ public class QbittorrentApiClient {
         return false;
     }
 
-    /**
-     * Get list of torrents
-     *
-     * @return List of torrent data
-     */
     public List<TorrentData> getTorrents() {
         if (!isLoggedIn) {
             return new ArrayList<>();
@@ -147,7 +126,6 @@ public class QbittorrentApiClient {
                 try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
                     String response = in.lines().collect(Collectors.joining());
 
-                    // Simple JSON parsing - in a real app use a JSON library
                     String[] torrents = response.split("\\},\\{");
                     for (String torrent : torrents) {
                         torrent = torrent.replace("[{", "").replace("}]", "");
@@ -205,11 +183,6 @@ public class QbittorrentApiClient {
         return result;
     }
 
-    /**
-     * Get transfer information (speeds, data transferred)
-     *
-     * @return TransferStats object
-     */
     public TransferStats getTransferInfo() {
         if (!isLoggedIn) {
             return new TransferStats();
@@ -250,12 +223,6 @@ public class QbittorrentApiClient {
         return stats;
     }
 
-    /**
-     * Get detailed information about a specific torrent
-     *
-     * @param hash Torrent hash
-     * @return TorrentDetails object
-     */
     public TorrentDetails getTorrentDetails(String hash) {
         if (!isLoggedIn || hash == null) {
             return new TorrentDetails();
@@ -278,7 +245,7 @@ public class QbittorrentApiClient {
 
                     details.setSavePath(getJsonValue(data, "save_path"));
 
-                    // Convert timestamps to readable dates
+                    // Convert timestamps
                     long creation = parseLong(getJsonValue(data, "creation_date"));
                     details.setCreationDate(formatTimestamp(creation));
 
@@ -310,12 +277,6 @@ public class QbittorrentApiClient {
         return details;
     }
 
-    /**
-     * Get list of files for a specific torrent
-     *
-     * @param hash Torrent hash
-     * @return List of FileData objects
-     */
     public List<FileData> getTorrentFiles(String hash) {
         if (!isLoggedIn || hash == null) {
             return new ArrayList<>();
@@ -373,12 +334,6 @@ public class QbittorrentApiClient {
         return result;
     }
 
-    /**
-     * Get list of trackers for a specific torrent
-     *
-     * @param hash Torrent hash
-     * @return List of TrackerData objects
-     */
     public List<TrackerData> getTorrentTrackers(String hash) {
         if (!isLoggedIn || hash == null) {
             return new ArrayList<>();
@@ -439,12 +394,6 @@ public class QbittorrentApiClient {
         return result;
     }
 
-    /**
-     * Get list of peers for a specific torrent
-     *
-     * @param hash Torrent hash
-     * @return List of PeerData objects
-     */
     public List<PeerData> getTorrentPeers(String hash) {
         if (!isLoggedIn || hash == null) {
             return new ArrayList<>();
@@ -462,7 +411,6 @@ public class QbittorrentApiClient {
                 try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
                     String response = in.lines().collect(Collectors.joining());
 
-                    // The peers response is more complex, with a nested structure
                     if (response.contains("\"peers\":")) {
                         response = response.substring(response.indexOf("\"peers\":") + 8);
                         if (response.startsWith("{")) {
@@ -486,11 +434,7 @@ public class QbittorrentApiClient {
                             peer.setProgress(parseDouble(getJsonValue(data, "progress", "0")));
                             peer.setDownloadSpeed(formatSpeed(parseLong(getJsonValue(data, "dl_speed", "0"))));
                             peer.setUploadSpeed(formatSpeed(parseLong(getJsonValue(data, "up_speed", "0"))));
-
-                            // Calculate relevance as a random number between 0 and 1
-                            // In a real implementation, this would be based on piece availability
                             peer.setRelevance(random.nextDouble());
-
                             result.add(peer);
                         }
                     }
@@ -503,12 +447,6 @@ public class QbittorrentApiClient {
         return result;
     }
 
-    /**
-     * Pause a torrent
-     *
-     * @param hash Torrent hash
-     * @return true if successful
-     */
     public boolean pauseTorrent(String hash) {
         if (!isLoggedIn || hash == null) {
             return false;
@@ -537,12 +475,6 @@ public class QbittorrentApiClient {
         return false;
     }
 
-    /**
-     * Resume a torrent
-     *
-     * @param hash Torrent hash
-     * @return true if successful
-     */
     public boolean resumeTorrent(String hash) {
         if (!isLoggedIn || hash == null) {
             return false;
@@ -571,13 +503,6 @@ public class QbittorrentApiClient {
         return false;
     }
 
-    /**
-     * Delete a torrent
-     *
-     * @param hash        Torrent hash
-     * @param deleteFiles Whether to delete files from disk
-     * @return true if successful
-     */
     public boolean deleteTorrent(String hash, boolean deleteFiles) {
         if (!isLoggedIn || hash == null) {
             return false;
@@ -606,12 +531,6 @@ public class QbittorrentApiClient {
         return false;
     }
 
-    /**
-     * Add a new torrent
-     *
-     * @param url URL or magnet link of the torrent
-     * @return true if successful
-     */
     public boolean addTorrent(String url) {
         if (!isLoggedIn || url == null) {
             return false;
@@ -640,13 +559,6 @@ public class QbittorrentApiClient {
         return false;
     }
 
-    /**
-     * Set download limit for a torrent
-     *
-     * @param hash  Torrent hash
-     * @param limit Download speed limit in KB/s (0 for unlimited)
-     * @return true if successful
-     */
     public boolean setTorrentDownloadLimit(String hash, int limit) {
         if (!isLoggedIn || hash == null) {
             return false;
@@ -675,13 +587,6 @@ public class QbittorrentApiClient {
         return false;
     }
 
-    /**
-     * Set upload limit for a torrent
-     *
-     * @param hash  Torrent hash
-     * @param limit Upload speed limit in KB/s (0 for unlimited)
-     * @return true if successful
-     */
     public boolean setTorrentUploadLimit(String hash, int limit) {
         if (!isLoggedIn || hash == null) {
             return false;
@@ -710,11 +615,6 @@ public class QbittorrentApiClient {
         return false;
     }
 
-    /**
-     * Get the qBittorrent API version
-     *
-     * @return Version string
-     */
     public String getApiVersion() {
         if (!isLoggedIn) {
             return "Unknown";

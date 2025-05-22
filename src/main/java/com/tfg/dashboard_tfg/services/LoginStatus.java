@@ -4,7 +4,7 @@ public class LoginStatus {
     private String username;
     private String password;
 
-    // Default constructor required for JSON serialization
+    // Default constructor
     public LoginStatus() {
     }
 

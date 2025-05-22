@@ -175,9 +175,6 @@ public class JellyFinViewModel implements Initializable {
         }
     }
 
-    /**
-     * Saves the current connection properties to the properties file
-     */
     private void saveConnectionProperties() {
         appProperties.setProperty("jellyfin-apiUrl", serverUrl.get() != null ? serverUrl.get() : "");
         appProperties.setProperty("jellyfin-apiKey", apiKey.get() != null ? apiKey.get() : "");
@@ -382,7 +379,7 @@ public class JellyFinViewModel implements Initializable {
                     refreshServerStatus();
                 } else {
                     serverStatusLabel.textProperty().unbind();
-                    serverStatusLabel.styleProperty().unbind(); // Unbind the style property
+                    serverStatusLabel.styleProperty().unbind();
                     serverStatusLabel.setText("Failed");
                     serverStatusLabel.setStyle("-fx-text-fill: red;");
                     addLogEntry("Error", "Connection", result);
@@ -391,9 +388,6 @@ public class JellyFinViewModel implements Initializable {
         }, Platform::runLater);
     }
 
-    /**
-     * Toggle auto-refresh functionality
-     */
     @FXML
     private void toggleAutoRefresh() {
         if (autoRefreshToggle.isSelected()) {
@@ -1085,7 +1079,7 @@ public class JellyFinViewModel implements Initializable {
                                     session.setResolution(width > 0 && height > 0 ? width + "x" + height : "Unknown");
 
                                     session.setCodec(stream.optString("Codec", "Unknown"));
-                                    session.setBitrate(Math.round(stream.optInt("BitRate", 0) / 1000000.0f)); // Convert to Mbps
+                                    session.setBitrate(Math.round(stream.optInt("BitRate", 0) / 1000000.0f));
                                     session.setFrameRate(stream.optDouble("RealFrameRate", 0));
                                     session.setVideoRange(stream.optString("VideoRange", "Unknown"));
                                     break;

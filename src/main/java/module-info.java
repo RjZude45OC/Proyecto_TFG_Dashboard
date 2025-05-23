@@ -15,7 +15,15 @@ module com.tfg.dashboard_tfg {
     requires org.json;
     requires java.net.http;
     requires com.fasterxml.jackson.databind;
-    requires jsch;
+    requires com.jcraft.jsch;
+    requires com.fasterxml.jackson.annotation;
+    requires com.fasterxml.jackson.core;
+    requires eu.hansolo.toolbox;
+    requires eu.hansolo.toolboxfx;
+    requires eu.hansolo.fx.countries;
+    requires eu.hansolo.fx.heatmap;
+    requires org.kordamp.ikonli.core;
+    requires org.slf4j;
 
     opens com.tfg.dashboard_tfg to javafx.fxml;
     exports com.tfg.dashboard_tfg;

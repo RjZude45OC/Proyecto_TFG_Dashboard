@@ -89,7 +89,7 @@ public class Controller {
     private AnchorPane loginView;
 
     @FXML
-    private AnchorPane registerView; // Changed to lowercase for consistency
+    private AnchorPane registerView;
 
     @FXML
     private AnchorPane rssView;
@@ -173,9 +173,10 @@ public class Controller {
         isLoggedIn.set(value);
     }
 
-    private String currentUsername = "";
+    private String currentUsername = "admin";
 
     public void updateLoginButtonText() {
+        isLoggedIn.set(true);
         if (isLoggedIn.get() && !currentUsername.isEmpty()) {
             loginMenuBtn.setText(currentUsername);
         } else {
@@ -518,7 +519,7 @@ public class Controller {
         loginView = loginLoader.load();
 
         //load register view
-        path = "/com/tfg/dashboard_tfg/view/registerView.fxml";
+        path = "/com/tfg/dashboard_tfg/view/RegisterView.fxml";
         FXMLLoader registerLoader = new FXMLLoader(getClass().getResource(path));
         PathCheck(path);
         registerView = registerLoader.load();

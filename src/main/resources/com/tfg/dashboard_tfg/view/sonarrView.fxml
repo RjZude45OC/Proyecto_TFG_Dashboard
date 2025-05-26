@@ -23,7 +23,8 @@
                     <Insets top="15" right="20" bottom="15" left="20"/>
                 </padding>
                 <HBox alignment="CENTER_LEFT" spacing="15.0">
-                    <Text text="Sonarr Monitor" styleClass="header-title"/>
+                    <Label text="Sonarr Manager" styleClass="title"
+                          style="-fx-font-size: 28px; -fx-font-weight: bold;"/>
                     <Region HBox.hgrow="ALWAYS"/>
                     <Label fx:id="serverStatusLabel" text="Not Connected" styleClass="connection-status"/>
                     <Button text="Refresh" onAction="#refreshServerStatus" styleClass="console-button"/>

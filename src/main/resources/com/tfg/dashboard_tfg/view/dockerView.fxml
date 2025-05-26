@@ -24,7 +24,8 @@
                     <Insets top="15" right="20" bottom="15" left="20"/>
                 </padding>
                 <HBox alignment="CENTER_LEFT" spacing="15.0">
-                    <Text text="Docker Manager" styleClass="header-title"/>
+                    <Label text="Docker Manager" styleClass="title"
+                          style="-fx-font-size: 28px; -fx-font-weight: bold;"/>
                     <Region HBox.hgrow="ALWAYS"/>
                     <Label fx:id="connectionStatusLabel" text="Not Connected" styleClass="connection-status"/>
                     <Button text="Refresh" onAction="#refreshContainers" styleClass="console-button"/>

@@ -27,7 +27,8 @@
                     <Insets top="5" right="20" bottom="5" left="20"/>
                 </padding>
                 <HBox alignment="CENTER_LEFT" spacing="15.0">
-                    <Text text="qBittorrent Manager" styleClass="header-title"/>
+                    <Label text="qBittorrent Manager" styleClass="title"
+                          style="-fx-font-size: 28px; -fx-font-weight: bold;"/>
                     <Region HBox.hgrow="ALWAYS"/>
                     <Label fx:id="clientStatusLabel" text="Not Connected" styleClass="connection-status"/>
                     <Button text="Refresh" onAction="#refreshClientStatus" styleClass="console-button"/>

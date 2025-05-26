@@ -9,7 +9,6 @@
            fx:controller="com.tfg.dashboard_tfg.viewmodel.DashboardController"
            prefHeight="700.0">
     <AnchorPane>
-
         <VBox spacing="20.0"
               AnchorPane.bottomAnchor="20.0"
               AnchorPane.leftAnchor="20.0"
@@ -20,11 +19,10 @@
               styleClass="view"
         >
 
-            <Label text="Dashboard"
+            <Label text="Dashboard" styleClass="title"
                    style="-fx-font-size: 28px; -fx-font-weight: bold;">
             </Label>
 
-            <!-- API URL Configuration -->
             <HBox spacing="10.0" alignment="CENTER_LEFT">
                 <Label text="API URL:" style="-fx-font-weight: bold;"/>
                 <TextField fx:id="apiUrlField" promptText="Enter API base URL" HBox.hgrow="ALWAYS"/>

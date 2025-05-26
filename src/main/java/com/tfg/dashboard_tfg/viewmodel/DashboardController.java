@@ -116,6 +116,7 @@ public class DashboardController {
                 tile.setValueColor(Color.web("#bcc0cc"));
                 tile.setDescriptionColor(Color.web("#bcc0cc"));
                 tile.setUnitColor(Color.web("#bcc0cc"));
+                tile.setTextColor(Color.web("#bcc0cc"));
             } else {
                 tile.setBackgroundColor(Color.web("#DADADC"));
                 tile.setBarColor(Color.web("#5c5f77"));
@@ -124,6 +125,7 @@ public class DashboardController {
                 tile.setValueColor(Color.web("#5c5f77"));
                 tile.setDescriptionColor(Color.web("#5c5f77"));
                 tile.setUnitColor(Color.web("#5c5f77"));
+                tile.setTextColor(Color.web("#5c5f77"));
             }
         }
     }
@@ -488,7 +490,7 @@ public class DashboardController {
         dockerStatusTile.setDescription("Docker Usage: " + String.format("%.2f", data.dockerUsage) + "%");
 
         uptimeTile.setText(String.valueOf(data.uptime));
-        uptimeTile.setDescription("Server Is");
+        uptimeTile.setDescription("Server Runtime");
 
         jellyfinStatusTile.setActive(data.jellyfinActive);
         if (data.jellyfinActive) {

@@ -283,7 +283,9 @@ public class DashboardController {
             statusLabel.setTextFill(Color.web("#dc3545"));
         }
         int portNum = 2375;
-        dockerApiUrl = "http://" + url + ":" + portNum;
+        if (!url.startsWith("http:// ")){
+            dockerApiUrl = "http://" + url + ":" + portNum;
+        }
         String uptime = "";
         try {
             URL dockerUrl = new URL(dockerApiUrl + apiPath);

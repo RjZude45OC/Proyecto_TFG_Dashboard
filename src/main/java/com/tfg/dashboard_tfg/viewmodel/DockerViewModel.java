@@ -2,14 +2,18 @@ package com.tfg.dashboard_tfg.viewmodel;
 
 import eu.hansolo.tilesfx.Tile;
 import eu.hansolo.tilesfx.TileBuilder;
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
+import javafx.util.Duration;
 import org.json.JSONObject;
 
 
@@ -53,12 +57,14 @@ public class DockerViewModel {
     private ListView commandHistoryList;
 
     private final Properties appProperties = new Properties();
-    private final File configFile = new File("connection.properties");
     private String url;
     private List<String> commandList = new ArrayList<>();
+    private static final String PROPERTIES_FILE = "connection.properties";
+    private final StringProperty serverUrl = new SimpleStringProperty("");
+    private final StringProperty serverPort = new SimpleStringProperty("");
 
     public void loadProperties() {
-        try (FileInputStream fis = new FileInputStream(configFile)) {
+        try (FileInputStream fis = new FileInputStream(PROPERTIES_FILE)) {
             appProperties.load(fis);
         } catch (IOException e) {
             System.err.println("Failed to load config: " + e.getMessage());
@@ -125,12 +131,12 @@ public class DockerViewModel {
                 cliInput.setText((String) newVal);
             }
         });
-
+        setupTextFieldBindings();
     }
 
     private void connectToDockerAPI() {
-        String host = serverHostField.getText().trim();
-        String port = serverPortField.getText().trim();
+        String host = serverUrl.getValue().trim();
+        String port = serverPort.getValue().trim();
 
         if (host.isEmpty()) {
             if (url.isEmpty()) {
@@ -158,6 +164,7 @@ public class DockerViewModel {
             dockerApiUrl = host + ":" + portNum;
         }
         connectionStatusLabel.setText("Testing connection to Docker API...");
+        connectionStatusLabel.setStyle("-fx-text-fill: orange;");
 
         new Thread(() -> {
             try {
@@ -169,17 +176,20 @@ public class DockerViewModel {
                 int responseCode = connection.getResponseCode();
                 if (responseCode == 200) {
                     Platform.runLater(() -> {
-                        connectionStatusLabel.setText("Connected to Docker API at " + dockerApiUrl);
+                        connectionStatusLabel.setText("Connected to Docker API");
+                        connectionStatusLabel.setTextFill(Color.web("#28a745"));
                         refreshContainers();
                     });
                 } else {
                     Platform.runLater(() -> {
                         connectionStatusLabel.setText("API Error: HTTP " + responseCode);
+                        connectionStatusLabel.setTextFill(Color.web("#dc3545"));
                     });
                 }
             } catch (Exception e) {
                 Platform.runLater(() -> {
                     connectionStatusLabel.setText("Connection error: " + e.getMessage());
+                    connectionStatusLabel.setTextFill(Color.web("#dc3545"));
                 });
             }
         }).start();
@@ -200,7 +210,47 @@ public class DockerViewModel {
 
         cliInput.clear();
     }
+    private void setupTextFieldBindings() {
+        serverHostField.textProperty().bindBidirectional(serverUrl);
+        serverPortField.textProperty().bindBidirectional(serverPort);
 
+        serverHostField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+            if (wasFocused && !isNowFocused) {
+                String url = serverUrl.get().trim();
+                if (!url.isEmpty() && !url.toLowerCase().startsWith("http://") && !url.toLowerCase().startsWith("https://")) {
+                    url = "http://" + url;
+                    serverUrl.set(url);
+                }
+                updateProperty("dockerApi", serverUrl.get());
+            }
+        });
+
+        serverPortField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+            if (wasFocused && !isNowFocused) {
+                updateProperty("dockerPort", serverPort.get());
+            }
+        });
+    }
+    public void updateProperty(String key, String value) {
+        loadProperties();
+        appProperties.setProperty(key, value);
+        try (FileOutputStream out = new FileOutputStream(PROPERTIES_FILE)) {
+            appProperties.store(out, "Updated by user");
+            PauseTransition pause = new PauseTransition(Duration.seconds(2));
+            pause.setOnFinished(event -> {
+                connectionStatusLabel.setText("Updated property");
+                connectionStatusLabel.setTextFill(Color.web("#28a745"));
+            });
+            pause.play();
+        } catch (IOException e) {
+            PauseTransition pause = new PauseTransition(Duration.seconds(2));
+            pause.setOnFinished(event -> {
+                connectionStatusLabel.setText("Error updating property " + e.getMessage());
+                connectionStatusLabel.setTextFill(Color.web("#dc3545"));
+            });
+            pause.play();
+        }
+    }
     private void executeDockerAPICommand(String command) {
         new Thread(() -> {
             try {

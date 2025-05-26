@@ -2,25 +2,25 @@ package com.tfg.dashboard_tfg.viewmodel;
 
 import com.tfg.dashboard_tfg.model.NetworkData;
 import com.tfg.dashboard_tfg.model.ProcessedData;
-import eu.hansolo.tilesfx.Section;
 import eu.hansolo.tilesfx.Tile;
 import eu.hansolo.tilesfx.chart.ChartData;
-import eu.hansolo.tilesfx.chart.RadarChart;
 import eu.hansolo.tilesfx.skins.BarChartItem;
+import javafx.animation.PauseTransition;
 import javafx.animation.ScaleTransition;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.chart.Chart;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
 import org.json.JSONArray;
@@ -58,15 +58,18 @@ public class DashboardController {
     @FXML
     private TextField apiUrlField;
     @FXML
+    private ProgressIndicator loadingIndicator;
+    @FXML
+    private StackPane loadingOverlay;
+    @FXML
     private Button applyUrlButton;
 
     private List<Tile> tileList;
     private ScheduledExecutorService scheduler;
     private Map<String, Long> previousNetworkBytes = new HashMap<>();
 
-    private StringProperty apiBaseUrl = new SimpleStringProperty("");
     private final Properties appProperties = new Properties();
-    private final File configFile = new File("connection.properties");
+    private final File PROPERTIES_FILE = new File("connection.properties");
     private String dockerApiUrl;
     public static ProcessedData processedData = new ProcessedData();
 
@@ -75,23 +78,28 @@ public class DashboardController {
     private int originalColIndex = 0;
     private int originalRowIndex = 0;
     private Node[] hiddenTiles = null;
-
+    private String apiUrl;
 
     //load property
     public void loadProperties() {
-        try (FileInputStream fis = new FileInputStream(configFile)) {
+        try (FileInputStream fis = new FileInputStream(PROPERTIES_FILE)) {
             appProperties.load(fis);
         } catch (IOException e) {
             System.err.println("Failed to load config: " + e.getMessage());
         }
     }
+
     //apply property
     public void applySettings(String newApiUrl) {
         if (!newApiUrl.startsWith("http://") && !newApiUrl.startsWith("https://")) {
             newApiUrl = "http://" + newApiUrl;
         }
-        appProperties.setProperty("monitoringApi", newApiUrl);
-        try (FileOutputStream fos = new FileOutputStream(configFile)) {
+        updateProperty("monitoringApi", newApiUrl);
+        apiUrl = newApiUrl;
+        String serverUrlPort = apiUrl.split("/")[2];
+        String serverIp = serverUrlPort.split(":")[0];
+        updateProperty("dockerApi", serverIp);
+        try (FileOutputStream fos = new FileOutputStream(PROPERTIES_FILE)) {
             appProperties.store(fos, "Updated by user");
         } catch (IOException e) {
             System.err.println("Failed to save config: " + e.getMessage());
@@ -122,12 +130,10 @@ public class DashboardController {
 
     @FXML
     public void initialize() {
+        showLoading(true);
         if (jellyfinStatusTile.isActive()) {
             statusLabel.setText("server is running healthy");
             statusLabel.setTextFill(Color.web("#28a745"));
-        } else {
-            statusLabel.setText("there is problem with server");
-            statusLabel.setTextFill(Color.web("#dc3545"));
         }
         tileList = Arrays.asList(systemStatusTile, storageTile, networkTile, cpuTile,
                 memoryTile, uptimeTile, jellyfinStatusTile, dockerStatusTile);
@@ -139,10 +145,21 @@ public class DashboardController {
         apiUrlField.setText(appProperties.getProperty("monitoringApi", ""));
 
         scheduler = Executors.newSingleThreadScheduledExecutor();
-        scheduler.scheduleAtFixedRate(this::fetchAndUpdateData, 0, 3, TimeUnit.SECONDS);
         ChartData chartData = new ChartData("Network", 0);
         networkTile.addChartData(chartData);
+        scheduler.scheduleAtFixedRate(() -> {
+            fetchAndUpdateData();
 
+            Platform.runLater(() -> {
+                        showLoading(false);
+                    });
+        }, 0, 3, TimeUnit.SECONDS);
+    }
+
+
+    private void showLoading(boolean show) {
+        loadingOverlay.setVisible(show);
+        loadingOverlay.setManaged(show);
     }
 
     @FXML
@@ -150,8 +167,19 @@ public class DashboardController {
         String inputUrl = apiUrlField.getText().trim();
         applySettings(inputUrl);
         if (!inputUrl.isEmpty()) {
-            apiBaseUrl.set(inputUrl);
-            fetchAndUpdateData();
+            updateProperty("monitoringApi", inputUrl);
+        }
+    }
+
+    public void updateProperty(String key, String value) {
+        loadProperties();
+        appProperties.setProperty(key, value);
+        try (FileOutputStream out = new FileOutputStream(PROPERTIES_FILE)) {
+            appProperties.store(out, "Updated by user");
+            statusLabel.setText("Updated property: " + key);
+            statusLabel.setTextFill(Color.web("#28a745"));
+        } catch (IOException e) {
+            statusLabel.setText("Failed to save property: " + e.getMessage());
         }
     }
 
@@ -159,13 +187,14 @@ public class DashboardController {
     private void fetchAndUpdateData() {
         try {
             JSONObject systemData = fetchJsonData();
-
+            if (systemData == null) {
+                return;
+            }
             processedData = processAllData(systemData);
 
             javafx.application.Platform.runLater(() -> updateAllTiles(processedData));
         } catch (Exception e) {
             System.err.println("Error in background processing: " + e.getMessage());
-            e.printStackTrace();
             javafx.application.Platform.runLater(() -> {
                 statusLabel.setText("Error connecting to API: " + e.getMessage());
                 statusLabel.setTextFill(Color.web("#dc3545"));
@@ -209,13 +238,30 @@ public class DashboardController {
         data.systemHealth = 100 - ((data.cpuUsage + data.memoryUsage) / 2);
         if (data.systemHealth > 75) {
             data.systemHealthDescription = "System Health: Excellent";
+            Platform.runLater(() -> {
+                statusLabel.setText("System is running optimally.");
+                statusLabel.setTextFill(Color.web("#28a745"));
+            });
         } else if (data.systemHealth > 50) {
             data.systemHealthDescription = "System Health: Good";
+            Platform.runLater(() -> {
+                statusLabel.setText("System is healthy.");
+                statusLabel.setTextFill(Color.web("#218838"));
+            });
         } else if (data.systemHealth > 25) {
             data.systemHealthDescription = "System Health: Fair";
+            Platform.runLater(() -> {
+                statusLabel.setText("System performance is degrading.");
+                statusLabel.setTextFill(Color.web("#ffc107"));
+            });
         } else {
             data.systemHealthDescription = "System Health: Poor";
+            Platform.runLater(() -> {
+                statusLabel.setText("Warning: System health is critical!");
+                statusLabel.setTextFill(Color.web("#dc3545"));
+            });
         }
+
 
         data.uptime = getFirstContainerUptime(data);
 
@@ -230,9 +276,9 @@ public class DashboardController {
         String apiPath = "/containers/json?all=true";
         loadProperties();
         String url = appProperties.getProperty("dockerApi");
-        if (url.isEmpty()) {
-            statusLabel.setText("Please provide host");
-            return "";
+        if (url == null || url.trim().isEmpty()) {
+            statusLabel.setText("please provide Docker monitoring URL");
+            statusLabel.setTextFill(Color.web("#dc3545"));
         }
         int portNum = 2375;
         dockerApiUrl = "http://" + url + ":" + portNum;
@@ -244,6 +290,8 @@ public class DashboardController {
 
             int responseCode = connection.getResponseCode();
             if (responseCode != 200) {
+                statusLabel.setText("error fetching server info: API Error");
+                statusLabel.setTextFill(Color.web("#dc3545"));
                 return "API Error";
             }
 
@@ -377,6 +425,22 @@ public class DashboardController {
     }
 
     private void updateAllTiles(ProcessedData data) {
+        if (data.cpuUsage == 0) {
+            PauseTransition pause = new PauseTransition(Duration.seconds(2));
+            pause.setOnFinished(event -> {
+                statusLabel.setText("there is problem server monitoring");
+                statusLabel.setTextFill(Color.web("#dc3545"));
+            });
+            pause.play();
+        }
+        if (data.uptime.startsWith("Error: ")) {
+            PauseTransition pause = new PauseTransition(Duration.seconds(2));
+            pause.setOnFinished(event -> {
+                statusLabel.setText("there is problem with docker: Unable to fetch data");
+                statusLabel.setTextFill(Color.web("#dc3545"));
+            });
+            pause.play();
+        }
         cpuTile.setValue(data.cpuUsage);
         cpuTile.setDescription(data.cpuDescription);
 
@@ -415,11 +479,11 @@ public class DashboardController {
 
         dockerStatusTile.getBarChartItems().clear();
         List<BarChartItem> barChartItems = new ArrayList<>();
-        barChartItems.add(new BarChartItem("Jellyfin", data.jellyfinUsage*100 > 100 ? 100:data.jellyfinUsage*100, Tile.RED));
-        barChartItems.add(new BarChartItem("Jellyseer", data.jellyseerUsage*100> 100 ? 100:data.jellyseerUsage*100, Tile.BLUE));
-        barChartItems.add(new BarChartItem("QBit", data.qbittorrentUsage*100> 100 ? 100:data.qbittorrentUsage*100, Tile.GREEN));
-        barChartItems.add(new BarChartItem("Prowlarr", data.prowlarrUsage*100> 100 ? 100:data.prowlarrUsage*100, Tile.ORANGE));
-        barChartItems.add(new BarChartItem("Sonarr", data.sonarrUsage*100> 100 ? 100:data.sonarrUsage*100, Tile.MAGENTA));
+        barChartItems.add(new BarChartItem("Jellyfin", data.jellyfinUsage * 100 > 100 ? 100 : data.jellyfinUsage * 100, Tile.RED));
+        barChartItems.add(new BarChartItem("Jellyseer", data.jellyseerUsage * 100 > 100 ? 100 : data.jellyseerUsage * 100, Tile.BLUE));
+        barChartItems.add(new BarChartItem("QBit", data.qbittorrentUsage * 100 > 100 ? 100 : data.qbittorrentUsage * 100, Tile.GREEN));
+        barChartItems.add(new BarChartItem("Prowlarr", data.prowlarrUsage * 100 > 100 ? 100 : data.prowlarrUsage * 100, Tile.ORANGE));
+        barChartItems.add(new BarChartItem("Sonarr", data.sonarrUsage * 100 > 100 ? 100 : data.sonarrUsage * 100, Tile.MAGENTA));
         dockerStatusTile.setBarChartItems(barChartItems);
         dockerStatusTile.setDescription("Docker Usage: " + String.format("%.2f", data.dockerUsage) + "%");
 
@@ -430,21 +494,19 @@ public class DashboardController {
         if (data.jellyfinActive) {
             statusLabel.setText("server is running healthy");
             statusLabel.setTextFill(Color.web("#28a745"));
-        } else {
-            statusLabel.setText("there is problem with server");
-            statusLabel.setTextFill(Color.web("#dc3545"));
         }
     }
 
     public JSONObject fetchJsonData() {
-        String apiUrl = appProperties.getProperty("monitoringApi");
+        apiUrl = appProperties.getProperty("monitoringApi");
         if (apiUrl == null || apiUrl.isEmpty()) {
-            throw new RuntimeException("apiUrl not configured");
+            statusLabel.setText("Monitoring URL empty: Please provide Correct URL");
+            statusLabel.setTextFill(Color.web("#dc3545"));
+            return null;
         }
         if (!apiUrl.startsWith("http://") && !apiUrl.startsWith("https://")) {
             apiUrl = "http://" + apiUrl;
         }
-
         try {
             URL url = new URL(apiUrl);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -560,20 +622,9 @@ public class DashboardController {
         expandedTile = null;
         hiddenTiles = null;
     }
+
     //handle theme change
     private void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
         updateTileColors(newValue);
-    }
-
-    public StringProperty apiBaseUrlProperty() {
-        return apiBaseUrl;
-    }
-
-    public String getApiBaseUrl() {
-        return apiBaseUrl.get();
-    }
-
-    public void setApiBaseUrl(String url) {
-        apiBaseUrl.set(url);
     }
 }

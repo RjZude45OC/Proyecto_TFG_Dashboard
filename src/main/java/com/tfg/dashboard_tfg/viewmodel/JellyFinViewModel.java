@@ -192,9 +192,6 @@ public class JellyFinViewModel implements Initializable {
         }
     }
 
-    /**
-     * Updates a specific property and saves the changes
-     */
     public void updateProperty(String key, String value) {
         loadPropertiesIfNeeded();
         appProperties.setProperty(key, value);
@@ -211,7 +208,12 @@ public class JellyFinViewModel implements Initializable {
         httpClient = HttpClient.newBuilder().build();
         executorService = Executors.newFixedThreadPool(3);
         loadPropertiesIfNeeded();
-        autoRefreshTimeline = new Timeline(new KeyFrame(Duration.seconds(Double.parseDouble(autoUpdateInterval.getValue())), e -> {
+        String autoUpdateInterval = appProperties.getProperty("update-interval");
+        if (autoUpdateInterval == null || autoUpdateInterval.isEmpty()) {
+            autoUpdateInterval = "5";
+            updateProperty("update-interval","5");
+        }
+        autoRefreshTimeline = new Timeline(new KeyFrame(Duration.seconds(Double.parseDouble(autoUpdateInterval)), e -> {
             refreshServerStatus();
         }));
         autoRefreshTimeline.setCycleCount(Animation.INDEFINITE);

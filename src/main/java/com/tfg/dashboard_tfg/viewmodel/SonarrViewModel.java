@@ -6,6 +6,7 @@ import com.tfg.dashboard_tfg.model.LogEntry;
 import com.tfg.dashboard_tfg.model.NetworkData;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
+import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -204,35 +205,6 @@ public class SonarrViewModel implements Initializable {
         }
     }
 
-    private void setupTextFieldBindings() {
-        serverUrlField.textProperty().bindBidirectional(serverUrl);
-        apiKeyField.textProperty().bindBidirectional(apiKey);
-
-        serverUrlField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
-            if (wasFocused && !isNowFocused) {
-                updateProperty("jellyfin-apiUrl", serverUrl.get());
-            }
-        });
-
-        apiKeyField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
-            if (wasFocused && !isNowFocused) {
-                updateProperty("jellyfin-apiKey", apiKey.get());
-            }
-        });
-    }
-
-    private void saveConnectionProperties() {
-        appProperties.setProperty("sonarr-apiUrl", serverUrl.get() != null ? serverUrl.get() : "");
-        appProperties.setProperty("sonarr-apiKey", apiKey.get() != null ? apiKey.get() : "");
-
-        try (FileOutputStream out = new FileOutputStream(PROPERTIES_FILE)) {
-            appProperties.store(out, "Updated by user");
-            addLogEntry("Info", "Properties", "Saved connection properties to file");
-        } catch (IOException e) {
-            addLogEntry("Error", "Properties", "Failed to save properties: " + e.getMessage());
-        }
-    }
-
     public void updateProperty(String key, String value) {
         loadPropertiesIfNeeded();
         appProperties.setProperty(key, value);
@@ -296,7 +268,6 @@ public class SonarrViewModel implements Initializable {
 
                 JSONObject serverInfo = new JSONObject(response.body());
                 String version = serverInfo.optString("version", "Unknown");
-                saveConnectionProperties();
 
                 return "Connected to Sonarr v" + version;
             } catch (TimeoutException e) {
@@ -349,7 +320,12 @@ public class SonarrViewModel implements Initializable {
         httpClient = HttpClient.newBuilder().build();
         executorService = Executors.newFixedThreadPool(3);
         loadPropertiesIfNeeded();
-        autoRefreshTimeline = new Timeline(new KeyFrame(javafx.util.Duration.seconds(Double.parseDouble(autoUpdateInterval.getValue())), e -> {
+        String autoUpdateInterval = appProperties.getProperty("update-interval");
+        if (autoUpdateInterval == null || autoUpdateInterval.isEmpty()) {
+            autoUpdateInterval = "5";
+            updateProperty("update-interval", "5");
+        }
+        autoRefreshTimeline = new Timeline(new KeyFrame(javafx.util.Duration.seconds(Double.parseDouble(autoUpdateInterval)), e -> {
             refreshServerStatus();
         }));
         autoRefreshTimeline.setCycleCount(Animation.INDEFINITE);
@@ -370,8 +346,8 @@ public class SonarrViewModel implements Initializable {
             addLogEntry("Info", "Initialization", "Attempting connection with saved properties");
             connectToServer();
         }
-        connectButton.setOnAction(event -> connectToServer());
-        setupTextFieldBindings();
+        serverUrlField.setText(appProperties.getProperty("sonarr-apiUrl", ""));
+        apiKeyField.setText(appProperties.getProperty("sonarr-apiKey", ""));
         refreshServerStatus();
     }
 
@@ -418,6 +394,7 @@ public class SonarrViewModel implements Initializable {
                             private final Button pauseButton = new Button("Pause");
                             private final Button removeButton = new Button("Remove");
                             private final HBox pane = new HBox(5, pauseButton, removeButton);
+
                             {
                                 pauseButton.getStyleClass().add("table-button");
                                 removeButton.getStyleClass().add("table-button");
@@ -456,6 +433,7 @@ public class SonarrViewModel implements Initializable {
 
         actionsColumn.setCellFactory(cellFactory);
     }
+
     private void initializeHistoryTable() {
         historyDateColumn.setCellValueFactory(new PropertyValueFactory<>("date"));
         historySeriesColumn.setCellValueFactory(new PropertyValueFactory<>("series"));
@@ -548,6 +526,7 @@ public class SonarrViewModel implements Initializable {
             addLogEntry("Info", "History", "History updated");
         });
     }
+
     @FXML
     public void refreshQueue(ActionEvent actionEvent) {
         CompletableFuture<Void> downloadQueue = fetchDownloadQueue();
@@ -557,14 +536,17 @@ public class SonarrViewModel implements Initializable {
             addLogEntry("Info", "Queue", "History updated");
         });
     }
+
     @FXML
     public void clearLogs(ActionEvent actionEvent) {
         logTable.getItems().clear();
     }
+
     @FXML
     public void clearHistory(ActionEvent actionEvent) {
         historyTable.getItems().clear();
     }
+
     @FXML
     private void refreshServerStatus() {
         if (!connected.get()) {
@@ -707,6 +689,7 @@ public class SonarrViewModel implements Initializable {
             }
         }, executorService);
     }
+
     private CompletableFuture<Void> fetchDownloadQueue() {
         if (!connected.get()) {
             return CompletableFuture.completedFuture(null);
@@ -744,7 +727,7 @@ public class SonarrViewModel implements Initializable {
 
                     double progress = record.optDouble("sizeleft", 0) / size;
                     progress = 1.0 - progress;
-                        if (Double.isNaN(progress) || Double.isInfinite(progress)) {
+                    if (Double.isNaN(progress) || Double.isInfinite(progress)) {
                         progress = 0;
                     }
 
@@ -796,6 +779,7 @@ public class SonarrViewModel implements Initializable {
             }
         }, executorService);
     }
+
     @FXML
     private void toggleAutoRefresh() {
         if (autoRefreshToggle.isSelected()) {
@@ -910,12 +894,12 @@ public class SonarrViewModel implements Initializable {
 
                                         if (downloadSpeed > 5_000_000) {
                                             newLogs.add(new LogEntry(time, "Info", source,
-                                                    "High download speed: " + formatBytes((long)downloadSpeed) + "/s"));
+                                                    "High download speed: " + formatBytes((long) downloadSpeed) + "/s"));
                                         }
 
                                         if (uploadSpeed > 2_000_000) {
                                             newLogs.add(new LogEntry(time, "Info", source,
-                                                    "High upload speed: " + formatBytes((long)uploadSpeed) + "/s"));
+                                                    "High upload speed: " + formatBytes((long) uploadSpeed) + "/s"));
                                         }
                                     }
                                 }
@@ -953,6 +937,7 @@ public class SonarrViewModel implements Initializable {
             }
         }, executorService);
     }
+
     private CompletableFuture<Void> fetchSystemInfo() {
         return CompletableFuture.runAsync(() -> {
             try {
@@ -1169,6 +1154,7 @@ public class SonarrViewModel implements Initializable {
 
         filterLogs();
     }
+
     @FXML
     public void clearCompletedDownloads() {
         List<DownloadQueueItem> completedItems = queueItems.stream()
@@ -1198,6 +1184,7 @@ public class SonarrViewModel implements Initializable {
             queueItems.set(index, current);
         }
     }
+
     private void handleRemoveDownload(DownloadQueueItem item) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Remove Download");
@@ -1210,12 +1197,86 @@ public class SonarrViewModel implements Initializable {
             addLogEntry("Info", "Queue", "Removed download: " + item.getTitle());
         }
     }
+
     private String formatBytes(long bytes) {
         if (bytes < 1024) return bytes + " B";
         int exp = (int) (Math.log(bytes) / Math.log(1024));
-        String pre = "KMGTPE".charAt(exp-1) + "";
+        String pre = "KMGTPE".charAt(exp - 1) + "";
         return String.format("%.1f %sB", bytes / Math.pow(1024, exp), pre);
     }
 
+    @FXML
+    public void onConnectClicked() {
+        String inputUrl = serverUrlField.getText().trim();
+        String apiKey = apiKeyField.getText().trim();
 
+        if (inputUrl.isEmpty() || apiKey.isEmpty()) {
+
+            serverStatusLabel.textProperty().unbind();
+            serverStatusLabel.styleProperty().unbind();
+
+            if (inputUrl.isEmpty() && apiKey.isEmpty()) {
+                addLogEntry("Error", "Connection", "Missing server URL and API key");
+                serverStatusLabel.setText("Failed: Missing server URL and API key");
+            } else if (inputUrl.isEmpty()) {
+                addLogEntry("Error", "Connection", "Missing server URL");
+                serverStatusLabel.setText("Failed: Missing server URL");
+            } else {
+                addLogEntry("Error", "Connection", "Missing API key");
+                serverStatusLabel.setText("Failed: Missing API key");
+            }
+            serverStatusLabel.setStyle("-fx-text-fill: red;");
+
+            PauseTransition pause = new PauseTransition(javafx.util.Duration.seconds(3));
+            pause.setOnFinished(event -> {
+                rebindServerStatusLabel();
+            });
+            pause.play();
+            return;
+        }
+
+        serverStatusLabel.textProperty().unbind();
+        serverStatusLabel.styleProperty().unbind();
+        serverStatusLabel.setText("Connecting...");
+        serverStatusLabel.setStyle("-fx-text-fill: orange;");
+
+        applySettings(inputUrl, apiKey);
+
+        PauseTransition pause = new PauseTransition(javafx.util.Duration.seconds(2));
+        pause.setOnFinished(event -> {
+            rebindServerStatusLabel();
+        });
+        pause.play();
+    }
+
+    private void rebindServerStatusLabel() {
+        serverStatusLabel.textProperty().bind(
+                Bindings.when(connected)
+                        .then("Connected")
+                        .otherwise("Not Connected")
+        );
+        serverStatusLabel.styleProperty().bind(
+                Bindings.when(connected)
+                        .then("-fx-text-fill: green;")
+                        .otherwise("-fx-text-fill: red;")
+        );
+    }
+
+    public void applySettings(String newApiUrl, String apikey) {
+        if (!newApiUrl.startsWith("http://") && !newApiUrl.startsWith("https://")) {
+            newApiUrl = "http://" + newApiUrl;
+        }
+        serverUrlField.setText(newApiUrl);
+        apiKeyField.setText(apikey);
+        updateProperty("sonarr-apiUrl", newApiUrl);
+        serverUrl.setValue(newApiUrl);
+        updateProperty("sonarr-apiKey", apikey);
+        apiKey.setValue(apikey);
+        connectToServer();
+        try (FileOutputStream fos = new FileOutputStream(PROPERTIES_FILE)) {
+            appProperties.store(fos, "Updated by user");
+        } catch (IOException e) {
+            System.err.println("Failed to save config: " + e.getMessage());
+        }
+    }
 }

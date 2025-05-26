@@ -217,6 +217,7 @@ public class JellyFinViewModel implements Initializable {
             refreshServerStatus();
         }));
         autoRefreshTimeline.setCycleCount(Animation.INDEFINITE);
+        addLogEntry("Info", "Scheduler", "Scheduled task completed");
         serverStatusLabel.textProperty().bind(
                 Bindings.when(connected)
                         .then("Connected")
@@ -241,11 +242,9 @@ public class JellyFinViewModel implements Initializable {
             connectToServer();
         }
         refreshServerStatus();
+        addLogEntry("Info", "System", "Startup complete");
     }
 
-    /**
-     * Sets up bindings text fields and properties
-     */
     private void setupTextFieldBindings() {
         serverUrlField.textProperty().bindBidirectional(serverUrl);
         apiKeyField.textProperty().bindBidirectional(apiKey);
@@ -254,6 +253,11 @@ public class JellyFinViewModel implements Initializable {
 
         serverUrlField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
             if (wasFocused && !isNowFocused) {
+                String url = serverUrl.get().trim();
+                if (!url.isEmpty() && !url.toLowerCase().startsWith("http://") && !url.toLowerCase().startsWith("https://")) {
+                    url = "http://" + url;
+                    serverUrl.set(url);
+                }
                 updateProperty("jellyfin-apiUrl", serverUrl.get());
             }
         });
@@ -424,9 +428,6 @@ public class JellyFinViewModel implements Initializable {
         });
     }
 
-    /**
-     * Fetch system information from the server
-     */
     private CompletableFuture<Void> fetchSystemInfo() {
         return CompletableFuture.runAsync(() -> {
             try {
@@ -448,7 +449,6 @@ public class JellyFinViewModel implements Initializable {
                     });
                     return;
                 }
-
                 JSONObject systemInfo = new JSONObject(response.body());
                 JSONObject cpuData = systemInfo.optJSONObject("cpu");
                 JSONObject memoryData = systemInfo.optJSONObject("memory");
@@ -710,7 +710,6 @@ public class JellyFinViewModel implements Initializable {
     private CompletableFuture<Void> fetchRecentLogs() {
         return CompletableFuture.runAsync(() -> {
             try {
-
                 List<LogEntry> newLogs = new ArrayList<>();
                 String[] sources = {"System", "Playback", "Auth", "Transcoder", "Scheduler", "IO"};
                 String[] infoMessages = {
@@ -723,7 +722,7 @@ public class JellyFinViewModel implements Initializable {
                 String[] warningMessages = {
                         "High CPU usage",
                         "Failed to fetch metadata",
-                        "Network latency detected",
+                        "Network latency detected"
                 };
                 String[] errorMessages = {
                         "IO error when reading media file",
@@ -732,46 +731,58 @@ public class JellyFinViewModel implements Initializable {
                         "Out of memory"
                 };
 
-                LocalDateTime now = LocalDateTime.now();
-                String time = now.format(logTimeFormatter);
-                String source = "System";
+                if (systeminfo == null) {
+                    return;
+                }
 
-                String level = "";
-                String message = "";
                 JSONObject cpuData = systeminfo.optJSONObject("cpu");
                 JSONObject memoryData = systeminfo.optJSONObject("memory");
                 JSONArray disksData = systeminfo.optJSONArray("disks");
                 JSONObject networkData = systeminfo.optJSONObject("network");
-                double systemCpuLoad = cpuData.getDouble("systemCpuLoad");
-                if (systemCpuLoad >= 80) {
-                    level = "Warning";
-                    message = warningMessages[0];
-                }
-                if (systemCpuLoad >= 80) {
-                    level = "Warning";
-                    message = warningMessages[0];
-                }
-//                    if (levelRandom < 70) {
-//                        level = "Info";
-//                        message = infoMessages[random.nextInt(infoMessages.length)];
-//                    } else if (levelRandom < 95) {
-//                        level = "Warning";
-//                        message = warningMessages[random.nextInt(warningMessages.length)];
-//                    } else {
-//                        level = "Error";
-//                        message = errorMessages[random.nextInt(errorMessages.length)];
-//                    }
 
-                LogEntry entry = new LogEntry(time, level, source, message);
-                newLogs.add(entry);
+                double systemCpuLoad = cpuData != null ? cpuData.optDouble("systemCpuLoad", 0.0) : 0.0;
+                double usedMemoryPercent = memoryData != null
+                        ? (memoryData.optDouble("used", 0.0) / memoryData.optDouble("total", 1.0)) * 100
+                        : 0.0;
+
+                String time = LocalDateTime.now().format(logTimeFormatter);
+
+                if (systemCpuLoad >= 80) {
+                    newLogs.add(new LogEntry(time, "Warning", "System", "High CPU usage"));
+                }
+
+                if (usedMemoryPercent >= 90) {
+                    newLogs.add(new LogEntry(time, "Error", "System", "Out of memory"));
+                }
+
+                if (disksData != null) {
+                    for (int i = 0; i < disksData.length(); i++) {
+                        JSONObject disk = disksData.optJSONObject(i);
+                        if (disk != null) {
+                            double used = disk.optDouble("used", 0.0);
+                            double total = disk.optDouble("total", 1.0);
+                            double usage = (used / total) * 100;
+                            if (usage >= 90) {
+                                newLogs.add(new LogEntry(time, "Warning", "IO", "Disk usage exceeds 90%"));
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (networkData != null) {
+                    double latency = networkData.optDouble("latency", 0.0);
+                    System.out.println(latency);
+                    if (latency > 100) {
+                        newLogs.add(new LogEntry(time, "Warning", "Network", "Network latency detected"));
+                    }
+                }
 
                 Platform.runLater(() -> {
                     logEntries.addAll(0, newLogs);
-
                     while (logEntries.size() > 100) {
                         logEntries.remove(logEntries.size() - 1);
                     }
-
                     filterLogs();
                 });
             } catch (Exception e) {
@@ -782,6 +793,7 @@ public class JellyFinViewModel implements Initializable {
             }
         }, executorService);
     }
+
 
     private VBox createStreamTile(StreamSession session) {
         VBox tile = new VBox(10);

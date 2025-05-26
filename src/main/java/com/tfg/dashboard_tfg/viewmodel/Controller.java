@@ -71,7 +71,7 @@ public class Controller {
     private StackPane mainStackPane;
 
     @FXML
-    private AnchorPane dashboardView;
+    private StackPane dashboardView;
 
     @FXML
     private AnchorPane jellyseerView;
@@ -475,7 +475,7 @@ public class Controller {
         setViewVisibility(registerView);
     }
     //set view all to not visible and set selected view to true
-    private void setViewVisibility(AnchorPane activeView) {
+    private void setViewVisibility(Parent activeView) {
         dashboardView.setVisible(false);
         sonarrView.setVisible(false);
         jellyfinView.setVisible(false);

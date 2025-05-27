@@ -79,6 +79,7 @@ public class DashboardController {
     private int originalRowIndex = 0;
     private Node[] hiddenTiles = null;
     private String apiUrl;
+    private long latency;
 
     //load property
     public void loadProperties() {
@@ -239,25 +240,25 @@ public class DashboardController {
 
         data.systemHealth = 100 - ((data.cpuUsage + data.memoryUsage) / 2);
         if (data.systemHealth > 75) {
-            data.systemHealthDescription = "System Health: Excellent";
+            data.systemHealthDescription = "System Health: Excellent | Latency:  " + latency + "ms";
             Platform.runLater(() -> {
                 statusLabel.setText("System is running optimally.");
                 statusLabel.setTextFill(Color.web("#28a745"));
             });
         } else if (data.systemHealth > 50) {
-            data.systemHealthDescription = "System Health: Good";
+            data.systemHealthDescription = "System Health: Good | Latency:  " + latency + "ms";
             Platform.runLater(() -> {
                 statusLabel.setText("System is healthy.");
                 statusLabel.setTextFill(Color.web("#218838"));
             });
         } else if (data.systemHealth > 25) {
-            data.systemHealthDescription = "System Health: Fair";
+            data.systemHealthDescription = "System Health: Fair | Latency:  " + latency + "ms";
             Platform.runLater(() -> {
                 statusLabel.setText("System performance is degrading.");
                 statusLabel.setTextFill(Color.web("#ffc107"));
             });
         } else {
-            data.systemHealthDescription = "System Health: Poor";
+            data.systemHealthDescription = "System Health: Poor | Latency:  " + latency + "ms";
             Platform.runLater(() -> {
                 statusLabel.setText("Warning: System health is critical!");
                 statusLabel.setTextFill(Color.web("#dc3545"));
@@ -279,7 +280,7 @@ public class DashboardController {
         loadProperties();
         String url = appProperties.getProperty("dockerApi");
         if (url == null || url.trim().isEmpty()) {
-            Platform.runLater(() ->{
+            Platform.runLater(() -> {
                 statusLabel.setText("please provide Docker monitoring URL");
                 statusLabel.setTextFill(Color.web("#dc3545"));
             });
@@ -520,12 +521,15 @@ public class DashboardController {
             apiUrl = "http://" + apiUrl;
         }
         try {
+            long initfetch = System.currentTimeMillis();
             URL url = new URL(apiUrl);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
 
             int responseCode = connection.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK) {
+                long endfetch = System.currentTimeMillis();
+                latency = endfetch - initfetch;
                 BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
                 StringBuilder response = new StringBuilder();
                 String line;

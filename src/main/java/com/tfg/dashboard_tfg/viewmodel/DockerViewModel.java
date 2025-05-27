@@ -99,7 +99,10 @@ public class DockerViewModel {
 
     @FXML
     public void initialize() {
-        if (serverPortField != null) {
+        loadProperties();
+        serverUrl.setValue(appProperties.getProperty("dockerApi", ""));
+        serverPort.setValue(appProperties.getProperty("dockerPort", ""));
+        if (serverPortField.getText() == null || serverPortField.getText().isEmpty()) {
             serverPortField.setText("2375");
         }
 
@@ -112,8 +115,7 @@ public class DockerViewModel {
                 executeCommand();
             }
         });
-
-
+        setupTextFieldBindings();
         if (containerTilesPane.getParent() instanceof ScrollPane) {
             ScrollPane scrollPane = (ScrollPane) containerTilesPane.getParent();
             scrollPane.viewportBoundsProperty().addListener((obs, oldBounds, newBounds) -> {
@@ -122,7 +124,7 @@ public class DockerViewModel {
                 }
             });
         }
-        loadProperties();
+
         url = appProperties.getProperty("dockerApi");
         connectToDockerAPI();
         commandHistoryList.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
@@ -131,7 +133,6 @@ public class DockerViewModel {
                 cliInput.setText((String) newVal);
             }
         });
-        setupTextFieldBindings();
     }
 
     private void connectToDockerAPI() {
@@ -141,6 +142,7 @@ public class DockerViewModel {
         if (host.isEmpty()) {
             if (url.isEmpty()) {
                 connectionStatusLabel.setText("Please provide host");
+                connectionStatusLabel.setTextFill(Color.ORANGE);
                 return;
             } else {
                 host = url;
@@ -156,13 +158,7 @@ public class DockerViewModel {
             connectionStatusLabel.setText("Invalid port number");
             return;
         }
-        if (!serverHostField.getText().startsWith("http://")){
-            serverHostField.setText("http://" + host);
-            dockerApiUrl = "http://" + host + ":" + portNum;
-        }
-        else {
-            dockerApiUrl = host + ":" + portNum;
-        }
+        dockerApiUrl = host + ":" + portNum;
         connectionStatusLabel.setText("Testing connection to Docker API...");
         connectionStatusLabel.setStyle("-fx-text-fill: orange;");
 
@@ -210,6 +206,7 @@ public class DockerViewModel {
 
         cliInput.clear();
     }
+
     private void setupTextFieldBindings() {
         serverHostField.textProperty().bindBidirectional(serverUrl);
         serverPortField.textProperty().bindBidirectional(serverPort);
@@ -231,6 +228,7 @@ public class DockerViewModel {
             }
         });
     }
+
     public void updateProperty(String key, String value) {
         loadProperties();
         appProperties.setProperty(key, value);
@@ -251,6 +249,7 @@ public class DockerViewModel {
             pause.play();
         }
     }
+
     private void executeDockerAPICommand(String command) {
         new Thread(() -> {
             try {

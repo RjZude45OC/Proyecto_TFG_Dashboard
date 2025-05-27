@@ -153,8 +153,8 @@ public class DashboardController {
             fetchAndUpdateData();
 
             Platform.runLater(() -> {
-                        showLoading(false);
-                    });
+                showLoading(false);
+            });
         }, 0, 3, TimeUnit.SECONDS);
     }
 
@@ -279,12 +279,20 @@ public class DashboardController {
         loadProperties();
         String url = appProperties.getProperty("dockerApi");
         if (url == null || url.trim().isEmpty()) {
-            statusLabel.setText("please provide Docker monitoring URL");
-            statusLabel.setTextFill(Color.web("#dc3545"));
+            Platform.runLater(() ->{
+                statusLabel.setText("please provide Docker monitoring URL");
+                statusLabel.setTextFill(Color.web("#dc3545"));
+            });
+            return "";
         }
-        int portNum = 2375;
-        if (!url.startsWith("http:// ")){
+        String portNum = appProperties.getProperty("dockerPort");
+        if (portNum == null || portNum.isEmpty()) {
+            updateProperty("dockerPort", "2375");
+        }
+        if (!url.startsWith("http://")) {
             dockerApiUrl = "http://" + url + ":" + portNum;
+        } else {
+            dockerApiUrl = url + ":" + portNum;
         }
         String uptime = "";
         try {

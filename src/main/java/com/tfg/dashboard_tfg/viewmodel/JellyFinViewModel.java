@@ -129,6 +129,7 @@ public class JellyFinViewModel implements Initializable {
     private final Properties appProperties = new Properties();
     private boolean propertiesLoaded = false;
     private JSONObject systeminfo;
+    private long latency;
 
     private void loadPropertiesIfNeeded() {
         if (propertiesLoaded) {
@@ -160,7 +161,7 @@ public class JellyFinViewModel implements Initializable {
             if (appProperties.containsKey("dockerApi")) {
                 if (!appProperties.getProperty("dockerApi").startsWith("http://")) {
                     dockerApiEndpoint.set("http://" + appProperties.getProperty("dockerApi") + ":2375");
-                }else{
+                } else {
                     dockerApiEndpoint.set(appProperties.getProperty("dockerApi") + ":2375");
                 }
             }
@@ -435,6 +436,7 @@ public class JellyFinViewModel implements Initializable {
     private CompletableFuture<Void> fetchSystemInfo() {
         return CompletableFuture.runAsync(() -> {
             try {
+                long requestSentTime = System.currentTimeMillis();
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(URI.create(serverMonitoringEndpoint.get()))
                         .GET()
@@ -454,13 +456,14 @@ public class JellyFinViewModel implements Initializable {
                     return;
                 }
 
-
                 JSONObject systemInfo = new JSONObject(response.body());
                 JSONObject cpuData = systemInfo.optJSONObject("cpu");
                 JSONObject memoryData = systemInfo.optJSONObject("memory");
                 JSONArray disksData = systemInfo.optJSONArray("disks");
                 JSONObject networkData = systemInfo.optJSONObject("network");
                 systeminfo = systemInfo;
+                long requestTime = System.currentTimeMillis();
+                latency = requestTime - requestSentTime;
                 double cpuUsage = cpuData != null ? processCpuUsage(cpuData) : 0;
 //                long totalMemory = memoryData != null ? memoryData.optLong("totalMemory", 0) : 0;
 //                long usedMemory = memoryData != null ? memoryData.optLong("usedMemory", 0) : 0;
@@ -773,10 +776,8 @@ public class JellyFinViewModel implements Initializable {
                         }
                     }
                 }
-               long clientTimeStamp = System.currentTimeMillis();
                 if (networkData != null) {
-                    long latency = clientTimeStamp - networkData.optLong("timestamp");
-                    System.out.println("latency: "+ latency+"ms");
+                    System.out.println("latency: " + latency + "ms");
                     if (latency > 100) {
                         newLogs.add(new LogEntry(time, "Warning", "Network", "Network latency detected"));
                     }

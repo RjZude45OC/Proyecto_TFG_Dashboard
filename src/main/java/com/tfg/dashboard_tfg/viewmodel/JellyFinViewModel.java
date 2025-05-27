@@ -158,7 +158,11 @@ public class JellyFinViewModel implements Initializable {
                 apiKey.set(appProperties.getProperty("jellyfin-apiKey"));
             }
             if (appProperties.containsKey("dockerApi")) {
-                dockerApiEndpoint.set("http://" + appProperties.getProperty("dockerApi") + ":2375");
+                if (!appProperties.getProperty("dockerApi").startsWith("http://")) {
+                    dockerApiEndpoint.set("http://" + appProperties.getProperty("dockerApi") + ":2375");
+                }else{
+                    dockerApiEndpoint.set(appProperties.getProperty("dockerApi") + ":2375");
+                }
             }
             if (appProperties.containsKey("username")) {
                 username.set(appProperties.getProperty("username"));
@@ -503,7 +507,6 @@ public class JellyFinViewModel implements Initializable {
                     String containerName = "jellyfin";
                     String dockerHost = dockerApiEndpoint.get();
                     String urlStr = dockerHost + "/containers/" + containerName + "/json";
-
                     HttpRequest dockerRequest = HttpRequest.newBuilder()
                             .uri(URI.create(urlStr))
                             .GET()
@@ -516,7 +519,6 @@ public class JellyFinViewModel implements Initializable {
 
                     JSONObject jsonResponse = new JSONObject(dockerResponse.body());
                     String dockerUptime = jsonResponse.getJSONObject("State").getString("StartedAt");
-                    System.out.println(jsonResponse);
                     if (dockerUptime != null && !dockerUptime.isEmpty()) {
                         java.time.OffsetDateTime startedAt = java.time.OffsetDateTime.parse(dockerUptime);
                         java.time.Duration duration = java.time.Duration.between(startedAt, java.time.OffsetDateTime.now());

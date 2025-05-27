@@ -211,7 +211,7 @@ public class JellyFinViewModel implements Initializable {
         String autoUpdateInterval = appProperties.getProperty("update-interval");
         if (autoUpdateInterval == null || autoUpdateInterval.isEmpty()) {
             autoUpdateInterval = "5";
-            updateProperty("update-interval","5");
+            updateProperty("update-interval", "5");
         }
         autoRefreshTimeline = new Timeline(new KeyFrame(Duration.seconds(Double.parseDouble(autoUpdateInterval)), e -> {
             refreshServerStatus();
@@ -449,6 +449,8 @@ public class JellyFinViewModel implements Initializable {
                     });
                     return;
                 }
+
+
                 JSONObject systemInfo = new JSONObject(response.body());
                 JSONObject cpuData = systemInfo.optJSONObject("cpu");
                 JSONObject memoryData = systemInfo.optJSONObject("memory");
@@ -514,7 +516,7 @@ public class JellyFinViewModel implements Initializable {
 
                     JSONObject jsonResponse = new JSONObject(dockerResponse.body());
                     String dockerUptime = jsonResponse.getJSONObject("State").getString("StartedAt");
-
+                    System.out.println(jsonResponse);
                     if (dockerUptime != null && !dockerUptime.isEmpty()) {
                         java.time.OffsetDateTime startedAt = java.time.OffsetDateTime.parse(dockerUptime);
                         java.time.Duration duration = java.time.Duration.between(startedAt, java.time.OffsetDateTime.now());
@@ -769,10 +771,10 @@ public class JellyFinViewModel implements Initializable {
                         }
                     }
                 }
-
+               long clientTimeStamp = System.currentTimeMillis();
                 if (networkData != null) {
-                    double latency = networkData.optDouble("latency", 0.0);
-                    System.out.println(latency);
+                    long latency = clientTimeStamp - networkData.optLong("timestamp");
+                    System.out.println("latency: "+ latency+"ms");
                     if (latency > 100) {
                         newLogs.add(new LogEntry(time, "Warning", "Network", "Network latency detected"));
                     }

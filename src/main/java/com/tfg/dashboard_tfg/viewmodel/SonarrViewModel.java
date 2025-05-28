@@ -559,12 +559,14 @@ public class SonarrViewModel implements Initializable {
         CompletableFuture<Void> downloadQueue = fetchDownloadQueue();
         CompletableFuture<Void> history = fetchHistory();
         CompletableFuture<Void> logs = fetchRecentLogs();
+        CompletableFuture<Void> libraryStats = fetchLibraryStats();
 
         CompletableFuture.allOf(
                 systemInfo,
                 downloadQueue,
                 history,
-                logs
+                logs,
+                libraryStats
         ).thenRun(() -> {
             addLogEntry("Info", "System", "Server status refreshed");
         });
@@ -775,6 +777,59 @@ public class SonarrViewModel implements Initializable {
             } catch (Exception e) {
                 Platform.runLater(() -> {
                     addLogEntry("Error", "Queue", "Failed to fetch download queue: " + e.getMessage());
+                });
+            }
+        }, executorService);
+    }
+
+    private CompletableFuture<Void> fetchLibraryStats() {
+        if (!connected.get()) {
+            return CompletableFuture.completedFuture(null);
+        }
+
+        return CompletableFuture.runAsync(() -> {
+            try {
+                HttpRequest seriesRequest = HttpRequest.newBuilder()
+                        .uri(URI.create(serverUrl.get() + "/api/v3/series"))
+                        .header("X-Api-Key", apiKey.get())
+                        .GET()
+                        .build();
+
+                HttpResponse<String> seriesResponse = httpClient.send(seriesRequest, HttpResponse.BodyHandlers.ofString());
+
+                if (seriesResponse.statusCode() != 200) {
+                    addLogEntry("Error", "Library", "Failed to fetch series stats: HTTP " + seriesResponse.statusCode());
+                    return;
+                }
+
+                JSONArray seriesArray = new JSONArray(seriesResponse.body());
+                int seriesCount = seriesArray.length();
+                int totalEpisodes = 0;
+                long totalSizeBytes = 0;
+
+                for (int i = 0; i < seriesArray.length(); i++) {
+                    JSONObject series = seriesArray.getJSONObject(i);
+                    JSONObject statistics = series.optJSONObject("statistics");
+                    if (statistics != null) {
+                        totalEpisodes += statistics.optInt("episodeFileCount", 0);
+                        totalSizeBytes += statistics.optLong("sizeOnDisk", 0);
+                    }
+                }
+
+                double totalSizeGB = totalSizeBytes / (1024.0 * 1024.0 * 1024.0);
+
+                int finalTotalEpisodes = totalEpisodes;
+                Platform.runLater(() -> {
+                    seriesCountLabel.setText(String.valueOf(seriesCount));
+                    episodesCountLabel.setText(String.valueOf(finalTotalEpisodes));
+                    totalSizeLabel.setText(String.format("%.2f GB", totalSizeGB));
+                    addLogEntry("Info", "Library", String.format("Updated library stats: %d series, %d episodes, %.2f GB",
+                            seriesCount, finalTotalEpisodes, totalSizeGB));
+                });
+
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    addLogEntry("Error", "Library", "Failed to fetch library stats: " + e.getMessage());
                 });
             }
         }, executorService);

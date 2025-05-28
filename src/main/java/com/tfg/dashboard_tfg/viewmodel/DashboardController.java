@@ -118,6 +118,7 @@ public class DashboardController {
                 tile.setDescriptionColor(Color.web("#bcc0cc"));
                 tile.setUnitColor(Color.web("#bcc0cc"));
                 tile.setTextColor(Color.web("#bcc0cc"));
+                storageTile.setForegroundColor(Color.web("#bcc0cc"));
             } else {
                 tile.setBackgroundColor(Color.web("#DADADC"));
                 tile.setBarColor(Color.web("#5c5f77"));
@@ -233,8 +234,8 @@ public class DashboardController {
         double usedSpaceGB = usedSpace / (1024 * 1024 * 1024);
         data.storageUsedSpace = usedSpaceGB;
         data.storageFreeSpace = totalSpaceGB - usedSpaceGB;
-        data.storageDescription = String.format("%.2f GB / %.2f GB (%.1f%%)",
-                usedSpaceGB, totalSpaceGB, data.storagePercentage);
+        data.storageDescription = String.format("%.2f GB / %.2f GB",
+                usedSpaceGB, totalSpaceGB);
 
         data.networkData = processNetworkData(systemData.getJSONObject("network"));
 
@@ -462,6 +463,19 @@ public class DashboardController {
 
         storageTile.setValue(data.storagePercentage);
         storageTile.setDescription(data.storageDescription);
+
+        Color barColor;
+        if (data.storagePercentage <= 50) {
+            barColor = Color.GREEN;
+        } else if (data.storagePercentage <= 80) {
+            barColor = Color.ORANGE;
+        } else {
+            barColor = Color.RED;
+        }
+
+        storageTile.setBarColor(barColor);
+        storageTile.setValueColor(barColor);
+        storageTile.setUnitColor(barColor);
 
         if (data.networkData.kbPerSecond > 0) {
             double value = data.networkData.kbPerSecond;

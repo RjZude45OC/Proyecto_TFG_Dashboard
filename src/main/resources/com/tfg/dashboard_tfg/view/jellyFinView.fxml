@@ -139,16 +139,6 @@
                         <Label fx:id="episodesCountLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="2"
                                styleClass="stat-value"/>
 
-                        <Label text="Music Albums:" GridPane.columnIndex="0" GridPane.rowIndex="3"
-                               styleClass="setting-label"/>
-                        <Label fx:id="albumsCountLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="3"
-                               styleClass="stat-value"/>
-
-                        <Label text="Songs:" GridPane.columnIndex="0" GridPane.rowIndex="4"
-                               styleClass="setting-label"/>
-                        <Label fx:id="songsCountLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="4"
-                               styleClass="stat-value"/>
-
                         <Label text="Total Size:" GridPane.columnIndex="0" GridPane.rowIndex="5"
                                styleClass="setting-label"/>
                         <Label fx:id="totalSizeLabel" text="0 GB" GridPane.columnIndex="1" GridPane.rowIndex="5"

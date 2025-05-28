@@ -81,10 +81,6 @@ public class JellyFinViewModel implements Initializable {
     @FXML
     private Label episodesCountLabel;
     @FXML
-    private Label albumsCountLabel;
-    @FXML
-    private Label songsCountLabel;
-    @FXML
     private Label totalSizeLabel;
     @FXML
     private Label activeStreamsLabel;
@@ -608,74 +604,51 @@ public class JellyFinViewModel implements Initializable {
         return systemCpuLoad / 100;
     }
 
-    /**
-     * Fetch library statistics from the server using Jellyfin API
-     */
     private CompletableFuture<Void> fetchLibraryStats() {
         return CompletableFuture.runAsync(() -> {
             try {
-                String jellyfinApiUrl = serverUrl.get() + "/";
-                String moviesUrl = jellyfinApiUrl + "Items?Recursive=true&IncludeItemTypes=Movie&Limit=0";
-                String seriesUrl = jellyfinApiUrl + "Items?Recursive=true&IncludeItemTypes=Series&Limit=0";
-                String episodesUrl = jellyfinApiUrl + "Items?Recursive=true&IncludeItemTypes=Episode&Limit=0";
-                String albumsUrl = jellyfinApiUrl + "Items?Recursive=true&IncludeItemTypes=AudioAlbum&Limit=0";
-                String songsUrl = jellyfinApiUrl + "Items?Recursive=true&IncludeItemTypes=Audio&Recursive=true&Limit=0";
-
-                final class ApiFetch {
-                    private int fetchCount(String url) throws Exception {
-                        HttpRequest request = HttpRequest.newBuilder()
-                                .uri(URI.create(url))
-                                .header("X-MediaBrowser-Token", apiKey.get())
-                                .GET()
-                                .build();
-                        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-                        if (response.statusCode() != 200) {
-                            addLogEntry("Error", "Library", "Failed to fetch from " + url + ": HTTP " + response.statusCode() + " - " + response.body());
-                            return 0;
-                        }
-
-                        JSONObject jsonResponse = new JSONObject(response.body());
-                        JSONArray items = jsonResponse.optJSONArray("Items");
-                        return (items != null) ? items.length() : 0;
-                    }
+                String jellyfinApiUrl = serverUrl.get();
+                if (!jellyfinApiUrl.endsWith("/")) {
+                    jellyfinApiUrl += "/";
                 }
-                ApiFetch apiFetch = new ApiFetch();
-                int moviesCount = apiFetch.fetchCount(moviesUrl);
-                int tvShowsCount = apiFetch.fetchCount(seriesUrl);
-                int episodesCount = apiFetch.fetchCount(episodesUrl);
-                int albumsCount = apiFetch.fetchCount(albumsUrl);
-                int songsCount = apiFetch.fetchCount(songsUrl);
 
-                Random random = new Random();
-                double totalSize = 500 + random.nextInt(1500);
+                String moviesUrl = jellyfinApiUrl + "Items?Recursive=true&IncludeItemTypes=Movie";
+                String seriesUrl = jellyfinApiUrl + "Items?Recursive=true&IncludeItemTypes=Series";
+                String episodesUrl = jellyfinApiUrl + "Items?Recursive=true&IncludeItemTypes=Episode";
+                String virtualFolder = jellyfinApiUrl + "Library/VirtualFolders";
+                String sizeUrl = jellyfinApiUrl + "Items?Recursive=true&Fields=MediaSources&ParentId=";
+                int moviesCount = fetchCount(moviesUrl);
+                int tvShowsCount = fetchCount(seriesUrl);
+                int episodesCount = fetchCount(episodesUrl);
+                Map<String, String> folderIds = fetchLibraryFolderIds(virtualFolder);
+                long movieSize = fetchTotalSize(sizeUrl, folderIds.get("Movies"));
+                long showSize = fetchTotalSize(sizeUrl, folderIds.get("Shows"));
+                long animeSize = fetchTotalSize(sizeUrl, folderIds.get("Anime"));
 
                 Platform.runLater(() -> {
                     moviesCountLabel.setText(String.valueOf(moviesCount));
                     tvShowsCountLabel.setText(String.valueOf(tvShowsCount));
                     episodesCountLabel.setText(String.valueOf(episodesCount));
-                    albumsCountLabel.setText(String.valueOf(albumsCount));
-                    songsCountLabel.setText(String.valueOf(songsCount));
-                    totalSizeLabel.setText(String.format("%.1f GB", totalSize));
+                    episodesCountLabel.setText(String.valueOf(episodesCount));
+                    totalSizeLabel.setText(formatSize(movieSize + showSize + animeSize));
                 });
+
+                addLogEntry("Info", "Library", String.format(
+                        "Stats updated - Movies: %d, TV Shows: %d, Episodes: %d, Size: %S",
+                        moviesCount, tvShowsCount, episodesCount, formatSize(movieSize + showSize + animeSize)));
+
             } catch (Exception e) {
                 addLogEntry("Error", "Library", "Error fetching library stats: " + e.getMessage());
                 Platform.runLater(() -> {
-                    moviesCountLabel.setText("0");
-                    tvShowsCountLabel.setText("0");
-                    episodesCountLabel.setText("0");
-                    albumsCountLabel.setText("0");
-                    songsCountLabel.setText("0");
-                    totalSizeLabel.setText("0 GB");
+                    moviesCountLabel.setText("Error");
+                    tvShowsCountLabel.setText("Error");
+                    episodesCountLabel.setText("Error");
+                    totalSizeLabel.setText("Error");
                 });
             }
         }, executorService);
     }
 
-
-    /**
-     * Filter logs based on selected level
-     */
     private void filterLogs() {
         String selectedLevel = logLevelFilter.getSelectionModel().getSelectedItem();
         filteredLogEntries.clear();
@@ -687,9 +660,6 @@ public class JellyFinViewModel implements Initializable {
         }
     }
 
-    /**
-     * Clear all logs from the view
-     */
     @FXML
     private void clearLogs() {
         logEntries.clear();
@@ -697,9 +667,6 @@ public class JellyFinViewModel implements Initializable {
         addLogEntry("Info", "System", "Logs cleared");
     }
 
-    /**
-     * Add a new log entry programmatically
-     */
     private void addLogEntry(String level, String source, String message) {
         LocalDateTime now = LocalDateTime.now();
         String time = now.format(logTimeFormatter);
@@ -777,7 +744,7 @@ public class JellyFinViewModel implements Initializable {
                     }
                 }
                 if (networkData != null) {
-                    System.out.println("latency: " + latency + "ms");
+//                    System.out.println("latency: " + latency + "ms");
                     if (latency > 100) {
                         newLogs.add(new LogEntry(time, "Warning", "Network", "Network latency detected"));
                     }
@@ -793,12 +760,92 @@ public class JellyFinViewModel implements Initializable {
             } catch (Exception e) {
                 Platform.runLater(() -> {
                     addLogEntry("Error", "Logs", "Failed to fetch logs: " + e.getMessage());
-                    System.out.println(e.getMessage());
                 });
             }
         }, executorService);
     }
 
+    private int fetchCount(String url) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("X-MediaBrowser-Token", apiKey.get())
+                .header("Accept", "application/json")
+                .GET()
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            addLogEntry("Error", "Library", "Failed to fetch from " + url + ": HTTP " + response.statusCode() + " - " + response.body());
+            return 0;
+        }
+
+        JSONObject jsonResponse = new JSONObject(response.body());
+        return jsonResponse.optInt("TotalRecordCount", 0);
+    }
+
+    private Map<String, String> fetchLibraryFolderIds(String url) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("X-MediaBrowser-Token", apiKey.get())
+                .header("Accept", "application/json")
+                .GET()
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        Map<String, String> nameToId = new HashMap<>();
+
+        if (response.statusCode() == 200) {
+            JSONArray folders = new JSONArray(response.body());
+
+            for (int i = 0; i < folders.length(); i++) {
+                JSONObject folder = folders.getJSONObject(i);
+                String name = folder.optString("Name");
+                String id = folder.optString("ItemId");
+                nameToId.put(name, id);
+            }
+        } else {
+            addLogEntry("Error", "Library", "Failed to fetch virtual folders: HTTP " + response.statusCode());
+        }
+
+        return nameToId;
+    }
+
+    private long fetchTotalSize(String sizeUrl, String libIds) throws Exception {
+        sizeUrl = sizeUrl + libIds;
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(sizeUrl))
+                .header("X-MediaBrowser-Token", apiKey.get())
+                .header("Accept", "application/json")
+                .GET()
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() != 200) {
+            addLogEntry("Warning", "Library", "Failed to fetch size info: HTTP " + response.statusCode() + " or is empty");
+            return 0;
+        }
+
+        JSONObject jsonResponse = new JSONObject(response.body());
+        JSONArray items = jsonResponse.optJSONArray("Items");
+        long totalBytes = 0;
+
+        if (items != null) {
+            for (int i = 0; i < items.length(); i++) {
+                JSONObject item = items.optJSONObject(i);
+                if (item != null) {
+                    JSONArray mediaSources = item.optJSONArray("MediaSources");
+                    if (mediaSources != null && !mediaSources.isEmpty()) {
+                        JSONObject mediaSource = mediaSources.optJSONObject(0);
+                        if (mediaSource != null) {
+                            totalBytes += mediaSource.optLong("Size", 0);
+                        }
+                    }
+                }
+            }
+        }
+        return totalBytes;
+    }
 
     private VBox createStreamTile(StreamSession session) {
         VBox tile = new VBox(10);
@@ -989,6 +1036,18 @@ public class JellyFinViewModel implements Initializable {
             return dateTime.format(outputFormatter);
         } catch (Exception e) {
             return "Unknown";
+        }
+    }
+
+    private String formatSize(double bytes) {
+        if (bytes >= 1024.0 * 1024.0 * 1024.0) {
+            return String.format("%.1f GB", bytes / (1024.0 * 1024.0 * 1024.0));
+        } else if (bytes >= 1024.0 * 1024.0) {
+            return String.format("%.1f MB", bytes / (1024.0 * 1024.0));
+        } else if (bytes >= 1024.0) {
+            return String.format("%.1f KB", bytes / 1024.0);
+        } else {
+            return String.format("%.0f B", bytes);
         }
     }
 

@@ -459,7 +459,7 @@ public class DashboardController {
         cpuTile.setDescription(data.cpuDescription);
 
         memoryTile.setValue(data.memoryUsage);
-        memoryTile.setDescription(data.memoryDescription);
+        memoryTile.setText(data.memoryDescription);
 
         storageTile.setValue(data.storagePercentage);
         storageTile.setDescription(data.storageDescription);

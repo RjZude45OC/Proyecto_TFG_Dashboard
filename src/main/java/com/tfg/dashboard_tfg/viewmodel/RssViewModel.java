@@ -39,7 +39,6 @@ public class RssViewModel implements Initializable {
     @FXML
     private Label statusLabel;
 
-    // Indexer Tab Fields
     @FXML
     private TextField indexerSearchField;
     @FXML
@@ -57,7 +56,6 @@ public class RssViewModel implements Initializable {
     @FXML
     private TableColumn<IndexerItem, Void> indexerActionColumn;
 
-    // Tags Tab Fields
     @FXML
     private TextField tagSearchField;
     @FXML
@@ -69,7 +67,6 @@ public class RssViewModel implements Initializable {
     @FXML
     private TableColumn<TagItem, Void> tagActionColumn;
 
-    // Stats Tab Fields
     @FXML
     private Label versionLabel;
     @FXML
@@ -87,7 +84,6 @@ public class RssViewModel implements Initializable {
     @FXML
     private TableColumn<IndexerStatsItem, Double> statsAvgResponseColumn;
 
-    // Settings Tab Fields
     @FXML
     private TextField timeoutField;
     @FXML
@@ -121,18 +117,14 @@ public class RssViewModel implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        // Load saved API settings
         loadApiSettings();
 
-        // Initialize filtered lists
         filteredIndexers = new FilteredList<>(indexersList);
         filteredTags = new FilteredList<>(tagsList);
 
-        // Set up listeners
         apiUrl.bind(apiUrlField.textProperty());
         apiKey.bind(apiKeyField.textProperty());
 
-        // Set up indexer search filter
         indexerSearchField.textProperty().addListener((obs, oldVal, newVal) -> {
             filteredIndexers.setPredicate(indexer -> {
                 if (newVal == null || newVal.isEmpty()) {
@@ -144,7 +136,6 @@ public class RssViewModel implements Initializable {
             });
         });
 
-        // Set up tag search filter
         tagSearchField.textProperty().addListener((obs, oldVal, newVal) -> {
             filteredTags.setPredicate(tag -> {
                 if (newVal == null || newVal.isEmpty()) {
@@ -155,12 +146,10 @@ public class RssViewModel implements Initializable {
             });
         });
 
-        // Set up table views
         setupIndexerTableView();
         setupTagsTableView();
         setupStatsTableView();
 
-        // Bind status label to connection state
         connected.addListener((obs, oldVal, newVal) -> {
             if (newVal) {
                 statusLabel.setText("Connected to Prowlarr");
@@ -1151,8 +1140,8 @@ public class RssViewModel implements Initializable {
                 }
             }
 
-            properties.setProperty("apiUrl", apiUrlField.getText());
-            properties.setProperty("apiKey", apiKeyField.getText());
+            properties.setProperty("prowlarr-apiUrl", apiUrlField.getText());
+            properties.setProperty("prowlarr-apiKey", apiKeyField.getText());
 
             try (OutputStream output = new FileOutputStream(settingsFile)) {
                 properties.store(output, "Prowlarr Integration Settings");

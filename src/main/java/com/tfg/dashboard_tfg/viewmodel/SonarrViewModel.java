@@ -1132,7 +1132,12 @@ public class SonarrViewModel implements Initializable {
         Platform.runLater(() -> {
             filteredLogEntries.clear();
 
-            for (LogEntry entry : logEntries) {
+            List<LogEntry> logEntriesCopy;
+            synchronized (logEntries) {
+                logEntriesCopy = new ArrayList<>(logEntries);
+            }
+
+            for (LogEntry entry : logEntriesCopy) {
                 if ("All".equals(selectedLevel) || selectedLevel.equals(entry.getLevel())) {
                     filteredLogEntries.add(entry);
                 }

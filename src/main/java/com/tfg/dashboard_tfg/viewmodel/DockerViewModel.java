@@ -177,7 +177,7 @@ public class DockerViewModel {
                 int responseCode = connection.getResponseCode();
                 if (responseCode == 200) {
                     Platform.runLater(() -> {
-                        connectionStatusLabel.setText("Connected to Docker API");
+                        connectionStatusLabel.setText("Connected");
                         connectionStatusLabel.setTextFill(Color.web("#28a745"));
                         refreshContainers();
                     });

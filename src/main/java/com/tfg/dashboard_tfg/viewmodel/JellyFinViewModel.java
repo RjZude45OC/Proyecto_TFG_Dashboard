@@ -376,7 +376,7 @@ public class JellyFinViewModel implements Initializable {
                                     .otherwise("Not Connected")
                     );
                     serverStatusLabel.styleProperty().unbind();
-                    serverStatusLabel.setStyle("");
+                    serverStatusLabel.setStyle("-fx-text-fill: green;");
 
                     addLogEntry("Info", "Connection", result);
 

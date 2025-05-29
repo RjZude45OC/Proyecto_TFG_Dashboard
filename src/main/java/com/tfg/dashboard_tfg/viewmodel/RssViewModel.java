@@ -14,24 +14,18 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
-import javafx.util.Callback;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 public class RssViewModel implements Initializable {
 
-    // API Connection Fields
     @FXML
     private TextField apiUrlField;
     @FXML
@@ -89,35 +83,29 @@ public class RssViewModel implements Initializable {
     @FXML
     private TextField cacheDurationField;
 
-    // Observable Lists
     private final ObservableList<IndexerItem> indexersList = FXCollections.observableArrayList();
     private final ObservableList<TagItem> tagsList = FXCollections.observableArrayList();
     private final ObservableList<IndexerStatsItem> indexerStatsList = FXCollections.observableArrayList();
 
-    // Filtered Lists
     private FilteredList<IndexerItem> filteredIndexers;
     private FilteredList<TagItem> filteredTags;
 
-    // Properties
     private final StringProperty apiUrl = new SimpleStringProperty();
     private final StringProperty apiKey = new SimpleStringProperty();
     private final BooleanProperty connected = new SimpleBooleanProperty(false);
 
-    // Constants
-    private static final int CONNECTION_TIMEOUT = 30000; // 30 seconds
-
-    // API Endpoints
+    private static final String PROPERTIES_FILE = "connection.properties";
+    private static final int CONNECTION_TIMEOUT = 30000;
     private static final String INDEXERS_ENDPOINT = "/api/v1/indexer";
     private static final String TAG_ENDPOINT = "/api/v1/tag";
     private static final String STATUS_ENDPOINT = "/api/v1/system/status";
     private static final String STATS_ENDPOINT = "/api/v1/indexerstats";
-
-    // Indexer Types Map
     private final Map<String, String> indexerDefinitions = new HashMap<>();
+    private final Properties appProperties = new Properties();
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        loadApiSettings();
+        loadProperties();
 
         filteredIndexers = new FilteredList<>(indexersList);
         filteredTags = new FilteredList<>(tagsList);
@@ -159,13 +147,11 @@ public class RssViewModel implements Initializable {
                 statusLabel.setStyle("-fx-text-fill: red;");
             }
         });
-
-        // Populate indexer definitions
         populateIndexerDefinitions();
+        connectToProwlarr();
     }
 
     private void populateIndexerDefinitions() {
-        // Populate common Prowlarr indexer types
         indexerDefinitions.put("newznab", "Newznab");
         indexerDefinitions.put("torznab", "Torznab");
         indexerDefinitions.put("torrentRss", "Torrent RSS");
@@ -175,14 +161,11 @@ public class RssViewModel implements Initializable {
     }
 
     private void setupIndexerTableView() {
-        // Configure table columns
         indexerIdColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
         indexerNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
         indexerTypeColumn.setCellValueFactory(new PropertyValueFactory<>("type"));
         indexerEnabledColumn.setCellValueFactory(new PropertyValueFactory<>("enabled"));
         indexerPriorityColumn.setCellValueFactory(new PropertyValueFactory<>("priority"));
-
-        // Center and style ID column
         indexerIdColumn.setCellFactory(column -> new TableCell<IndexerItem, Integer>() {
             @Override
             protected void updateItem(Integer id, boolean empty) {
@@ -197,7 +180,6 @@ public class RssViewModel implements Initializable {
             }
         });
 
-        // Center and style Name column
         indexerNameColumn.setCellFactory(column -> new TableCell<IndexerItem, String>() {
             @Override
             protected void updateItem(String name, boolean empty) {
@@ -212,7 +194,6 @@ public class RssViewModel implements Initializable {
             }
         });
 
-        // For the columns with existing styling, add the center alignment
         indexerTypeColumn.setCellFactory(column -> new TableCell<IndexerItem, String>() {
             @Override
             protected void updateItem(String type, boolean empty) {
@@ -223,7 +204,7 @@ public class RssViewModel implements Initializable {
                     setStyle("");
                 } else {
                     setText(type);
-                    setAlignment(Pos.CENTER); // This centers the text in the cell
+                    setAlignment(Pos.CENTER);
 
                     switch (type.toLowerCase()) {
                         case "usenetindexer":
@@ -246,7 +227,6 @@ public class RssViewModel implements Initializable {
             }
         });
 
-        // Similarly update other columns...
         indexerEnabledColumn.setCellFactory(column -> new TableCell<IndexerItem, Boolean>() {
             @Override
             protected void updateItem(Boolean enabled, boolean empty) {
@@ -289,29 +269,24 @@ public class RssViewModel implements Initializable {
         });
         setupIndexerActionColumn();
 
-        // Set the items
         indexersTableView.setItems(filteredIndexers);
     }
 
     private void setupTagsTableView() {
-        // Configure table columns
         tagIdColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
         tagLabelColumn.setCellValueFactory(new PropertyValueFactory<>("label"));
 
         setupTagActionColumn();
 
-        // Set the items
         tagsTableView.setItems(filteredTags);
     }
 
     private void setupStatsTableView() {
-        // Configure table columns
         statsIndexerNameColumn.setCellValueFactory(new PropertyValueFactory<>("indexerName"));
         statsSuccessCountColumn.setCellValueFactory(new PropertyValueFactory<>("successCount"));
         statsFailureCountColumn.setCellValueFactory(new PropertyValueFactory<>("failureCount"));
         statsAvgResponseColumn.setCellValueFactory(new PropertyValueFactory<>("avgResponseTime"));
 
-        // Center align stats columns
         statsSuccessCountColumn.setCellFactory(column -> new TableCell<IndexerStatsItem, Integer>() {
             @Override
             protected void updateItem(Integer count, boolean empty) {
@@ -360,8 +335,6 @@ public class RssViewModel implements Initializable {
                 }
             }
         });
-
-        // Set the items
         indexerStatsTableView.setItems(indexerStatsList);
     }
 
@@ -442,24 +415,21 @@ public class RssViewModel implements Initializable {
         });
     }
 
-    // Event handlers
-
     @FXML
     private void connectToProwlarr() {
-        // Validate connection inputs
         if (apiUrlField.getText().isEmpty() || apiKeyField.getText().isEmpty()) {
             statusLabel.setText("Please provide both API URL and API Key");
             statusLabel.setStyle("-fx-text-fill: red;");
             return;
         }
-
-        // Save API settings
-        saveApiSettings();
+        if (!apiUrlField.getText().startsWith("http://")) {
+            apiUrlField.setText("http://" + apiUrlField.getText());
+        }
+        updateProperty();
 
         statusLabel.setText("Connecting...");
         statusLabel.setStyle("-fx-text-fill: orange;");
 
-        // Test connection
         CompletableFuture.runAsync(() -> {
             try {
                 JSONObject statusResponse = makeApiGetRequest(STATUS_ENDPOINT);
@@ -470,7 +440,6 @@ public class RssViewModel implements Initializable {
                         statusLabel.setText("Connected to Prowlarr v" + statusResponse.getString("version"));
                         statusLabel.setStyle("-fx-text-fill: green;");
 
-                        // Load data from API
                         refreshIndexers();
                         refreshTags();
                         refreshStats();
@@ -609,17 +578,14 @@ public class RssViewModel implements Initializable {
         dialog.setTitle("Add Indexer");
         dialog.setHeaderText("Select an indexer to add");
 
-        // Set button types
         ButtonType addButtonType = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
 
-        // Create form grid
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
         grid.setPadding(new Insets(20, 150, 10, 10));
 
-        // Form fields
         ComboBox<JSONObject> definitionComboBox = new ComboBox<>();
         definitionComboBox.getItems().addAll(availableDefinitions);
         definitionComboBox.setConverter(new javafx.util.StringConverter<JSONObject>() {
@@ -645,7 +611,6 @@ public class RssViewModel implements Initializable {
         TextField priorityField = new TextField("25");
         priorityField.setPromptText("Priority (1-50)");
 
-        // Add fields to grid
         grid.add(new Label("Indexer Type:"), 0, 0);
         grid.add(definitionComboBox, 1, 0);
         grid.add(new Label("Name:"), 0, 1);
@@ -656,10 +621,8 @@ public class RssViewModel implements Initializable {
 
         dialog.getDialogPane().setContent(grid);
 
-        // Request focus on the definition combo
         Platform.runLater(definitionComboBox::requestFocus);
 
-        // Convert the result to an indexer item when the add button is clicked
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == addButtonType) {
                 try {
@@ -684,14 +647,12 @@ public class RssViewModel implements Initializable {
                         return null;
                     }
 
-                    // Create JSON for the new indexer based on the definition
                     JSONObject indexerJson = new JSONObject(selectedDefinition.toString());
                     indexerJson.put("name", name);
                     indexerJson.put("enable", enabled);
                     indexerJson.put("priority", priority);
                     indexerJson.put("tags", new JSONArray());
 
-                    // Send API request to create the indexer
                     JSONObject response = makeApiPostRequest(INDEXERS_ENDPOINT, indexerJson);
 
                     if (response != null && response.has("id")) {
@@ -737,9 +698,6 @@ public class RssViewModel implements Initializable {
         });
     }
 
-    // Add these missing methods to your RssViewModel class:
-
-    // Complete the showEditIndexerDialog method (it was cut off)
     private void showEditIndexerDialog(IndexerItem indexer) {
         Dialog<IndexerItem> dialog = new Dialog<>();
         dialog.setTitle("Edit Indexer");
@@ -789,7 +747,6 @@ public class RssViewModel implements Initializable {
                         return null;
                     }
 
-                    // Update indexer via API
                     JSONObject updateJson = new JSONObject();
                     updateJson.put("id", indexer.getId());
                     updateJson.put("name", name);
@@ -804,7 +761,6 @@ public class RssViewModel implements Initializable {
                         statusLabel.setText("Indexer updated successfully");
                         statusLabel.setStyle("-fx-text-fill: green;");
 
-                        // Update the item in the list
                         indexer.setName(name);
                         indexer.setEnabled(enabled);
                         indexer.setPriority(priority);
@@ -833,7 +789,6 @@ public class RssViewModel implements Initializable {
         dialog.showAndWait();
     }
 
-    // Fixed testIndexer method
     private void testIndexer(int indexerId) {
         statusLabel.setText("Testing indexer...");
         statusLabel.setStyle("-fx-text-fill: orange;");
@@ -862,7 +817,6 @@ public class RssViewModel implements Initializable {
         });
     }
 
-    // Add missing testAllIndexers method
     @FXML
     private void testAllIndexers() {
         if (!connected.get()) {
@@ -885,9 +839,9 @@ public class RssViewModel implements Initializable {
                         if (testResponse != null && testResponse.optBoolean("isValid", false)) {
                             successCount++;
                         }
-                        Thread.sleep(1000); // Wait between tests to avoid overwhelming the API
+                        Thread.sleep(1000);
                     } catch (Exception e) {
-                        // Continue with next indexer
+
                     }
                 }
             }
@@ -900,7 +854,6 @@ public class RssViewModel implements Initializable {
         });
     }
 
-    // Fixed refreshStats method with proper implementation
     @FXML
     private void refreshStats() {
         if (!connected.get()) {
@@ -912,16 +865,13 @@ public class RssViewModel implements Initializable {
         statusLabel.setText("Loading statistics...");
         CompletableFuture.runAsync(() -> {
             try {
-                // Get indexer statistics from Prowlarr history endpoint
                 JSONObject historyResponse = makeApiGetRequest("/api/v1/history?page=1&pageSize=1000");
                 JSONArray historyArray = historyResponse.optJSONArray("records");
 
-                // Get current indexers
                 JSONArray indexersArray = makeApiGetRequest(INDEXERS_ENDPOINT).getJSONArray("records");
 
                 Map<Integer, IndexerStatsItem> statsMap = new HashMap<>();
 
-                // Initialize stats for all indexers
                 for (int i = 0; i < indexersArray.length(); i++) {
                     JSONObject indexer = indexersArray.getJSONObject(i);
                     int id = indexer.getInt("id");
@@ -929,7 +879,6 @@ public class RssViewModel implements Initializable {
                     statsMap.put(id, new IndexerStatsItem(id, name, 0, 0, 0, 0.0));
                 }
 
-                // Process history data if available
                 if (historyArray != null) {
                     Map<Integer, List<Double>> responseTimes = new HashMap<>();
 
@@ -944,7 +893,6 @@ public class RssViewModel implements Initializable {
                             if ("grabEnd".equals(eventType) || "releaseGrabbed".equals(eventType)) {
                                 stats.setSuccessCount(stats.getSuccessCount() + 1);
                             } else if ("grabFailed".equals(eventType) || "indexerQuery".equals(eventType)) {
-                                // Check if it's actually a failure
                                 boolean successful = record.optBoolean("successful", true);
                                 if (successful) {
                                     stats.setSuccessCount(stats.getSuccessCount() + 1);
@@ -953,7 +901,6 @@ public class RssViewModel implements Initializable {
                                 }
                             }
 
-                            // Track response times if available
                             double responseTime = record.optDouble("responseTime", -1);
                             if (responseTime > 0) {
                                 responseTimes.computeIfAbsent(indexerId, k -> new ArrayList<>()).add(responseTime);
@@ -961,7 +908,6 @@ public class RssViewModel implements Initializable {
                         }
                     }
 
-                    // Calculate average response times
                     for (Map.Entry<Integer, List<Double>> entry : responseTimes.entrySet()) {
                         List<Double> times = entry.getValue();
                         double avgTime = times.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
@@ -987,7 +933,6 @@ public class RssViewModel implements Initializable {
         });
     }
 
-    // Add missing delete confirmation methods
     private void showDeleteIndexerConfirmation(IndexerItem indexer) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Delete Indexer");
@@ -1031,7 +976,6 @@ public class RssViewModel implements Initializable {
         });
     }
 
-    // Add missing tag dialog methods
     @FXML
     private void showAddTagDialog() {
         if (!connected.get()) {
@@ -1178,7 +1122,6 @@ public class RssViewModel implements Initializable {
         });
     }
 
-    // Add missing settings method
     @FXML
     private void saveSettings() {
         try {
@@ -1203,8 +1146,7 @@ public class RssViewModel implements Initializable {
                 }
             }
 
-            // Save settings to properties file or preferences
-            saveAppSettings();
+            updateProperty();
 
             statusLabel.setText("Settings saved successfully");
             statusLabel.setStyle("-fx-text-fill: green;");
@@ -1215,7 +1157,6 @@ public class RssViewModel implements Initializable {
         }
     }
 
-    // Utility methods
     private String getIndexerTypeDisplayName(String protocol) {
         return indexerDefinitions.getOrDefault(protocol.toLowerCase(), protocol);
     }
@@ -1236,7 +1177,7 @@ public class RssViewModel implements Initializable {
         return tagIds;
     }
 
-    // API methods (you'll need to implement these based on your HTTP client)
+
     private JSONObject makeApiGetRequest(String endpoint) throws Exception {
         return makeApiRequest("GET", endpoint, null);
     }
@@ -1285,7 +1226,7 @@ public class RssViewModel implements Initializable {
 
                 String responseStr = response.toString();
                 if (responseStr.isEmpty()) {
-                    return new JSONObject(); // Return empty JSON for successful requests with no body
+                    return new JSONObject();
                 }
 
                 return responseStr.startsWith("[") ?
@@ -1297,38 +1238,26 @@ public class RssViewModel implements Initializable {
         }
     }
 
-    // Settings persistence methods
-    private void loadApiSettings() {
-        try {
-            Properties props = new Properties();
-            File configFile = new File("config.properties");
-            if (configFile.exists()) {
-                props.load(new FileInputStream(configFile));
-                apiUrlField.setText(props.getProperty("api.url", "http://localhost:9696"));
-                apiKeyField.setText(props.getProperty("api.key", ""));
-                timeoutField.setText(props.getProperty("timeout", "30"));
-                cacheDurationField.setText(props.getProperty("cache.duration", "10"));
-            }
+    private void loadProperties() {
+        File propertiesFile = new File(PROPERTIES_FILE);
+        try (FileInputStream in = new FileInputStream(propertiesFile)) {
+            appProperties.load(in);
+            apiUrlField.setText(appProperties.getProperty("prowlarr-apiUrl", "http://localhost:9696"));
+            apiKeyField.setText(appProperties.getProperty("prowlarr-apiKey", ""));
+            timeoutField.setText(appProperties.getProperty("timeout", "30"));
+            cacheDurationField.setText(appProperties.getProperty("cacheDuration", "10"));
         } catch (Exception e) {
-            // Use defaults if loading fails
             apiUrlField.setText("http://localhost:9696");
         }
     }
 
-    private void saveApiSettings() {
-        saveAppSettings();
-    }
-
-    private void saveAppSettings() {
-        try {
-            Properties props = new Properties();
-            props.setProperty("api.url", apiUrlField.getText());
-            props.setProperty("api.key", apiKeyField.getText());
-            props.setProperty("timeout", timeoutField.getText());
-            props.setProperty("cache.duration", cacheDurationField.getText());
-
-            File configFile = new File("config.properties");
-            props.store(new FileOutputStream(configFile), "Prowlarr Dashboard Settings");
+    private void updateProperty() {
+        try (FileOutputStream out = new FileOutputStream(PROPERTIES_FILE)) {
+            appProperties.setProperty("prowlarr-apiUrl", apiUrlField.getText());
+            appProperties.setProperty("prowlarr-apiKey", apiKeyField.getText());
+            appProperties.setProperty("timeout", timeoutField.getText());
+            appProperties.setProperty("cacheDuration", cacheDurationField.getText());
+            appProperties.store(out, "Prowlarr Dashboard Settings");
         } catch (Exception e) {
             statusLabel.setText("Failed to save settings: " + e.getMessage());
             statusLabel.setStyle("-fx-text-fill: red;");

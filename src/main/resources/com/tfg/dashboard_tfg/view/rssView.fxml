@@ -37,7 +37,9 @@
             <Button text="Connect" onAction="#connectToProwlarr"
                     styleClass="console-button" />
         </HBox>
-
+        <HBox alignment="CENTER_RIGHT" spacing="10.0">
+            <Label fx:id="statusLabel" text="Not connected" styleClass="status-label" />
+        </HBox>
         <TabPane VBox.vgrow="ALWAYS" styleClass="monitoring-container">
             <!-- Indexers Tab -->
             <Tab text="Indexers" closable="false">
@@ -153,8 +155,6 @@
             </Tab>
         </TabPane>
 
-        <HBox alignment="CENTER_RIGHT" spacing="10.0">
-            <Label fx:id="statusLabel" text="Not connected" styleClass="status-label" />
-        </HBox>
+
     </VBox>
 </AnchorPane>

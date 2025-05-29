@@ -191,7 +191,11 @@ public class SonarrViewModel implements Initializable {
                 apiKey.set(appProperties.getProperty("sonarr-apiKey"));
             }
             if (appProperties.containsKey("dockerApi")) {
-                dockerApiEndpoint.set("http://" + appProperties.getProperty("dockerApi") + ":2375");
+                if (!appProperties.getProperty("dockerApi").startsWith("http://")) {
+                    dockerApiEndpoint.set("http://" + appProperties.getProperty("dockerApi") + ":2375");
+                } else {
+                    dockerApiEndpoint.set(appProperties.getProperty("dockerApi") + ":2375");
+                }
             }
             if (appProperties.containsKey("username")) {
                 username.set(appProperties.getProperty("username"));
@@ -1065,7 +1069,6 @@ public class SonarrViewModel implements Initializable {
                     String containerName = "sonarr";
                     String dockerHost = dockerApiEndpoint.get();
                     String urlStr = dockerHost + "/containers/" + containerName + "/json";
-
                     HttpRequest dockerRequest = HttpRequest.newBuilder()
                             .uri(URI.create(urlStr))
                             .GET()

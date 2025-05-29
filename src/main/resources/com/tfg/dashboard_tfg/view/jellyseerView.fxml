@@ -76,13 +76,16 @@
                     styleClass="go-button" text="Go" style="-fx-background-color: #5e72e4; -fx-text-fill: white;"/>
         </HBox>
 
-        <TilePane fx:id="tilePane" hgap="10" vgap="10" prefColumns="3"
+        <TilePane fx:id="tilePane" hgap="5" vgap="5" prefColumns="3"
                   AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
                   styleClass="tile-box"
                   VBox.vgrow="NEVER">
-            <Button text="Jellyfin" onAction="#handleTileClick" userData="http://192.168.30.2:8096"/>
-            <Button text="Google" onAction="#handleTileClick" userData="https://www.google.com"/>
-            <Button text="GitHub" onAction="#handleTileClick" userData="https://github.com"/>
+            <Button text="Jellyfin" onAction="#handleTileClick" userData="8096"/>
+            <Button text="Sonarr" onAction="#handleTileClick" userData="8989"/>
+            <Button text="Prowlarr" onAction="#handleTileClick" userData="9696"/>
+            <Button text="Qbittorrent" onAction="#handleTileClick" userData="8080"/>
+            <Button text="Jellyseer" onAction="#handleTileClick" userData="5055"/>
+            <Button text="Google" onAction="#handleTileClick" userData="https://www.google.com/"/>
         </TilePane>
 
         <WebView fx:id="webView" prefHeight="600.0" prefWidth="800.0" VBox.vgrow="ALWAYS"/>

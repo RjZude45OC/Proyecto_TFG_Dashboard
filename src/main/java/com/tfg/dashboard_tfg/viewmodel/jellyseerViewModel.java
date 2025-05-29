@@ -45,13 +45,24 @@ public class jellyseerViewModel implements Initializable {
     private ProgressIndicator loadingIndicator;
 
     private WebEngine webEngine;
-    private final String DEFAULT_HOME_PAGE = "http://192.168.30.2:8096";
+    private final String ROOT = "http://192.168.30.2";
+    private String DEFAULT_HOME_PAGE = "";
+
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         webEngine = webView.getEngine();
         urlField.setOnAction(event -> handleNavigate());
-
+        String path = "/com/tfg/dashboard_tfg/assets/home.html";
+        URL homePageUrl = getClass().getResource(path);
+        if (homePageUrl != null) {
+            DEFAULT_HOME_PAGE = homePageUrl.toExternalForm();
+            navigateToHomePage();
+        } else {
+            System.err.println("Error: html not found in resources");
+            DEFAULT_HOME_PAGE = "about:blank";
+            statusLabel.setText("Home screen not found!");
+        }
         configureLoadStateListeners();
 
         configureHistoryStateListeners();
@@ -176,7 +187,11 @@ public class jellyseerViewModel implements Initializable {
         if (event.getSource() instanceof Button button) {
             String url = (String) button.getUserData();
             if (url != null && !url.isEmpty()) {
-                loadUrl(url);
+                if (url.contains("google")) {
+                    loadUrl(url);
+                } else {
+                    loadUrl(ROOT + ":" + url);
+                }
             }
         }
     }

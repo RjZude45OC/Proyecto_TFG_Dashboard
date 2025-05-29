@@ -127,7 +127,7 @@ public class JellyFinViewModel implements Initializable {
     private JSONObject systeminfo;
     private long latency;
 
-    private void loadPropertiesIfNeeded() {
+    private void loadProperties() {
         if (propertiesLoaded) {
             return;
         }
@@ -194,7 +194,7 @@ public class JellyFinViewModel implements Initializable {
     }
 
     public void updateProperty(String key, String value) {
-        loadPropertiesIfNeeded();
+        loadProperties();
         appProperties.setProperty(key, value);
         try (FileOutputStream out = new FileOutputStream(PROPERTIES_FILE)) {
             appProperties.store(out, "Updated by user");
@@ -208,7 +208,7 @@ public class JellyFinViewModel implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         httpClient = HttpClient.newBuilder().build();
         executorService = Executors.newFixedThreadPool(3);
-        loadPropertiesIfNeeded();
+        loadProperties();
         String autoUpdateInterval = appProperties.getProperty("update-interval");
         if (autoUpdateInterval == null || autoUpdateInterval.isEmpty()) {
             autoUpdateInterval = "5";
@@ -321,7 +321,7 @@ public class JellyFinViewModel implements Initializable {
 
     private void connectToServer() {
         connected.set(false);
-        loadPropertiesIfNeeded();
+        loadProperties();
         if (serverUrl.get() == null || serverUrl.get().trim().isEmpty()) {
             addLogEntry("Error", "Connection", "Server URL cannot be empty");
             return;

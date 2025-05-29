@@ -253,14 +253,14 @@
                                        styleClass="detail-label"/>
                                 <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="6">
                                     <Label fx:id="downloadLimitLabel" text="N/A" styleClass="detail-value"/>
-                                    <Button text="Set Limit" fx:id="setDownloadLimitButton" styleClass="small-button"/>
+                                    <Button text="Set Limit" fx:id="setDownloadLimitButton" styleClass="console-button"/>
                                 </HBox>
 
                                 <Label text="Upload Limit:" GridPane.columnIndex="0" GridPane.rowIndex="7"
                                        styleClass="detail-label"/>
                                 <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="7">
                                     <Label fx:id="uploadLimitLabel" text="N/A" styleClass="detail-value"/>
-                                    <Button text="Set Limit" fx:id="setUploadLimitButton" styleClass="small-button"/>
+                                    <Button text="Set Limit" fx:id="setUploadLimitButton" styleClass="console-button"/>
                                 </HBox>
 
                                 <Label text="Connections:" GridPane.columnIndex="0" GridPane.rowIndex="8"

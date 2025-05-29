@@ -357,17 +357,17 @@ public class DownloaderClientView implements Initializable {
         String host = hostField.getText();
         String username = usernameField.getText();
         String password = passwordField.getText();
-        if (hostField.getText().isEmpty()) {
+        if (hostField.getText() == null || hostField.getText().isEmpty()) {
             clientStatusLabel.setText("Please provide URL");
             clientStatusLabel.setStyle("-fx-text-fill: red;");
             return;
         }
-        if (usernameField.getText().isEmpty()) {
+        if (usernameField.getText() == null ||usernameField.getText().isEmpty()) {
             clientStatusLabel.setText("Please provide username and password");
             clientStatusLabel.setStyle("-fx-text-fill: red;");
             return;
         }
-        if (passwordField.getText().isEmpty()) {
+        if (passwordField.getText() == null ||passwordField.getText().isEmpty()) {
             clientStatusLabel.setText("Please provide URL");
             clientStatusLabel.setStyle("-fx-text-fill: red;");
             return;

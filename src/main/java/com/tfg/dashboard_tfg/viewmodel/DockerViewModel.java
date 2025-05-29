@@ -140,7 +140,7 @@ public class DockerViewModel {
         String port = serverPort.getValue().trim();
 
         if (host.isEmpty()) {
-            if (url.isEmpty()) {
+            if (url != null | url.isEmpty()) {
                 connectionStatusLabel.setText("Please provide host");
                 connectionStatusLabel.setTextFill(Color.ORANGE);
                 return;

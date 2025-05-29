@@ -153,7 +153,14 @@
                 </VBox>
             </Tab>
         </TabPane>
-
-
     </VBox>
+    <HBox alignment="CENTER_LEFT"
+          spacing="10"
+          AnchorPane.bottomAnchor="10.0"
+          AnchorPane.leftAnchor="20.0"
+          AnchorPane.rightAnchor="20.0"
+          styleClass="status-bar">
+        <Label text="RSS Manager v1.0" styleClass="status-text"/>
+        <Region HBox.hgrow="ALWAYS"/>
+    </HBox>
 </AnchorPane>

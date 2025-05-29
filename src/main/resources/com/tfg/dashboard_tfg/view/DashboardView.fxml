@@ -4,6 +4,7 @@
 <?import javafx.scene.layout.*?>
 <?import eu.hansolo.tilesfx.Tile?>
 
+<?import javafx.geometry.Insets?>
 <StackPane xmlns="http://javafx.com/javafx"
            xmlns:fx="http://javafx.com/fxml"
            fx:controller="com.tfg.dashboard_tfg.viewmodel.DashboardController"
@@ -180,6 +181,16 @@
                 </VBox>
             </HBox>
         </VBox>
+        <HBox alignment="CENTER_LEFT"
+              spacing="10"
+              AnchorPane.bottomAnchor="10.0"
+              AnchorPane.leftAnchor="20.0"
+              AnchorPane.rightAnchor="20.0"
+              styleClass="status-bar">
+            <Label text="System Monitor v1.0" styleClass="status-text"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="lastUpdateLabel" text="Last update: Never" styleClass="status-text"/>
+        </HBox>
     </AnchorPane>
     <StackPane fx:id="loadingOverlay"
                style="-fx-background-color: rgba(0, 0, 0, 0.7);"

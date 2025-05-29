@@ -20,12 +20,15 @@ import org.json.JSONObject;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class DockerViewModel {
+
     @FXML
     private TextArea cliOutput;
     @FXML
@@ -52,7 +55,8 @@ public class DockerViewModel {
     private Button connectButton;
     @FXML
     private Label connectionStatusLabel;
-
+    @FXML
+    private Label lastUpdateLabel;
     @FXML
     private ListView commandHistoryList;
 
@@ -62,6 +66,7 @@ public class DockerViewModel {
     private static final String PROPERTIES_FILE = "connection.properties";
     private final StringProperty serverUrl = new SimpleStringProperty("");
     private final StringProperty serverPort = new SimpleStringProperty("");
+    private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     public void loadProperties() {
         try (FileInputStream fis = new FileInputStream(PROPERTIES_FILE)) {
@@ -483,6 +488,7 @@ public class DockerViewModel {
 
                     containerCountLabel.setText(String.valueOf(containerTiles.size()));
                     statusLabel.setText("Ready");
+                    lastUpdateLabel.setText("Last update: " + LocalDateTime.now().format(timeFormatter));
                 });
 
             } catch (Exception e) {

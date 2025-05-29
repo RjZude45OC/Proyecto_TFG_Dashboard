@@ -141,6 +141,7 @@
                 </padding>
                 <Label text="Docker Manager v1.0" styleClass="status-text"/>
                 <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="lastUpdateLabel" text="Last update: Never" styleClass="status-text"/>
             </HBox>
         </bottom>
     </BorderPane>

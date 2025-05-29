@@ -29,6 +29,8 @@ import org.json.JSONObject;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -63,7 +65,8 @@ public class DashboardController {
     private StackPane loadingOverlay;
     @FXML
     private Button applyUrlButton;
-
+    @FXML
+    private Label lastUpdateLabel;
     private List<Tile> tileList;
     private ScheduledExecutorService scheduler;
     private Map<String, Long> previousNetworkBytes = new HashMap<>();
@@ -72,7 +75,7 @@ public class DashboardController {
     private final File PROPERTIES_FILE = new File("connection.properties");
     private String dockerApiUrl;
     public static ProcessedData processedData = new ProcessedData();
-
+    private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
     private Tile expandedTile = null;
     private GridPane originalParent = null;
     private int originalColIndex = 0;
@@ -196,7 +199,10 @@ public class DashboardController {
             }
             processedData = processAllData(systemData);
 
-            javafx.application.Platform.runLater(() -> updateAllTiles(processedData));
+            javafx.application.Platform.runLater(() -> {
+                updateAllTiles(processedData);
+                lastUpdateLabel.setText("Last update: " + LocalDateTime.now().format(timeFormatter));
+            });
         } catch (Exception e) {
             System.err.println("Error in background processing: " + e.getMessage());
             javafx.application.Platform.runLater(() -> {

@@ -568,14 +568,14 @@ public class DockerViewModel {
         tileWidth = Math.max(tileWidth, 120);
 
         Tile tile = TileBuilder.create()
-                .skinType(Tile.SkinType.GAUGE)
+                .skinType(Tile.SkinType.TEXT)
                 .prefSize(tileWidth, tileWidth)
                 .maxWidth(Double.MAX_VALUE)
                 .maxHeight(Double.MAX_VALUE)
                 .title(name)
                 .description(image)
                 .text(status)
-                .textSize(Tile.TextSize.SMALLER)
+                .textSize(Tile.TextSize.NORMAL)
                 .valueColor(tileColor)
                 .animated(true)
                 .build();
@@ -652,7 +652,7 @@ public class DockerViewModel {
 
         switch (containerTile.currentMetric) {
             case NAME:
-                tile.setSkinType(Tile.SkinType.CHARACTER);
+                tile.setSkinType(Tile.SkinType.TEXT);
                 tile.setTitle(name);
                 tile.setDescription(image);
                 tile.setText(status);

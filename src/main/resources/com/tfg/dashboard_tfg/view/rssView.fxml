@@ -41,7 +41,6 @@
             <Label fx:id="statusLabel" text="Not connected" styleClass="status-label" />
         </HBox>
         <TabPane VBox.vgrow="ALWAYS" styleClass="monitoring-container">
-            <!-- Indexers Tab -->
             <Tab text="Indexers" closable="false">
                 <VBox spacing="10.0" styleClass="terminal-container">
                     <HBox spacing="10.0" alignment="CENTER_LEFT" styleClass="monitoring-toolbar">
@@ -53,7 +52,7 @@
                                 styleClass="console-button"/>
                         <Region HBox.hgrow="ALWAYS"/>
                         <TextField fx:id="indexerSearchField" promptText="Search indexers..."
-                                   styleClass="terminal-input"/>
+                                   styleClass="search-field" VBox.vgrow="ALWAYS"/>
                     </HBox>
 
                     <TableView fx:id="indexersTableView" VBox.vgrow="ALWAYS"

@@ -1138,3 +1138,11 @@
 .category-axis, .number-axis {
     -fx-padding: 0;
 }
+
+.dark-theme .search-field {
+    -fx-background-color:-terminal-brightWhite;
+}
+
+.light-theme .search-field {
+     -fx-background-color: #FFFFFF;
+}

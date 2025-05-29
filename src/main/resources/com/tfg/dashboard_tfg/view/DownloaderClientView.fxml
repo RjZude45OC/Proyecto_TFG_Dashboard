@@ -163,7 +163,7 @@
                     <HBox alignment="CENTER_LEFT" spacing="5">
                         <Label text="Torrent List" styleClass="section-header"/>
                         <Region HBox.hgrow="ALWAYS"/>
-                        <ComboBox fx:id="statusFilter" prefWidth="150">
+                        <ComboBox fx:id="statusFilter" prefWidth="150" styleClass="filter-combo">
                             <items>
                                 <FXCollections fx:factory="observableArrayList">
                                     <String fx:value="All"/>

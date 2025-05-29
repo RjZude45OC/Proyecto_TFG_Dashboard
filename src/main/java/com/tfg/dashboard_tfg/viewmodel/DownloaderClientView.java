@@ -21,6 +21,7 @@ import javafx.scene.layout.HBox;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDateTime;
@@ -186,33 +187,37 @@ public class DownloaderClientView implements Initializable {
     private final BooleanProperty connected = new SimpleBooleanProperty(false);
     private final StringProperty selectedTorrentHash = new SimpleStringProperty();
     private final Properties appProperties = new Properties();
-    private final File configFile = new File("connection.properties");
+    private static final String PROPERTIES_FILE = "connection.properties";
 
     public void loadProperties() {
-        try (FileInputStream fis = new FileInputStream(configFile)) {
+        try (FileInputStream fis = new FileInputStream(PROPERTIES_FILE)) {
             appProperties.load(fis);
         } catch (IOException e) {
             System.err.println("Failed to load config: " + e.getMessage());
         }
     }
+
+    private void updateProperty() {
+        try (FileOutputStream out = new FileOutputStream(PROPERTIES_FILE)) {
+            appProperties.setProperty("qbittorrent-url", hostField.getText());
+            appProperties.setProperty("qbittorrent-Username", usernameField.getText());
+            appProperties.setProperty("qbittorrent-Password", passwordField.getText());
+            appProperties.store(out, "Prowlarr Dashboard Settings");
+        } catch (Exception e) {
+            clientStatusLabel.setText("Failed to save settings: " + e.getMessage());
+            clientStatusLabel.setStyle("-fx-text-fill: red;");
+        }
+    }
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         apiClient = new QbittorrentApiClient();
         loadProperties();
 
         hostField.setText(appProperties.getProperty("qbittorrent-url"));
+        usernameField.setText(appProperties.getProperty("qbittorrent-Username"));
+        passwordField.setText(appProperties.getProperty("qbittorrent-Password"));
         connectButton.setOnAction(event -> connectToClient());
-
-        clientStatusLabel.textProperty().bind(
-                Bindings.when(connected)
-                        .then("Connected")
-                        .otherwise("Not Connected")
-        );
-        clientStatusLabel.styleProperty().bind(
-                Bindings.when(connected)
-                        .then("-fx-text-fill: green;")
-                        .otherwise("-fx-text-fill: red;")
-        );
 
         initializeCharts();
 
@@ -221,21 +226,18 @@ public class DownloaderClientView implements Initializable {
         initializeFileTable();
         initializePeerTable();
 
-        statusFilter.getSelectionModel().selectedItemProperty().addListener(
-                (observable, oldValue, newValue) -> filterTorrents(newValue)
-        );
+        statusFilter.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> filterTorrents(newValue));
 
-        torrentTable.getSelectionModel().selectedItemProperty().addListener(
-                (obs, oldSelection, newSelection) -> {
-                    if (newSelection != null) {
-                        selectedTorrentHash.set(newSelection.getHash());
-                        loadTorrentDetails(newSelection);
-                    }
-                }
-        );
+        torrentTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            if (newSelection != null) {
+                selectedTorrentHash.set(newSelection.getHash());
+                loadTorrentDetails(newSelection);
+            }
+        });
 
         setDownloadLimitButton.setOnAction(e -> showSpeedLimitDialog("download"));
         setUploadLimitButton.setOnAction(e -> showSpeedLimitDialog("upload"));
+        connectToClient();
     }
 
     private void initializeCharts() {
@@ -249,10 +251,7 @@ public class DownloaderClientView implements Initializable {
         speedHistoryChart.getData().add(downloadSeries);
         speedHistoryChart.getData().add(uploadSeries);
 
-        ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList(
-                new PieChart.Data("Free", 100),
-                new PieChart.Data("Used", 0)
-        );
+        ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList(new PieChart.Data("Free", 100), new PieChart.Data("Used", 0));
         storageChart.setData(pieChartData);
     }
 
@@ -358,20 +357,43 @@ public class DownloaderClientView implements Initializable {
         String host = hostField.getText();
         String username = usernameField.getText();
         String password = passwordField.getText();
+        if (hostField.getText().isEmpty()) {
+            clientStatusLabel.setText("Please provide URL");
+            clientStatusLabel.setStyle("-fx-text-fill: red;");
+            return;
+        }
+        if (usernameField.getText().isEmpty()) {
+            clientStatusLabel.setText("Please provide username and password");
+            clientStatusLabel.setStyle("-fx-text-fill: red;");
+            return;
+        }
+        if (passwordField.getText().isEmpty()) {
+            clientStatusLabel.setText("Please provide URL");
+            clientStatusLabel.setStyle("-fx-text-fill: red;");
+            return;
+        }
+        if (!host.startsWith("http://")) {
+            hostField.setText("http://" + hostField.getText());
+            host = hostField.getText();
+        }
+        updateProperty();
+
+        clientStatusLabel.setText("Connecting...");
+        clientStatusLabel.setStyle("-fx-text-fill: orange;");
 
         boolean success = apiClient.login(host, username, password);
 
         if (success) {
             connected.set(true);
             updateUI();
-
+            clientStatusLabel.setText("Connected");
+            clientStatusLabel.setStyle("-fx-text-fill: green;");
             if (autoRefreshToggle.isSelected()) {
                 startAutoRefresh();
             }
         } else {
-            showAlert(Alert.AlertType.ERROR, "Connection Error",
-                    "Failed to connect to qBittorrent",
-                    "Please check your credentials and ensure qBittorrent WebUI is running.");
+            clientStatusLabel.setText("Connection Error: Failed to connect to qBittorrent");
+            clientStatusLabel.setStyle("-fx-text-fill: red;");
         }
     }
 
@@ -380,9 +402,8 @@ public class DownloaderClientView implements Initializable {
         if (connected.get()) {
             updateUI();
         } else {
-            showAlert(Alert.AlertType.WARNING, "Not Connected",
-                    "Client is not connected",
-                    "Please connect to qBittorrent first.");
+            clientStatusLabel.setText("Not Connected: Please connect to qBittorrent first.");
+            clientStatusLabel.setStyle("-fx-text-fill: orange;");
         }
     }
 
@@ -398,9 +419,7 @@ public class DownloaderClientView implements Initializable {
     @FXML
     private void showAddTorrentDialog() {
         if (!connected.get()) {
-            showAlert(Alert.AlertType.WARNING, "Not Connected",
-                    "Client is not connected",
-                    "Please connect to qBittorrent first.");
+            showAlert(Alert.AlertType.WARNING, "Not Connected", "Client is not connected", "Please connect to qBittorrent first.");
             return;
         }
 
@@ -431,14 +450,10 @@ public class DownloaderClientView implements Initializable {
             if (!url.isEmpty()) {
                 boolean success = apiClient.addTorrent(url);
                 if (success) {
-                    showAlert(Alert.AlertType.INFORMATION, "Success",
-                            "Torrent added successfully",
-                            "The torrent has been added to qBittorrent.");
+                    showAlert(Alert.AlertType.INFORMATION, "Success", "Torrent added successfully", "The torrent has been added to qBittorrent.");
                     updateUI();
                 } else {
-                    showAlert(Alert.AlertType.ERROR, "Error",
-                            "Failed to add torrent",
-                            "Please check the URL and try again.");
+                    showAlert(Alert.AlertType.ERROR, "Error", "Failed to add torrent", "Please check the URL and try again.");
                 }
             }
         });
@@ -459,9 +474,7 @@ public class DownloaderClientView implements Initializable {
             if (success) {
                 updateUI();
             } else {
-                showAlert(Alert.AlertType.ERROR, "Error",
-                        "Failed to delete torrent",
-                        "An error occurred while trying to delete the torrent.");
+                showAlert(Alert.AlertType.ERROR, "Error", "Failed to delete torrent", "An error occurred while trying to delete the torrent.");
             }
         }
     }
@@ -509,14 +522,10 @@ public class DownloaderClientView implements Initializable {
                 if (success) {
                     loadTorrentDetails(torrentTable.getSelectionModel().getSelectedItem());
                 } else {
-                    showAlert(Alert.AlertType.ERROR, "Error",
-                            "Failed to set limit",
-                            "An error occurred while trying to set the speed limit.");
+                    showAlert(Alert.AlertType.ERROR, "Error", "Failed to set limit", "An error occurred while trying to set the speed limit.");
                 }
             } catch (NumberFormatException e) {
-                showAlert(Alert.AlertType.ERROR, "Invalid Input",
-                        "Please enter a valid number",
-                        "The speed limit must be a whole number.");
+                showAlert(Alert.AlertType.ERROR, "Invalid Input", "Please enter a valid number", "The speed limit must be a whole number.");
             }
         });
     }
@@ -525,9 +534,7 @@ public class DownloaderClientView implements Initializable {
         if (apiClient.pauseTorrent(hash)) {
             updateUI();
         } else {
-            showAlert(Alert.AlertType.ERROR, "Error",
-                    "Failed to pause torrent",
-                    "An error occurred while trying to pause the torrent.");
+            showAlert(Alert.AlertType.ERROR, "Error", "Failed to pause torrent", "An error occurred while trying to pause the torrent.");
         }
     }
 
@@ -535,9 +542,7 @@ public class DownloaderClientView implements Initializable {
         if (apiClient.resumeTorrent(hash)) {
             updateUI();
         } else {
-            showAlert(Alert.AlertType.ERROR, "Error",
-                    "Failed to resume torrent",
-                    "An error occurred while trying to resume the torrent.");
+            showAlert(Alert.AlertType.ERROR, "Error", "Failed to resume torrent", "An error occurred while trying to resume the torrent.");
         }
     }
 
@@ -602,7 +607,7 @@ public class DownloaderClientView implements Initializable {
     }
 
     private void updateStorageChart(ProcessedData data) {
-        storageChart.getData().get(0).setPieValue(100-data.storagePercentage);
+        storageChart.getData().get(0).setPieValue(100 - data.storagePercentage);
         storageChart.getData().get(1).setPieValue(data.storagePercentage);
     }
 

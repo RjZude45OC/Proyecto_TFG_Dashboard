@@ -299,6 +299,7 @@ public class Controller {
         loginMenuBtn.setStyle(activeButton == loginMenuBtn ? activeStyle : inactiveStyle);
         rssBtn.setStyle(activeButton == rssBtn ? activeStyle : inactiveStyle);
         DownloadBtn.setStyle(activeButton == DownloadBtn ? activeStyle : inactiveStyle);
+        JellyseerBtn.setStyle(activeButton == JellyseerBtn ? activeStyle : inactiveStyle);
     }
 
     private Button getActiveButton() {

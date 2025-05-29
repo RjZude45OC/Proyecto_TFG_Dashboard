@@ -3,6 +3,7 @@ package com.tfg.dashboard_tfg.viewmodel;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Worker;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
@@ -169,4 +170,15 @@ public class jellyseerViewModel implements Initializable {
                 }
         );
     }
+
+    @FXML
+    public void handleTileClick(javafx.event.ActionEvent event) {
+        if (event.getSource() instanceof Button button) {
+            String url = (String) button.getUserData();
+            if (url != null && !url.isEmpty()) {
+                loadUrl(url);
+            }
+        }
+    }
+
 }

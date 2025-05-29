@@ -311,6 +311,56 @@ public class RssViewModel implements Initializable {
         statsFailureCountColumn.setCellValueFactory(new PropertyValueFactory<>("failureCount"));
         statsAvgResponseColumn.setCellValueFactory(new PropertyValueFactory<>("avgResponseTime"));
 
+        // Center align stats columns
+        statsSuccessCountColumn.setCellFactory(column -> new TableCell<IndexerStatsItem, Integer>() {
+            @Override
+            protected void updateItem(Integer count, boolean empty) {
+                super.updateItem(count, empty);
+                if (count == null || empty) {
+                    setText(null);
+                } else {
+                    setText(count.toString());
+                    setAlignment(Pos.CENTER);
+                }
+            }
+        });
+
+        statsFailureCountColumn.setCellFactory(column -> new TableCell<IndexerStatsItem, Integer>() {
+            @Override
+            protected void updateItem(Integer count, boolean empty) {
+                super.updateItem(count, empty);
+                if (count == null || empty) {
+                    setText(null);
+                } else {
+                    setText(count.toString());
+                    setAlignment(Pos.CENTER);
+                    if (count > 0) {
+                        setStyle("-fx-text-fill: red;");
+                    }
+                }
+            }
+        });
+
+        statsAvgResponseColumn.setCellFactory(column -> new TableCell<IndexerStatsItem, Double>() {
+            @Override
+            protected void updateItem(Double time, boolean empty) {
+                super.updateItem(time, empty);
+                if (time == null || empty) {
+                    setText(null);
+                } else {
+                    setText(String.format("%.2f ms", time));
+                    setAlignment(Pos.CENTER);
+                    if (time > 1000) {
+                        setStyle("-fx-text-fill: orange;");
+                    } else if (time > 2000) {
+                        setStyle("-fx-text-fill: red;");
+                    } else {
+                        setStyle("-fx-text-fill: green;");
+                    }
+                }
+            }
+        });
+
         // Set the items
         indexerStatsTableView.setItems(indexerStatsList);
     }
@@ -398,12 +448,16 @@ public class RssViewModel implements Initializable {
     private void connectToProwlarr() {
         // Validate connection inputs
         if (apiUrlField.getText().isEmpty() || apiKeyField.getText().isEmpty()) {
-            showAlert(Alert.AlertType.ERROR, "Connection Error", "Please provide both API URL and API Key");
+            statusLabel.setText("Please provide both API URL and API Key");
+            statusLabel.setStyle("-fx-text-fill: red;");
             return;
         }
 
         // Save API settings
         saveApiSettings();
+
+        statusLabel.setText("Connecting...");
+        statusLabel.setStyle("-fx-text-fill: orange;");
 
         // Test connection
         CompletableFuture.runAsync(() -> {
@@ -413,8 +467,8 @@ public class RssViewModel implements Initializable {
                     Platform.runLater(() -> {
                         connected.set(true);
                         versionLabel.setText(statusResponse.getString("version"));
-                        showAlert(Alert.AlertType.INFORMATION, "Connection Success",
-                                "Successfully connected to Prowlarr v" + statusResponse.getString("version"));
+                        statusLabel.setText("Connected to Prowlarr v" + statusResponse.getString("version"));
+                        statusLabel.setStyle("-fx-text-fill: green;");
 
                         // Load data from API
                         refreshIndexers();
@@ -425,8 +479,8 @@ public class RssViewModel implements Initializable {
             } catch (Exception e) {
                 Platform.runLater(() -> {
                     connected.set(false);
-                    showAlert(Alert.AlertType.ERROR, "Connection Error",
-                            "Failed to connect to Prowlarr: " + e.getMessage());
+                    statusLabel.setText("Failed to connect: " + e.getMessage());
+                    statusLabel.setStyle("-fx-text-fill: red;");
                 });
             }
         });
@@ -435,10 +489,12 @@ public class RssViewModel implements Initializable {
     @FXML
     private void refreshIndexers() {
         if (!connected.get()) {
-            showAlert(Alert.AlertType.WARNING, "Not Connected", "Please connect to Prowlarr first");
+            statusLabel.setText("Please connect to Prowlarr first");
+            statusLabel.setStyle("-fx-text-fill: orange;");
             return;
         }
 
+        statusLabel.setText("Loading indexers...");
         CompletableFuture.runAsync(() -> {
             try {
                 JSONArray indexersArray = makeApiGetRequest(INDEXERS_ENDPOINT).getJSONArray("records");
@@ -463,12 +519,15 @@ public class RssViewModel implements Initializable {
                     indexersCountLabel.setText(String.valueOf(indexers.size()));
                     enabledIndexersLabel.setText(String.valueOf(
                             indexers.stream().filter(IndexerItem::isEnabled).count()));
+                    statusLabel.setText("Indexers loaded successfully");
+                    statusLabel.setStyle("-fx-text-fill: green;");
                 });
 
             } catch (Exception e) {
-                Platform.runLater(() ->
-                        showAlert(Alert.AlertType.ERROR, "Error", "Failed to load indexers: " + e.getMessage())
-                );
+                Platform.runLater(() -> {
+                    statusLabel.setText("Failed to load indexers: " + e.getMessage());
+                    statusLabel.setStyle("-fx-text-fill: red;");
+                });
             }
         });
     }
@@ -476,10 +535,12 @@ public class RssViewModel implements Initializable {
     @FXML
     private void refreshTags() {
         if (!connected.get()) {
-            showAlert(Alert.AlertType.WARNING, "Not Connected", "Please connect to Prowlarr first");
+            statusLabel.setText("Please connect to Prowlarr first");
+            statusLabel.setStyle("-fx-text-fill: orange;");
             return;
         }
 
+        statusLabel.setText("Loading tags...");
         CompletableFuture.runAsync(() -> {
             try {
                 JSONArray tagsArray = makeApiGetRequest(TAG_ENDPOINT).getJSONArray("records");
@@ -496,58 +557,15 @@ public class RssViewModel implements Initializable {
                 Platform.runLater(() -> {
                     tagsList.clear();
                     tagsList.addAll(tags);
+                    statusLabel.setText("Tags loaded successfully");
+                    statusLabel.setStyle("-fx-text-fill: green;");
                 });
 
             } catch (Exception e) {
-                Platform.runLater(() ->
-                        showAlert(Alert.AlertType.ERROR, "Error", "Failed to load tags: " + e.getMessage())
-                );
-            }
-        });
-    }
-
-    @FXML
-    private void refreshStats() {
-        if (!connected.get()) {
-            showAlert(Alert.AlertType.WARNING, "Not Connected", "Please connect to Prowlarr first");
-            return;
-        }
-
-        CompletableFuture.runAsync(() -> {
-            try {
-                JSONArray statsArray = makeApiGetRequest(STATS_ENDPOINT).getJSONArray("indexers");
-                List<IndexerStatsItem> stats = new ArrayList<>();
-
-                for (int i = 0; i < statsArray.length(); i++) {
-                    JSONObject stat = statsArray.getJSONObject(i);
-
-                    String indexerName = "Unknown";
-                    for (IndexerItem indexer : indexersList) {
-                        if (indexer.getId() == stat.getInt("indexerId")) {
-                            indexerName = indexer.getName();
-                            break;
-                        }
-                    }
-
-                    stats.add(new IndexerStatsItem(
-                            stat.getInt("indexerId"),
-                            indexerName,
-                            stat.getInt("numberOfQueries"),
-                            stat.getInt("numberOfGrabs"),
-                            stat.getInt("numberOfFailures"),
-                            stat.getDouble("averageResponseTime")
-                    ));
-                }
-
                 Platform.runLater(() -> {
-                    indexerStatsList.clear();
-                    indexerStatsList.addAll(stats);
+                    statusLabel.setText("Failed to load tags: " + e.getMessage());
+                    statusLabel.setStyle("-fx-text-fill: red;");
                 });
-
-            } catch (Exception e) {
-                Platform.runLater(() ->
-                        showAlert(Alert.AlertType.ERROR, "Error", "Failed to load statistics: " + e.getMessage())
-                );
             }
         });
     }
@@ -555,32 +573,41 @@ public class RssViewModel implements Initializable {
     @FXML
     private void showAddIndexerDialog() {
         if (!connected.get()) {
-            showAlert(Alert.AlertType.WARNING, "Not Connected", "Please connect to Prowlarr first");
+            statusLabel.setText("Please connect to Prowlarr first");
+            statusLabel.setStyle("-fx-text-fill: orange;");
             return;
         }
 
-        // Fetch available indexer types
+        statusLabel.setText("Loading indexer definitions...");
+
         CompletableFuture.runAsync(() -> {
             try {
                 JSONArray definitionsArray = makeApiGetRequest("/api/v1/indexer/schema").getJSONArray("records");
-                List<String> availableTypes = new ArrayList<>();
-                availableTypes.add("torrent");
-                availableTypes.add("nzb");
+                List<JSONObject> availableDefinitions = new ArrayList<>();
 
-                Platform.runLater(() -> createAddIndexerDialog(availableTypes));
+                for (int i = 0; i < definitionsArray.length(); i++) {
+                    availableDefinitions.add(definitionsArray.getJSONObject(i));
+                }
+
+                Platform.runLater(() -> {
+                    statusLabel.setText("Ready to add indexer");
+                    statusLabel.setStyle("-fx-text-fill: green;");
+                    createAddIndexerDialog(availableDefinitions);
+                });
 
             } catch (Exception e) {
-                Platform.runLater(() ->
-                        showAlert(Alert.AlertType.ERROR, "Error", "Failed to load indexer definitions: " + e.getMessage())
-                );
+                Platform.runLater(() -> {
+                    statusLabel.setText("Failed to load indexer definitions: " + e.getMessage());
+                    statusLabel.setStyle("-fx-text-fill: red;");
+                });
             }
         });
     }
 
-    private void createAddIndexerDialog(List<String> availableTypes) {
+    private void createAddIndexerDialog(List<JSONObject> availableDefinitions) {
         Dialog<IndexerItem> dialog = new Dialog<>();
         dialog.setTitle("Add Indexer");
-        dialog.setHeaderText("Enter indexer details");
+        dialog.setHeaderText("Select an indexer to add");
 
         // Set button types
         ButtonType addButtonType = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
@@ -593,12 +620,24 @@ public class RssViewModel implements Initializable {
         grid.setPadding(new Insets(20, 150, 10, 10));
 
         // Form fields
-        TextField nameField = new TextField();
-        nameField.setPromptText("Indexer Name");
+        ComboBox<JSONObject> definitionComboBox = new ComboBox<>();
+        definitionComboBox.getItems().addAll(availableDefinitions);
+        definitionComboBox.setConverter(new javafx.util.StringConverter<JSONObject>() {
+            @Override
+            public String toString(JSONObject object) {
+                if (object == null) return null;
+                return object.optString("name", "Unknown");
+            }
 
-        ComboBox<String> typeComboBox = new ComboBox<>();
-        typeComboBox.getItems().addAll(availableTypes);
-        typeComboBox.setPromptText("Select Type");
+            @Override
+            public JSONObject fromString(String string) {
+                return null;
+            }
+        });
+        definitionComboBox.setPromptText("Select Indexer Type");
+
+        TextField nameField = new TextField();
+        nameField.setPromptText("Custom Name (optional)");
 
         CheckBox enabledCheckBox = new CheckBox("Enabled");
         enabledCheckBox.setSelected(true);
@@ -607,42 +646,47 @@ public class RssViewModel implements Initializable {
         priorityField.setPromptText("Priority (1-50)");
 
         // Add fields to grid
-        grid.add(new Label("Name:"), 0, 0);
-        grid.add(nameField, 1, 0);
-        grid.add(new Label("Type:"), 0, 1);
-        grid.add(typeComboBox, 1, 1);
+        grid.add(new Label("Indexer Type:"), 0, 0);
+        grid.add(definitionComboBox, 1, 0);
+        grid.add(new Label("Name:"), 0, 1);
+        grid.add(nameField, 1, 1);
         grid.add(new Label("Priority:"), 0, 2);
         grid.add(priorityField, 1, 2);
         grid.add(enabledCheckBox, 1, 3);
 
         dialog.getDialogPane().setContent(grid);
 
-        // Request focus on the name field
-        Platform.runLater(nameField::requestFocus);
+        // Request focus on the definition combo
+        Platform.runLater(definitionComboBox::requestFocus);
 
         // Convert the result to an indexer item when the add button is clicked
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == addButtonType) {
                 try {
+                    JSONObject selectedDefinition = definitionComboBox.getValue();
+                    if (selectedDefinition == null) {
+                        statusLabel.setText("Please select an indexer type");
+                        statusLabel.setStyle("-fx-text-fill: red;");
+                        return null;
+                    }
+
                     String name = nameField.getText().trim();
-                    String type = typeComboBox.getValue();
+                    if (name.isEmpty()) {
+                        name = selectedDefinition.getString("name");
+                    }
+
                     int priority = Integer.parseInt(priorityField.getText().trim());
                     boolean enabled = enabledCheckBox.isSelected();
 
-                    if (name.isEmpty() || type == null) {
-                        showAlert(Alert.AlertType.ERROR, "Input Error", "Name and type are required");
-                        return null;
-                    }
-
                     if (priority < 1 || priority > 50) {
-                        showAlert(Alert.AlertType.ERROR, "Input Error", "Priority must be between 1 and 50");
+                        statusLabel.setText("Priority must be between 1 and 50");
+                        statusLabel.setStyle("-fx-text-fill: red;");
                         return null;
                     }
 
-                    // Create JSON for the new indexer
-                    JSONObject indexerJson = new JSONObject();
+                    // Create JSON for the new indexer based on the definition
+                    JSONObject indexerJson = new JSONObject(selectedDefinition.toString());
                     indexerJson.put("name", name);
-                    indexerJson.put("protocol", type);
                     indexerJson.put("enable", enabled);
                     indexerJson.put("priority", priority);
                     indexerJson.put("tags", new JSONArray());
@@ -652,25 +696,31 @@ public class RssViewModel implements Initializable {
 
                     if (response != null && response.has("id")) {
                         int id = response.getInt("id");
+                        statusLabel.setText("Indexer added successfully");
+                        statusLabel.setStyle("-fx-text-fill: green;");
 
                         return new IndexerItem(
                                 id,
                                 name,
-                                getIndexerTypeDisplayName(type),
+                                getIndexerTypeDisplayName(selectedDefinition.getString("protocol")),
                                 enabled,
                                 priority,
                                 new ArrayList<>(),
                                 "{}"
                         );
                     } else {
+                        statusLabel.setText("Failed to add indexer");
+                        statusLabel.setStyle("-fx-text-fill: red;");
                         return null;
                     }
 
                 } catch (NumberFormatException e) {
-                    showAlert(Alert.AlertType.ERROR, "Input Error", "Priority must be a number");
+                    statusLabel.setText("Priority must be a number");
+                    statusLabel.setStyle("-fx-text-fill: red;");
                     return null;
                 } catch (Exception e) {
-                    showAlert(Alert.AlertType.ERROR, "Error", "Failed to add indexer: " + e.getMessage());
+                    statusLabel.setText("Failed to add indexer: " + e.getMessage());
+                    statusLabel.setStyle("-fx-text-fill: red;");
                     return null;
                 }
             }
@@ -684,53 +734,42 @@ public class RssViewModel implements Initializable {
             indexersCountLabel.setText(String.valueOf(indexersList.size()));
             enabledIndexersLabel.setText(String.valueOf(
                     indexersList.stream().filter(IndexerItem::isEnabled).count()));
-            showAlert(Alert.AlertType.INFORMATION, "Success", "Indexer added successfully");
         });
     }
 
+    // Add these missing methods to your RssViewModel class:
+
+    // Complete the showEditIndexerDialog method (it was cut off)
     private void showEditIndexerDialog(IndexerItem indexer) {
         Dialog<IndexerItem> dialog = new Dialog<>();
         dialog.setTitle("Edit Indexer");
         dialog.setHeaderText("Edit indexer details for: " + indexer.getName());
 
-        // Set button types
         ButtonType saveButtonType = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(saveButtonType, ButtonType.CANCEL);
 
-        // Create form grid
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
         grid.setPadding(new Insets(20, 150, 10, 10));
 
-        // Form fields
         TextField nameField = new TextField(indexer.getName());
-        nameField.setPromptText("Indexer Name");
-
         Label typeLabel = new Label(indexer.getType());
-
         CheckBox enabledCheckBox = new CheckBox("Enabled");
         enabledCheckBox.setSelected(indexer.isEnabled());
-
         TextField priorityField = new TextField(String.valueOf(indexer.getPriority()));
-        priorityField.setPromptText("Priority (1-50)");
 
-        // Add fields to grid
         grid.add(new Label("Name:"), 0, 0);
         grid.add(nameField, 1, 0);
         grid.add(new Label("Type:"), 0, 1);
-        // Continue the showEditIndexerDialog method
         grid.add(typeLabel, 1, 1);
         grid.add(new Label("Priority:"), 0, 2);
         grid.add(priorityField, 1, 2);
         grid.add(enabledCheckBox, 1, 3);
 
         dialog.getDialogPane().setContent(grid);
-
-        // Request focus on the name field
         Platform.runLater(nameField::requestFocus);
 
-        // Convert the result to an indexer item when the save button is clicked
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == saveButtonType) {
                 try {
@@ -739,429 +778,454 @@ public class RssViewModel implements Initializable {
                     boolean enabled = enabledCheckBox.isSelected();
 
                     if (name.isEmpty()) {
-                        showAlert(Alert.AlertType.ERROR, "Input Error", "Name is required");
+                        statusLabel.setText("Name cannot be empty");
+                        statusLabel.setStyle("-fx-text-fill: red;");
                         return null;
                     }
 
                     if (priority < 1 || priority > 50) {
-                        showAlert(Alert.AlertType.ERROR, "Input Error", "Priority must be between 1 and 50");
+                        statusLabel.setText("Priority must be between 1 and 50");
+                        statusLabel.setStyle("-fx-text-fill: red;");
                         return null;
                     }
 
-                    // Create JSON for updating the indexer
-                    JSONObject indexerJson = new JSONObject();
-                    indexerJson.put("id", indexer.getId());
-                    indexerJson.put("name", name);
-                    indexerJson.put("protocol", getOriginalIndexerType(indexer.getType()));
-                    indexerJson.put("enable", enabled);
-                    indexerJson.put("priority", priority);
-                    indexerJson.put("tags", new JSONArray(indexer.getTagIds()));
+                    // Update indexer via API
+                    JSONObject updateJson = new JSONObject();
+                    updateJson.put("id", indexer.getId());
+                    updateJson.put("name", name);
+                    updateJson.put("enable", enabled);
+                    updateJson.put("priority", priority);
+                    updateJson.put("protocol", getProtocolFromDisplayName(indexer.getType()));
+                    updateJson.put("tags", new JSONArray(indexer.getTagIds()));
 
-                    // Send API request to update the indexer
-                    JSONObject response = makeApiPutRequest(INDEXERS_ENDPOINT + "/" + indexer.getId(), indexerJson);
+                    JSONObject response = makeApiPutRequest(INDEXERS_ENDPOINT + "/" + indexer.getId(), updateJson);
 
-                    if (response != null && response.has("id")) {
-                        // Update the indexer object
+                    if (response != null) {
+                        statusLabel.setText("Indexer updated successfully");
+                        statusLabel.setStyle("-fx-text-fill: green;");
+
+                        // Update the item in the list
                         indexer.setName(name);
                         indexer.setEnabled(enabled);
                         indexer.setPriority(priority);
+                        indexersTableView.refresh();
+
                         return indexer;
                     } else {
+                        statusLabel.setText("Failed to update indexer");
+                        statusLabel.setStyle("-fx-text-fill: red;");
                         return null;
                     }
 
                 } catch (NumberFormatException e) {
-                    showAlert(Alert.AlertType.ERROR, "Input Error", "Priority must be a number");
+                    statusLabel.setText("Priority must be a number");
+                    statusLabel.setStyle("-fx-text-fill: red;");
                     return null;
                 } catch (Exception e) {
-                    showAlert(Alert.AlertType.ERROR, "Error", "Failed to update indexer: " + e.getMessage());
+                    statusLabel.setText("Failed to update indexer: " + e.getMessage());
+                    statusLabel.setStyle("-fx-text-fill: red;");
                     return null;
                 }
             }
             return null;
         });
 
-        Optional<IndexerItem> result = dialog.showAndWait();
-
-        result.ifPresent(updatedIndexer -> {
-            // Refresh the table view
-            indexersTableView.refresh();
-            enabledIndexersLabel.setText(String.valueOf(
-                    indexersList.stream().filter(IndexerItem::isEnabled).count()));
-            showAlert(Alert.AlertType.INFORMATION, "Success", "Indexer updated successfully");
-        });
+        dialog.showAndWait();
     }
 
-    private void showDeleteIndexerConfirmation(IndexerItem indexer) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Delete Indexer");
-        alert.setHeaderText("Delete Indexer: " + indexer.getName());
-        alert.setContentText("Are you sure you want to delete this indexer? This action cannot be undone.");
-
-        Optional<ButtonType> result = alert.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.OK) {
-            CompletableFuture.runAsync(() -> {
-                try {
-                    boolean success = makeApiDeleteRequest(INDEXERS_ENDPOINT + "/" + indexer.getId());
-
-                    if (success) {
-                        Platform.runLater(() -> {
-                            indexersList.remove(indexer);
-                            indexersCountLabel.setText(String.valueOf(indexersList.size()));
-                            enabledIndexersLabel.setText(String.valueOf(
-                                    indexersList.stream().filter(IndexerItem::isEnabled).count()));
-                            showAlert(Alert.AlertType.INFORMATION, "Success", "Indexer deleted successfully");
-                        });
-                    } else {
-                        Platform.runLater(() ->
-                                showAlert(Alert.AlertType.ERROR, "Error", "Failed to delete indexer")
-                        );
-                    }
-                } catch (Exception e) {
-                    Platform.runLater(() ->
-                            showAlert(Alert.AlertType.ERROR, "Error", "Failed to delete indexer: " + e.getMessage())
-                    );
-                }
-            });
-        }
-    }
-
+    // Fixed testIndexer method
     private void testIndexer(int indexerId) {
-        if (!connected.get()) {
-            showAlert(Alert.AlertType.WARNING, "Not Connected", "Please connect to Prowlarr first");
-            return;
-        }
-
         statusLabel.setText("Testing indexer...");
+        statusLabel.setStyle("-fx-text-fill: orange;");
+
         CompletableFuture.runAsync(() -> {
             try {
-                JSONObject indexer = makeApiGetRequest(INDEXERS_ENDPOINT + "/" + indexerId);
+                JSONObject testResponse = makeApiPostRequest("/api/v1/indexer/" + indexerId + "/test", new JSONObject());
 
-                JSONObject response = makeApiPostRequest(INDEXERS_ENDPOINT + "/test", indexer);
                 Platform.runLater(() -> {
-                    if (response != null && response.has("isValid") && response.getBoolean("isValid")) {
+                    if (testResponse != null && testResponse.optBoolean("isValid", false)) {
                         statusLabel.setText("Indexer test successful");
-                        showAlert(Alert.AlertType.INFORMATION, "Test Result", "Indexer test successful!");
+                        statusLabel.setStyle("-fx-text-fill: green;");
                     } else {
-                        String errorMessage = "Unknown error";
-                        if (response != null && response.has("errorMessage")) {
-                            errorMessage = response.getString("errorMessage");
-                        }
-                        statusLabel.setText("Indexer test failed");
-                        showAlert(Alert.AlertType.ERROR, "Test Result", "Indexer test failed: " + errorMessage);
+                        String error = testResponse != null ? testResponse.optString("errors", "Unknown error") : "Test failed";
+                        statusLabel.setText("Indexer test failed: " + error);
+                        statusLabel.setStyle("-fx-text-fill: red;");
                     }
                 });
 
             } catch (Exception e) {
                 Platform.runLater(() -> {
-                    statusLabel.setText("Indexer test failed");
-                    showAlert(Alert.AlertType.ERROR, "Error", "Failed to test indexer: " + e.getMessage());
+                    statusLabel.setText("Test failed: " + e.getMessage());
+                    statusLabel.setStyle("-fx-text-fill: red;");
                 });
             }
         });
     }
 
+    // Add missing testAllIndexers method
     @FXML
     private void testAllIndexers() {
         if (!connected.get()) {
-            showAlert(Alert.AlertType.WARNING, "Not Connected", "Please connect to Prowlarr first");
+            statusLabel.setText("Please connect to Prowlarr first");
+            statusLabel.setStyle("-fx-text-fill: orange;");
             return;
         }
 
         statusLabel.setText("Testing all indexers...");
-        int totalIndexers = indexersList.size();
-        final int[] successCount = {0};
-        final int[] failCount = {0};
+        statusLabel.setStyle("-fx-text-fill: orange;");
 
-        for (IndexerItem indexer : indexersList) {
-            CompletableFuture.runAsync(() -> {
-                try {
-                    JSONObject response = makeApiPostRequest(INDEXERS_ENDPOINT + "/test/" + indexer.getId(), new JSONObject());
+        CompletableFuture.runAsync(() -> {
+            int successCount = 0;
+            int totalCount = indexersList.size();
 
-                    Platform.runLater(() -> {
-                        if (response != null && response.has("isValid") && response.getBoolean("isValid")) {
-                            successCount[0]++;
-                        } else {
-                            failCount[0]++;
+            for (IndexerItem indexer : indexersList) {
+                if (indexer.isEnabled()) {
+                    try {
+                        JSONObject testResponse = makeApiPostRequest("/api/v1/indexer/" + indexer.getId() + "/test", new JSONObject());
+                        if (testResponse != null && testResponse.optBoolean("isValid", false)) {
+                            successCount++;
                         }
-
-                        // Update status
-                        int completed = successCount[0] + failCount[0];
-                        if (completed == totalIndexers) {
-                            statusLabel.setText("Test complete: " + successCount[0] + " successful, " + failCount[0] + " failed");
-                            showAlert(Alert.AlertType.INFORMATION, "Test Results",
-                                    "Test complete: " + successCount[0] + " successful, " + failCount[0] + " failed");
-                        } else {
-                            statusLabel.setText("Testing indexers: " + completed + "/" + totalIndexers);
-                        }
-                    });
-
-                } catch (Exception e) {
-                    Platform.runLater(() -> {
-                        failCount[0]++;
-                        int completed = successCount[0] + failCount[0];
-                        if (completed == totalIndexers) {
-                            statusLabel.setText("Test complete: " + successCount[0] + " successful, " + failCount[0] + " failed");
-                            showAlert(Alert.AlertType.INFORMATION, "Test Results",
-                                    "Test complete: " + successCount[0] + " successful, " + failCount[0] + " failed");
-                        } else {
-                            statusLabel.setText("Testing indexers: " + completed + "/" + totalIndexers);
-                        }
-                    });
+                        Thread.sleep(1000); // Wait between tests to avoid overwhelming the API
+                    } catch (Exception e) {
+                        // Continue with next indexer
+                    }
                 }
+            }
+
+            final int finalSuccessCount = successCount;
+            Platform.runLater(() -> {
+                statusLabel.setText(String.format("Test completed: %d/%d indexers passed", finalSuccessCount, totalCount));
+                statusLabel.setStyle(finalSuccessCount == totalCount ? "-fx-text-fill: green;" : "-fx-text-fill: orange;");
             });
-        }
+        });
     }
 
+    // Fixed refreshStats method with proper implementation
     @FXML
-    private void showAddTagDialog() {
+    private void refreshStats() {
         if (!connected.get()) {
-            showAlert(Alert.AlertType.WARNING, "Not Connected", "Please connect to Prowlarr first");
+            statusLabel.setText("Please connect to Prowlarr first");
+            statusLabel.setStyle("-fx-text-fill: orange;");
             return;
         }
 
-        Dialog<TagItem> dialog = new Dialog<>();
-        dialog.setTitle("Add Tag");
-        dialog.setHeaderText("Enter tag details");
+        statusLabel.setText("Loading statistics...");
+        CompletableFuture.runAsync(() -> {
+            try {
+                // Get indexer statistics from Prowlarr history endpoint
+                JSONObject historyResponse = makeApiGetRequest("/api/v1/history?page=1&pageSize=1000");
+                JSONArray historyArray = historyResponse.optJSONArray("records");
 
-        // Set button types
-        ButtonType addButtonType = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
+                // Get current indexers
+                JSONArray indexersArray = makeApiGetRequest(INDEXERS_ENDPOINT).getJSONArray("records");
 
-        // Create form grid
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(20, 150, 10, 10));
+                Map<Integer, IndexerStatsItem> statsMap = new HashMap<>();
 
-        // Form fields
-        TextField labelField = new TextField();
-        labelField.setPromptText("Tag Label");
-
-        // Add fields to grid
-        grid.add(new Label("Label:"), 0, 0);
-        grid.add(labelField, 1, 0);
-
-        dialog.getDialogPane().setContent(grid);
-
-        // Request focus on the label field
-        Platform.runLater(labelField::requestFocus);
-
-        // Convert the result to a tag item when the add button is clicked
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == addButtonType) {
-                try {
-                    String label = labelField.getText().trim();
-
-                    if (label.isEmpty()) {
-                        showAlert(Alert.AlertType.ERROR, "Input Error", "Label is required");
-                        return null;
-                    }
-
-                    // Create JSON for the new tag
-                    JSONObject tagJson = new JSONObject();
-                    tagJson.put("label", label);
-
-                    // Send API request to create the tag
-                    JSONObject response = makeApiPostRequest(TAG_ENDPOINT, tagJson);
-
-                    if (response != null && response.has("id")) {
-                        int id = response.getInt("id");
-                        return new TagItem(id, label);
-                    } else {
-                        return null;
-                    }
-
-                } catch (Exception e) {
-                    showAlert(Alert.AlertType.ERROR, "Error", "Failed to add tag: " + e.getMessage());
-                    return null;
+                // Initialize stats for all indexers
+                for (int i = 0; i < indexersArray.length(); i++) {
+                    JSONObject indexer = indexersArray.getJSONObject(i);
+                    int id = indexer.getInt("id");
+                    String name = indexer.getString("name");
+                    statsMap.put(id, new IndexerStatsItem(id, name, 0, 0, 0, 0.0));
                 }
+
+                // Process history data if available
+                if (historyArray != null) {
+                    Map<Integer, List<Double>> responseTimes = new HashMap<>();
+
+                    for (int i = 0; i < historyArray.length(); i++) {
+                        JSONObject record = historyArray.getJSONObject(i);
+                        int indexerId = record.optInt("indexerId", -1);
+
+                        if (indexerId != -1 && statsMap.containsKey(indexerId)) {
+                            IndexerStatsItem stats = statsMap.get(indexerId);
+                            String eventType = record.optString("eventType", "");
+
+                            if ("grabEnd".equals(eventType) || "releaseGrabbed".equals(eventType)) {
+                                stats.setSuccessCount(stats.getSuccessCount() + 1);
+                            } else if ("grabFailed".equals(eventType) || "indexerQuery".equals(eventType)) {
+                                // Check if it's actually a failure
+                                boolean successful = record.optBoolean("successful", true);
+                                if (successful) {
+                                    stats.setSuccessCount(stats.getSuccessCount() + 1);
+                                } else {
+                                    stats.setFailureCount(stats.getFailureCount() + 1);
+                                }
+                            }
+
+                            // Track response times if available
+                            double responseTime = record.optDouble("responseTime", -1);
+                            if (responseTime > 0) {
+                                responseTimes.computeIfAbsent(indexerId, k -> new ArrayList<>()).add(responseTime);
+                            }
+                        }
+                    }
+
+                    // Calculate average response times
+                    for (Map.Entry<Integer, List<Double>> entry : responseTimes.entrySet()) {
+                        List<Double> times = entry.getValue();
+                        double avgTime = times.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+                        if (statsMap.containsKey(entry.getKey())) {
+                            statsMap.get(entry.getKey()).setAvgResponseTime(avgTime);
+                        }
+                    }
+                }
+
+                Platform.runLater(() -> {
+                    indexerStatsList.clear();
+                    indexerStatsList.addAll(statsMap.values());
+                    statusLabel.setText("Statistics loaded successfully");
+                    statusLabel.setStyle("-fx-text-fill: green;");
+                });
+
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    statusLabel.setText("Failed to load statistics: " + e.getMessage());
+                    statusLabel.setStyle("-fx-text-fill: red;");
+                });
             }
-            return null;
         });
+    }
 
-        Optional<TagItem> result = dialog.showAndWait();
+    // Add missing delete confirmation methods
+    private void showDeleteIndexerConfirmation(IndexerItem indexer) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Delete Indexer");
+        alert.setHeaderText("Delete indexer: " + indexer.getName());
+        alert.setContentText("Are you sure you want to delete this indexer? This action cannot be undone.");
 
-        result.ifPresent(tag -> {
-            tagsList.add(tag);
-            showAlert(Alert.AlertType.INFORMATION, "Success", "Tag added successfully");
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            deleteIndexer(indexer);
+        }
+    }
+
+    private void deleteIndexer(IndexerItem indexer) {
+        statusLabel.setText("Deleting indexer...");
+        statusLabel.setStyle("-fx-text-fill: orange;");
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                boolean success = makeApiDeleteRequest(INDEXERS_ENDPOINT + "/" + indexer.getId());
+
+                Platform.runLater(() -> {
+                    if (success) {
+                        indexersList.remove(indexer);
+                        indexersCountLabel.setText(String.valueOf(indexersList.size()));
+                        enabledIndexersLabel.setText(String.valueOf(
+                                indexersList.stream().filter(IndexerItem::isEnabled).count()));
+                        statusLabel.setText("Indexer deleted successfully");
+                        statusLabel.setStyle("-fx-text-fill: green;");
+                    } else {
+                        statusLabel.setText("Failed to delete indexer");
+                        statusLabel.setStyle("-fx-text-fill: red;");
+                    }
+                });
+
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    statusLabel.setText("Failed to delete indexer: " + e.getMessage());
+                    statusLabel.setStyle("-fx-text-fill: red;");
+                });
+            }
+        });
+    }
+
+    // Add missing tag dialog methods
+    @FXML
+    private void showAddTagDialog() {
+        if (!connected.get()) {
+            statusLabel.setText("Please connect to Prowlarr first");
+            statusLabel.setStyle("-fx-text-fill: orange;");
+            return;
+        }
+
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Add Tag");
+        dialog.setHeaderText("Add a new tag");
+        dialog.setContentText("Tag label:");
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(label -> {
+            if (!label.trim().isEmpty()) {
+                addTag(label.trim());
+            }
+        });
+    }
+
+    private void addTag(String label) {
+        statusLabel.setText("Adding tag...");
+        statusLabel.setStyle("-fx-text-fill: orange;");
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                JSONObject tagJson = new JSONObject();
+                tagJson.put("label", label);
+
+                JSONObject response = makeApiPostRequest(TAG_ENDPOINT, tagJson);
+
+                if (response != null && response.has("id")) {
+                    int id = response.getInt("id");
+                    TagItem newTag = new TagItem(id, label);
+
+                    Platform.runLater(() -> {
+                        tagsList.add(newTag);
+                        statusLabel.setText("Tag added successfully");
+                        statusLabel.setStyle("-fx-text-fill: green;");
+                    });
+                } else {
+                    Platform.runLater(() -> {
+                        statusLabel.setText("Failed to add tag");
+                        statusLabel.setStyle("-fx-text-fill: red;");
+                    });
+                }
+
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    statusLabel.setText("Failed to add tag: " + e.getMessage());
+                    statusLabel.setStyle("-fx-text-fill: red;");
+                });
+            }
         });
     }
 
     private void showEditTagDialog(TagItem tag) {
-        Dialog<TagItem> dialog = new Dialog<>();
+        TextInputDialog dialog = new TextInputDialog(tag.getLabel());
         dialog.setTitle("Edit Tag");
-        dialog.setHeaderText("Edit tag details");
+        dialog.setHeaderText("Edit tag");
+        dialog.setContentText("Tag label:");
 
-        // Set button types
-        ButtonType saveButtonType = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(saveButtonType, ButtonType.CANCEL);
-
-        // Create form grid
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(20, 150, 10, 10));
-
-        // Form fields
-        TextField labelField = new TextField(tag.getLabel());
-        labelField.setPromptText("Tag Label");
-
-        // Add fields to grid
-        grid.add(new Label("Label:"), 0, 0);
-        grid.add(labelField, 1, 0);
-
-        dialog.getDialogPane().setContent(grid);
-
-        // Request focus on the label field
-        Platform.runLater(labelField::requestFocus);
-
-        // Convert the result to a tag item when the save button is clicked
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == saveButtonType) {
-                try {
-                    String label = labelField.getText().trim();
-
-                    if (label.isEmpty()) {
-                        showAlert(Alert.AlertType.ERROR, "Input Error", "Label is required");
-                        return null;
-                    }
-
-                    // Create JSON for updating the tag
-                    JSONObject tagJson = new JSONObject();
-                    tagJson.put("id", tag.getId());
-                    tagJson.put("label", label);
-
-                    // Send API request to update the tag
-                    JSONObject response = makeApiPutRequest(TAG_ENDPOINT + "/" + tag.getId(), tagJson);
-
-                    if (response != null && response.has("id")) {
-                        // Update the tag object
-                        tag.setLabel(label);
-                        return tag;
-                    } else {
-                        return null;
-                    }
-
-                } catch (Exception e) {
-                    showAlert(Alert.AlertType.ERROR, "Error", "Failed to update tag: " + e.getMessage());
-                    return null;
-                }
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(label -> {
+            if (!label.trim().isEmpty() && !label.equals(tag.getLabel())) {
+                updateTag(tag, label.trim());
             }
-            return null;
         });
+    }
 
-        Optional<TagItem> result = dialog.showAndWait();
+    private void updateTag(TagItem tag, String newLabel) {
+        statusLabel.setText("Updating tag...");
+        statusLabel.setStyle("-fx-text-fill: orange;");
 
-        result.ifPresent(updatedTag -> {
-            // Refresh the table view
-            tagsTableView.refresh();
-            showAlert(Alert.AlertType.INFORMATION, "Success", "Tag updated successfully");
+        CompletableFuture.runAsync(() -> {
+            try {
+                JSONObject tagJson = new JSONObject();
+                tagJson.put("id", tag.getId());
+                tagJson.put("label", newLabel);
+
+                JSONObject response = makeApiPutRequest(TAG_ENDPOINT + "/" + tag.getId(), tagJson);
+
+                if (response != null) {
+                    Platform.runLater(() -> {
+                        tag.setLabel(newLabel);
+                        tagsTableView.refresh();
+                        statusLabel.setText("Tag updated successfully");
+                        statusLabel.setStyle("-fx-text-fill: green;");
+                    });
+                } else {
+                    Platform.runLater(() -> {
+                        statusLabel.setText("Failed to update tag");
+                        statusLabel.setStyle("-fx-text-fill: red;");
+                    });
+                }
+
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    statusLabel.setText("Failed to update tag: " + e.getMessage());
+                    statusLabel.setStyle("-fx-text-fill: red;");
+                });
+            }
         });
     }
 
     private void showDeleteTagConfirmation(TagItem tag) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Delete Tag");
-        alert.setHeaderText("Delete Tag: " + tag.getLabel());
-        alert.setContentText("Are you sure you want to delete this tag? This may affect indexers that use this tag.");
+        alert.setHeaderText("Delete tag: " + tag.getLabel());
+        alert.setContentText("Are you sure you want to delete this tag?");
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            CompletableFuture.runAsync(() -> {
-                try {
-                    boolean success = makeApiDeleteRequest(TAG_ENDPOINT + "/" + tag.getId());
-
-                    if (success) {
-                        Platform.runLater(() -> {
-                            tagsList.remove(tag);
-                            showAlert(Alert.AlertType.INFORMATION, "Success", "Tag deleted successfully");
-                        });
-                    } else {
-                        Platform.runLater(() ->
-                                showAlert(Alert.AlertType.ERROR, "Error", "Failed to delete tag")
-                        );
-                    }
-                } catch (Exception e) {
-                    Platform.runLater(() ->
-                            showAlert(Alert.AlertType.ERROR, "Error", "Failed to delete tag: " + e.getMessage())
-                    );
-                }
-            });
+            deleteTag(tag);
         }
     }
 
+    private void deleteTag(TagItem tag) {
+        statusLabel.setText("Deleting tag...");
+        statusLabel.setStyle("-fx-text-fill: orange;");
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                boolean success = makeApiDeleteRequest(TAG_ENDPOINT + "/" + tag.getId());
+
+                Platform.runLater(() -> {
+                    if (success) {
+                        tagsList.remove(tag);
+                        statusLabel.setText("Tag deleted successfully");
+                        statusLabel.setStyle("-fx-text-fill: green;");
+                    } else {
+                        statusLabel.setText("Failed to delete tag");
+                        statusLabel.setStyle("-fx-text-fill: red;");
+                    }
+                });
+
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    statusLabel.setText("Failed to delete tag: " + e.getMessage());
+                    statusLabel.setStyle("-fx-text-fill: red;");
+                });
+            }
+        });
+    }
+
+    // Add missing settings method
     @FXML
     private void saveSettings() {
         try {
-            Properties properties = new Properties();
-            properties.setProperty("timeout", timeoutField.getText());
-            properties.setProperty("cacheDuration", cacheDurationField.getText());
+            String timeout = timeoutField.getText().trim();
+            String cacheDuration = cacheDurationField.getText().trim();
 
-            try (OutputStream output = new FileOutputStream("connection.properties")) {
-                properties.store(output, "Prowlarr Integration Settings");
-                showAlert(Alert.AlertType.INFORMATION, "Success", "Settings saved successfully");
-            }
-        } catch (Exception e) {
-            showAlert(Alert.AlertType.ERROR, "Error", "Failed to save settings: " + e.getMessage());
-        }
-    }
-
-    // Helper methods
-
-    private void loadApiSettings() {
-        try {
-            Properties properties = new Properties();
-            File settingsFile = new File("connection.properties");
-
-            if (settingsFile.exists()) {
-                try (InputStream input = new FileInputStream(settingsFile)) {
-                    properties.load(input);
-
-                    apiUrlField.setText(properties.getProperty("prowlarr-apiUrl", ""));
-                    apiKeyField.setText(properties.getProperty("prowlarr-apiKey", ""));
-                    timeoutField.setText(properties.getProperty("timeout", "30"));
-                    cacheDurationField.setText(properties.getProperty("cacheDuration", "10"));
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Failed to load settings: " + e.getMessage());
-        }
-    }
-
-    private void saveApiSettings() {
-        try {
-            Properties properties = new Properties();
-            File settingsFile = new File("connection.properties");
-
-            if (settingsFile.exists()) {
-                try (InputStream input = new FileInputStream(settingsFile)) {
-                    properties.load(input);
+            if (!timeout.isEmpty()) {
+                int timeoutValue = Integer.parseInt(timeout);
+                if (timeoutValue < 5 || timeoutValue > 300) {
+                    statusLabel.setText("Timeout must be between 5 and 300 seconds");
+                    statusLabel.setStyle("-fx-text-fill: red;");
+                    return;
                 }
             }
 
-            properties.setProperty("prowlarr-apiUrl", apiUrlField.getText());
-            properties.setProperty("prowlarr-apiKey", apiKeyField.getText());
-
-            try (OutputStream output = new FileOutputStream(settingsFile)) {
-                properties.store(output, "Prowlarr Integration Settings");
+            if (!cacheDuration.isEmpty()) {
+                int cacheValue = Integer.parseInt(cacheDuration);
+                if (cacheValue < 1 || cacheValue > 1440) {
+                    statusLabel.setText("Cache duration must be between 1 and 1440 minutes");
+                    statusLabel.setStyle("-fx-text-fill: red;");
+                    return;
+                }
             }
-        } catch (Exception e) {
-            System.err.println("Failed to save API settings: " + e.getMessage());
+
+            // Save settings to properties file or preferences
+            saveAppSettings();
+
+            statusLabel.setText("Settings saved successfully");
+            statusLabel.setStyle("-fx-text-fill: green;");
+
+        } catch (NumberFormatException e) {
+            statusLabel.setText("Please enter valid numbers for settings");
+            statusLabel.setStyle("-fx-text-fill: red;");
         }
     }
 
-    private String getIndexerTypeDisplayName(String type) {
-        return indexerDefinitions.getOrDefault(type, type);
+    // Utility methods
+    private String getIndexerTypeDisplayName(String protocol) {
+        return indexerDefinitions.getOrDefault(protocol.toLowerCase(), protocol);
     }
 
-    private String getOriginalIndexerType(String displayName) {
-        for (Map.Entry<String, String> entry : indexerDefinitions.entrySet()) {
-            if (entry.getValue().equals(displayName)) {
-                return entry.getKey();
-            }
-        }
-        return displayName;
+    private String getProtocolFromDisplayName(String displayName) {
+        return indexerDefinitions.entrySet().stream()
+                .filter(entry -> entry.getValue().equals(displayName))
+                .map(Map.Entry::getKey)
+                .findFirst()
+                .orElse(displayName.toLowerCase());
     }
 
     private List<Integer> extractTagIds(JSONArray tagsArray) {
@@ -1172,129 +1236,102 @@ public class RssViewModel implements Initializable {
         return tagIds;
     }
 
-    private void showAlert(Alert.AlertType type, String title, String message) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
-    }
-
-    // API Request Methods
-
+    // API methods (you'll need to implement these based on your HTTP client)
     private JSONObject makeApiGetRequest(String endpoint) throws Exception {
-        String baseUrl = apiUrlField.getText().trim();
-        if (!baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
-            baseUrl = "http://" + baseUrl;
-        }
-        URL url = new URL(baseUrl + endpoint);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("GET");
-        connection.setRequestProperty("X-Api-Key", apiKeyField.getText().trim());
-        connection.setConnectTimeout(CONNECTION_TIMEOUT);
-        connection.setReadTimeout(CONNECTION_TIMEOUT);
-
-        int responseCode = connection.getResponseCode();
-        if (responseCode == HttpURLConnection.HTTP_OK) {
-            String response = readResponse(connection.getInputStream());
-            if (response.startsWith("[")) {
-                JSONObject wrapper = new JSONObject();
-                wrapper.put("records", new JSONArray(response));
-                return wrapper;
-            } else {
-                return new JSONObject(response);
-            }
-        } else {
-            throw new Exception("API request failed with status: " + responseCode);
-        }
+        return makeApiRequest("GET", endpoint, null);
     }
 
     private JSONObject makeApiPostRequest(String endpoint, JSONObject data) throws Exception {
-        String baseUrl = apiUrlField.getText().trim();
-        if (!baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
-            baseUrl = "http://" + baseUrl;
-        }
-        URL url = new URL(baseUrl + endpoint);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("POST");
-        connection.setRequestProperty("X-Api-Key", apiKeyField.getText().trim());
-        connection.setRequestProperty("Content-Type", "application/json");
-        connection.setDoOutput(true);
-        connection.setConnectTimeout(CONNECTION_TIMEOUT);
-        connection.setReadTimeout(CONNECTION_TIMEOUT);
-
-        try (OutputStream os = connection.getOutputStream()) {
-            byte[] input = data.toString().getBytes(StandardCharsets.UTF_8);
-            os.write(input, 0, input.length);
-        }
-
-        int responseCode = connection.getResponseCode();
-        if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED) {
-            String response = readResponse(connection.getInputStream());
-            return new JSONObject(response);
-        } else {
-            String errorResponse = readResponse(connection.getErrorStream());
-            throw new Exception("API request failed with status: " + responseCode + " - " + errorResponse);
-        }
+        return makeApiRequest("POST", endpoint, data);
     }
 
     private JSONObject makeApiPutRequest(String endpoint, JSONObject data) throws Exception {
-        String baseUrl = apiUrlField.getText().trim();
-        if (!baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
-            baseUrl = "http://" + baseUrl;
-        }
-        URL url = new URL(baseUrl + endpoint);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("PUT");
-        connection.setRequestProperty("X-Api-Key", apiKeyField.getText().trim());
-        connection.setRequestProperty("Content-Type", "application/json");
-        connection.setDoOutput(true);
-        connection.setConnectTimeout(CONNECTION_TIMEOUT);
-        connection.setReadTimeout(CONNECTION_TIMEOUT);
-
-        try (OutputStream os = connection.getOutputStream()) {
-            byte[] input = data.toString().getBytes(StandardCharsets.UTF_8);
-            os.write(input, 0, input.length);
-        }
-
-        int responseCode = connection.getResponseCode();
-        if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_ACCEPTED) {
-            String response = readResponse(connection.getInputStream());
-            return new JSONObject(response);
-        } else {
-            String errorResponse = readResponse(connection.getErrorStream());
-            throw new Exception("API request failed with status: " + responseCode + " - " + errorResponse);
-        }
+        return makeApiRequest("PUT", endpoint, data);
     }
 
     private boolean makeApiDeleteRequest(String endpoint) throws Exception {
-        String baseUrl = apiUrlField.getText().trim();
-        if (!baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
-            baseUrl = "http://" + baseUrl;
-        }
-        URL url = new URL(baseUrl + endpoint);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("DELETE");
-        connection.setRequestProperty("X-Api-Key", apiKeyField.getText().trim());
-        connection.setConnectTimeout(CONNECTION_TIMEOUT);
-        connection.setReadTimeout(CONNECTION_TIMEOUT);
-
-        int responseCode = connection.getResponseCode();
-        return responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_NO_CONTENT;
+        JSONObject response = makeApiRequest("DELETE", endpoint, null);
+        return response != null;
     }
 
-    private String readResponse(InputStream stream) throws IOException {
-        if (stream == null) {
-            return "";
-        }
+    private JSONObject makeApiRequest(String method, String endpoint, JSONObject data) throws Exception {
+        String urlString = apiUrl.get().replaceAll("/$", "") + endpoint;
+        URL url = new URL(urlString);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
-        StringBuilder response = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                response.append(line);
+        conn.setRequestMethod(method);
+        conn.setRequestProperty("X-Api-Key", apiKey.get());
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setConnectTimeout(CONNECTION_TIMEOUT);
+        conn.setReadTimeout(CONNECTION_TIMEOUT);
+
+        if (data != null && ("POST".equals(method) || "PUT".equals(method))) {
+            conn.setDoOutput(true);
+            try (OutputStream os = conn.getOutputStream()) {
+                byte[] input = data.toString().getBytes(StandardCharsets.UTF_8);
+                os.write(input, 0, input.length);
             }
         }
-        return response.toString();
+
+        int responseCode = conn.getResponseCode();
+
+        if (responseCode >= 200 && responseCode < 300) {
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
+                StringBuilder response = new StringBuilder();
+                String responseLine;
+                while ((responseLine = br.readLine()) != null) {
+                    response.append(responseLine.trim());
+                }
+
+                String responseStr = response.toString();
+                if (responseStr.isEmpty()) {
+                    return new JSONObject(); // Return empty JSON for successful requests with no body
+                }
+
+                return responseStr.startsWith("[") ?
+                        new JSONObject().put("records", new JSONArray(responseStr)) :
+                        new JSONObject(responseStr);
+            }
+        } else {
+            throw new Exception("HTTP " + responseCode + ": " + conn.getResponseMessage());
+        }
+    }
+
+    // Settings persistence methods
+    private void loadApiSettings() {
+        try {
+            Properties props = new Properties();
+            File configFile = new File("config.properties");
+            if (configFile.exists()) {
+                props.load(new FileInputStream(configFile));
+                apiUrlField.setText(props.getProperty("api.url", "http://localhost:9696"));
+                apiKeyField.setText(props.getProperty("api.key", ""));
+                timeoutField.setText(props.getProperty("timeout", "30"));
+                cacheDurationField.setText(props.getProperty("cache.duration", "10"));
+            }
+        } catch (Exception e) {
+            // Use defaults if loading fails
+            apiUrlField.setText("http://localhost:9696");
+        }
+    }
+
+    private void saveApiSettings() {
+        saveAppSettings();
+    }
+
+    private void saveAppSettings() {
+        try {
+            Properties props = new Properties();
+            props.setProperty("api.url", apiUrlField.getText());
+            props.setProperty("api.key", apiKeyField.getText());
+            props.setProperty("timeout", timeoutField.getText());
+            props.setProperty("cache.duration", cacheDurationField.getText());
+
+            File configFile = new File("config.properties");
+            props.store(new FileOutputStream(configFile), "Prowlarr Dashboard Settings");
+        } catch (Exception e) {
+            statusLabel.setText("Failed to save settings: " + e.getMessage());
+            statusLabel.setStyle("-fx-text-fill: red;");
+        }
     }
 }

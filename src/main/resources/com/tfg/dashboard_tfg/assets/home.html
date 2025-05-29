@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Home Screen</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .site-name {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 40px;
+            text-align: center;
+            text-decoration: none; /* Remove underline from link */
+            color: inherit; /* Inherit color so it doesn't look like a typical link */
+        }
+
+        .tile-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            max-width: 600px; /* Limit width for better mobile experience */
+            width: 100%;
+        }
+
+        .tile {
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            aspect-ratio: 1 / 1; /* Make tiles square */
+            text-decoration: none;
+            color: #333;
+            font-size: 1.2em;
+            font-weight: 500;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-align: center;
+        }
+
+        .tile:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .tile-grid {
+                grid-template-columns: repeat(2, 1fr); /* 2 columns on smaller screens */
+            }
+            .site-name {
+                font-size: 2em;
+            }
+            .tile {
+                font-size: 1em;
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .tile-grid {
+                grid-template-columns: 1fr; /* 1 column on very small screens */
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="tile-grid">
+    <a href="http://192.168.30.2:8096" class="tile">Jellyfin</a>
+    <a href="http://192.168.30.2:8989" class="tile">Sonarr</a>
+    <a href="http://192.168.30.2:9696" class="tile">Prowlarr</a>
+    <a href="http://192.168.30.2:8080" class="tile">Qbittorrent</a>
+    <a href="http://192.168.30.2:5055" class="tile">Jellyseer</a>
+    <a href="https://www.google.com/" class="tile">Google</a>
+</div>
+</body>
+</html>

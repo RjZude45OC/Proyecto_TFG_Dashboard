@@ -25,6 +25,7 @@ import javafx.scene.text.Text;
 import javafx.util.Duration;
 
 import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -428,7 +429,25 @@ public class JellyFinViewModel implements Initializable {
             addLogEntry("Info", "System", "Server status refreshed");
         });
     }
+    /**
+     * Manually refresh server status
+     */
+    @FXML
+    private void updateActiveSession() {
+        if (!connected.get()) {
+            return;
+        }
 
+        CompletableFuture<Void> activeSessions = fetchActiveSessions();
+        CompletableFuture<Void> logs = fetchRecentLogs();
+
+        CompletableFuture.allOf(
+                activeSessions,
+                logs
+        ).thenRun(() -> {
+            addLogEntry("Info", "Session", "Session status refreshed");
+        });
+    }
     private CompletableFuture<Void> fetchSystemInfo() {
         return CompletableFuture.runAsync(() -> {
             try {
@@ -980,13 +999,83 @@ public class JellyFinViewModel implements Initializable {
         controls.setAlignment(Pos.CENTER);
 
         Button playPauseButton = new Button(session.isPlaying() ? "Pause" : "Play");
+        playPauseButton.setVisible(!"Idle".equals(session.getMediaType()));
         playPauseButton.getStyleClass().add("table-button");
+        playPauseButton.setOnAction(event -> {
+            String sessionId = session.getId();
+            String action = session.isPlaying() ? "Pause" : "Unpause";
+            String url = serverUrl.getValue() + "/Sessions/" + sessionId + "/Playing/" + action;
+            new Thread(() -> {
+                try {
+                    HttpRequest request = HttpRequest.newBuilder()
+                            .uri(URI.create(url))
+                            .header("X-MediaBrowser-Token", apiKey.get())
+                            .POST(HttpRequest.BodyPublishers.noBody())
+                            .build();
 
+                    HttpClient client = HttpClient.newHttpClient();
+                    HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                    if (response.statusCode() == 204) {
+                        Platform.runLater(this::updateActiveSession);
+                    } else {
+                        Platform.runLater(() -> {
+                            Platform.runLater(() -> System.out.println("Play/Pause error"));
+                        });
+                    }
+                } catch (Exception e) {
+                    Platform.runLater(() -> {
+                        System.out.println("error");
+                    });
+                }
+            }).start();
+        });
         Button stopButton = new Button("Stop");
+        stopButton.setVisible(!"Idle".equals(session.getMediaType()));
         stopButton.getStyleClass().add("table-button");
+        stopButton.setOnAction(event -> {
+            String sessionId = session.getId();
+            String url = serverUrl.getValue() + "/Sessions/" + sessionId + "/Playing/Stop";
+            new Thread(() -> {
+                try {
+                    HttpRequest request = HttpRequest.newBuilder()
+                            .uri(URI.create(url))
+                            .header("X-MediaBrowser-Token", apiKey.get())
+                            .POST(HttpRequest.BodyPublishers.noBody())
+                            .build();
+
+                    HttpClient client = HttpClient.newHttpClient();
+                    HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                    if (response.statusCode() == 204) {
+                        Platform.runLater(this::updateActiveSession);
+                    } else {
+                        Platform.runLater(() -> System.out.println("STOP failed"));
+                    }
+                } catch (Exception e) {
+                    Platform.runLater(() -> System.out.println("STOP error"));
+                }
+            }).start();
+        });
 
         Button infoButton = new Button("Details");
+        infoButton.setVisible(!"Idle".equals(session.getMediaType()));
         infoButton.getStyleClass().add("table-button");
+        infoButton.setOnAction(event -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Session Details");
+            alert.setHeaderText(session.getTitle());
+            alert.setContentText(
+                    "User: " + session.getUsername() + "\n" +
+                            "Device: " + session.getDevice() + "\n" +
+                            "Client: " + session.getClient() + "\n" +
+                            "Media: " + session.getMediaType() + "\n" +
+                            "Resolution: " + session.getResolution() + "\n" +
+                            "Codec: " + session.getCodec() + "\n" +
+                            "Bitrate: " + session.getBitrate() + " Mbps\n" +
+                            "Path: " + session.getFilePath() + "\n" +
+                            "Overview: " + session.getOverview()
+            );
+            alert.showAndWait();
+        });
 
         controls.getChildren().addAll(playPauseButton, stopButton, infoButton);
 
@@ -1089,95 +1178,99 @@ public class JellyFinViewModel implements Initializable {
 
                 for (int i = 0; i < sessionsJson.length(); i++) {
                     JSONObject sessionJson = sessionsJson.getJSONObject(i);
-                    StreamSession session = new StreamSession();
-                    session.setUsername(sessionJson.optString("UserName", "Unknown User"));
-                    session.setDevice(sessionJson.optString("DeviceName", "Unknown Device"));
-                    session.setClient(sessionJson.optString("Client", "Unknown Client"));
+                    if (sessionJson != null) {
+                        if (!Objects.equals(sessionJson.optString("Client"), "Jellyseerr")) {
+                            StreamSession session = new StreamSession();
+                            session.setId(sessionJson.getString("Id"));
+                            session.setUsername(sessionJson.optString("UserName", "Unknown User"));
+                            session.setClient(sessionJson.optString("Client", "Unknown Client"));
+                            session.setDevice(sessionJson.optString("DeviceName", "Unknown Device"));
 
-                    session.setRemoteAddress(sessionJson.optString("RemoteEndPoint", "Local"));
+                            session.setRemoteAddress(sessionJson.optString("RemoteEndPoint", "Local"));
 
-                    JSONObject playState = sessionJson.optJSONObject("PlayState");
-                    if (playState != null) {
-                        session.setPlaying(!playState.optBoolean("IsPaused", false));
-                        session.setMuted(playState.optBoolean("IsMuted", false));
-                        session.setRepeatMode(playState.optString("RepeatMode", "None"));
-                        session.setCanSeek(playState.optBoolean("CanSeek", false));
-                    }
-
-                    JSONArray nowPlayingQueueItems = sessionJson.optJSONArray("NowPlayingQueueFullItems");
-                    if (nowPlayingQueueItems != null && !nowPlayingQueueItems.isEmpty()) {
-                        JSONObject mediaItem = nowPlayingQueueItems.getJSONObject(0);
-
-                        session.setTitle(mediaItem.optString("Name", "Unknown Title"));
-                        session.setMediaType(mediaItem.optString("MediaType", "Unknown"));
-                        session.setYear(mediaItem.optInt("ProductionYear", 0));
-                        session.setOverview(mediaItem.optString("Overview", ""));
-
-                        long runtimeTicks = mediaItem.optLong("RunTimeTicks", 0);
-                        session.setRuntime(runtimeTicks > 0 ? (int) (runtimeTicks / 10000000) : 0);
-
-
-                        JSONObject userData = mediaItem.optJSONObject("UserData");
-                        if (userData != null && userData.has("PlaybackPositionTicks")) {
-                            long positionTicks = userData.optLong("PlaybackPositionTicks", 0);
-                            session.setProgress((int) (positionTicks / 10000000));
-                        } else {
-                            playState = sessionJson.optJSONObject("PlayState");
+                            JSONObject playState = sessionJson.optJSONObject("PlayState");
                             if (playState != null) {
-                                if (playState.has("PositionTicks")) {
-                                    long positionTicks = playState.optLong("PositionTicks", 0);
+                                session.setPlaying(!playState.optBoolean("IsPaused", false));
+                                session.setMuted(playState.optBoolean("IsMuted", false));
+                                session.setRepeatMode(playState.optString("RepeatMode", "None"));
+                                session.setCanSeek(playState.optBoolean("CanSeek", false));
+                            }
+
+                            JSONArray nowPlayingQueueItems = sessionJson.optJSONArray("NowPlayingQueueFullItems");
+                            if (nowPlayingQueueItems != null && !nowPlayingQueueItems.isEmpty()) {
+                                JSONObject mediaItem = nowPlayingQueueItems.getJSONObject(0);
+
+                                session.setTitle(mediaItem.optString("Name", "Unknown Title"));
+                                session.setMediaType(mediaItem.optString("MediaType", "Unknown"));
+                                session.setYear(mediaItem.optInt("ProductionYear", 0));
+                                session.setOverview(mediaItem.optString("Overview", ""));
+
+                                long runtimeTicks = mediaItem.optLong("RunTimeTicks", 0);
+                                session.setRuntime(runtimeTicks > 0 ? (int) (runtimeTicks / 10000000) : 0);
+
+
+                                JSONObject userData = mediaItem.optJSONObject("UserData");
+                                if (userData != null && userData.has("PlaybackPositionTicks")) {
+                                    long positionTicks = userData.optLong("PlaybackPositionTicks", 0);
                                     session.setProgress((int) (positionTicks / 10000000));
                                 } else {
-                                    session.setTitle("Idle");
-                                    session.setMediaType("Idle");
-                                    session.setProgress(0);
-                                    session.setBitrate(0);
-                                    session.setResolution("None");
-                                    session.setPlaying(false);
-                                    session.setYear(0);
-                                    session.setProgress(0);
+                                    playState = sessionJson.optJSONObject("PlayState");
+                                    if (playState != null) {
+                                        if (playState.has("PositionTicks")) {
+                                            long positionTicks = playState.optLong("PositionTicks", 0);
+                                            session.setProgress((int) (positionTicks / 10000000));
+                                        } else {
+                                            session.setTitle("Idle");
+                                            session.setMediaType("Idle");
+                                            session.setProgress(0);
+                                            session.setBitrate(0);
+                                            session.setResolution("None");
+                                            session.setPlaying(false);
+                                            session.setYear(0);
+                                            session.setProgress(0);
+                                        }
+                                    } else {
+                                        session.setProgress(0);
+                                    }
                                 }
+
+                                JSONArray mediaStreams = mediaItem.optJSONArray("MediaStreams");
+                                if (mediaStreams != null) {
+                                    for (int j = 0; j < mediaStreams.length(); j++) {
+                                        JSONObject stream = mediaStreams.getJSONObject(j);
+                                        String streamType = stream.optString("Type", "");
+
+                                        if ("Video".equals(streamType)) {
+                                            int width = stream.optInt("Width", 0);
+                                            int height = stream.optInt("Height", 0);
+                                            session.setResolution(width > 0 && height > 0 ? width + "x" + height : "Unknown");
+
+                                            session.setCodec(stream.optString("Codec", "Unknown"));
+                                            session.setBitrate(Math.round(stream.optInt("BitRate", 0) / 1000000.0f));
+                                            session.setFrameRate(stream.optDouble("RealFrameRate", 0));
+                                            session.setVideoRange(stream.optString("VideoRange", "Unknown"));
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                session.setFilePath(mediaItem.optString("Path", ""));
+                                session.setSourceType(mediaItem.optString("LocationType", "Unknown"));
                             } else {
+                                session.setTitle("Idle");
+                                session.setMediaType("Idle");
                                 session.setProgress(0);
+                                session.setBitrate(0);
+                                session.setResolution("None");
+                                session.setPlaying(false);
                             }
+                            session.setLastActivity(sessionJson.optString("LastActivityDate", "Unknown"));
+                            session.setDeviceId(sessionJson.optString("DeviceId", "Unknown"));
+
+                            sessions.add(session);
                         }
-
-                        JSONArray mediaStreams = mediaItem.optJSONArray("MediaStreams");
-                        if (mediaStreams != null) {
-                            for (int j = 0; j < mediaStreams.length(); j++) {
-                                JSONObject stream = mediaStreams.getJSONObject(j);
-                                String streamType = stream.optString("Type", "");
-
-                                if ("Video".equals(streamType)) {
-                                    int width = stream.optInt("Width", 0);
-                                    int height = stream.optInt("Height", 0);
-                                    session.setResolution(width > 0 && height > 0 ? width + "x" + height : "Unknown");
-
-                                    session.setCodec(stream.optString("Codec", "Unknown"));
-                                    session.setBitrate(Math.round(stream.optInt("BitRate", 0) / 1000000.0f));
-                                    session.setFrameRate(stream.optDouble("RealFrameRate", 0));
-                                    session.setVideoRange(stream.optString("VideoRange", "Unknown"));
-                                    break;
-                                }
-                            }
-                        }
-
-                        session.setFilePath(mediaItem.optString("Path", ""));
-                        session.setSourceType(mediaItem.optString("LocationType", "Unknown"));
-                    } else {
-                        session.setTitle("Idle");
-                        session.setMediaType("Idle");
-                        session.setProgress(0);
-                        session.setBitrate(0);
-                        session.setResolution("None");
-                        session.setPlaying(false);
                     }
-                    session.setLastActivity(sessionJson.optString("LastActivityDate", "Unknown"));
-                    session.setDeviceId(sessionJson.optString("DeviceId", "Unknown"));
-
-                    sessions.add(session);
                 }
-
                 Platform.runLater(() -> {
                     activeStreamsLabel.setText(String.valueOf(sessions.size()));
 

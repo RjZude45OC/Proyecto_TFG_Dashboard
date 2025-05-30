@@ -1,11 +1,14 @@
 package com.tfg.dashboard_tfg.viewmodel;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.Properties;
 
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -46,7 +49,9 @@ public class LoginViewModel {
     private Controller mainController;
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
-    public static final String API_BASE_URL = "http://localhost:8080/api/user";
+    public static String API_BASE_URL = "";
+    private final Properties appProperties = new Properties();
+    private final File PROPERTIES_FILE = new File("connection.properties");
 
     public LoginViewModel() {
         this.httpClient = HttpClient.newBuilder()
@@ -57,14 +62,27 @@ public class LoginViewModel {
         objectMapper.disable(MapperFeature.CAN_OVERRIDE_ACCESS_MODIFIERS);
         objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
     }
-
+    public void loadProperties() {
+        try (FileInputStream fis = new FileInputStream(PROPERTIES_FILE)) {
+            appProperties.load(fis);
+        } catch (IOException e) {
+            System.err.println("Failed to load config: " + e.getMessage());
+        }
+    }
     @FXML
     public void initialize() {
+        loadProperties();
         loginErrorLabel.setVisible(false);
         loginProgress.setVisible(false);
 
         usernameField.setOnAction(event -> passwordField.requestFocus());
         passwordField.setOnAction(event -> handleLogin());
+        if (appProperties.containsKey("Login-Url")) {
+            API_BASE_URL = appProperties.getProperty("Login-Url");
+        }
+        else{
+            API_BASE_URL = "https://spaniel-positive-snail.ngrok-free.app/psp/api/user";
+        }
     }
 
     public void setMainController(Controller mainController) {
@@ -139,7 +157,8 @@ public class LoginViewModel {
             ObjectNode requestBody = objectMapper.createObjectNode();
             requestBody.put("username", username);
             requestBody.put("password", password);
-
+            System.out.println(username);
+            System.out.println(password);
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(API_BASE_URL + "/login"))
                     .header("Content-Type", "application/json")

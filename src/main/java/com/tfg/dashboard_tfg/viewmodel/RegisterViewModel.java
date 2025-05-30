@@ -1,11 +1,14 @@
 package com.tfg.dashboard_tfg.viewmodel;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.Properties;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -56,7 +59,9 @@ public class RegisterViewModel {
     private Controller mainController;
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
-    private static final String API_BASE_URL = "http://localhost:8080/psp/api/user";
+    private static String API_BASE_URL = "";
+    private final Properties appProperties = new Properties();
+    private final File PROPERTIES_FILE = new File("connection.properties");
 
     public RegisterViewModel() {
         this.httpClient = HttpClient.newBuilder()
@@ -65,9 +70,16 @@ public class RegisterViewModel {
                 .build();
         this.objectMapper = new ObjectMapper();
     }
-
+    public void loadProperties() {
+        try (FileInputStream fis = new FileInputStream(PROPERTIES_FILE)) {
+            appProperties.load(fis);
+        } catch (IOException e) {
+            System.err.println("Failed to load config: " + e.getMessage());
+        }
+    }
     @FXML
     public void initialize() {
+        loadProperties();
         registerErrorLabel.setVisible(false);
         registerProgress.setVisible(false);
 
@@ -76,6 +88,12 @@ public class RegisterViewModel {
         usernameField.setOnAction(event -> passwordField.requestFocus());
         passwordField.setOnAction(event -> confirmPasswordField.requestFocus());
         confirmPasswordField.setOnAction(event -> handleRegister());
+        if (appProperties.containsKey("Login-Url")) {
+            API_BASE_URL = appProperties.getProperty("Login-Url");
+        }
+        else{
+            API_BASE_URL = "https://spaniel-positive-snail.ngrok-free.app/psp/api/user";
+        }
     }
 
     public void setMainController(Controller mainController) {
@@ -90,7 +108,6 @@ public class RegisterViewModel {
         String password = passwordField.getText();
         String confirmPassword = confirmPasswordField.getText();
 
-        // Basic validation
         if (fullName.isEmpty() || email.isEmpty() || username.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
             registerErrorLabel.setText("All fields are required");
             registerErrorLabel.setVisible(true);
@@ -173,7 +190,6 @@ public class RegisterViewModel {
             requestBody.put("password", password);
             requestBody.put("isActive", false);
 
-            // Create HTTP request
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(API_BASE_URL + "/create"))
                     .header("Content-Type", "application/json")

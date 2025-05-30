@@ -24,8 +24,13 @@ public class StreamSession {
     private String videoRange;
     private String filePath;
     private String sourceType;
+    private String id;
 
     // Getters and setters
+    public String getId() {return id;}
+
+    public void setId(String id) {this.id = id; }
+
     public String getUsername() {
         return username;
     }

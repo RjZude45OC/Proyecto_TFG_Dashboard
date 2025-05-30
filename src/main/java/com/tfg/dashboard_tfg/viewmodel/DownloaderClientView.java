@@ -30,6 +30,7 @@ import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class DownloaderClientView implements Initializable {
 
@@ -220,7 +221,6 @@ public class DownloaderClientView implements Initializable {
         connectButton.setOnAction(event -> connectToClient());
 
         initializeCharts();
-
         initializeTorrentTable();
         initializeTrackerTable();
         initializeFileTable();
@@ -256,7 +256,6 @@ public class DownloaderClientView implements Initializable {
     }
 
     private void initializeTorrentTable() {
-
         nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
         sizeColumn.setCellValueFactory(new PropertyValueFactory<>("size"));
         progressColumn.setCellValueFactory(new PropertyValueFactory<>("progress"));
@@ -570,17 +569,17 @@ public class DownloaderClientView implements Initializable {
         qbittorrentVersionLabel.setText("Version: " + version);
 
         List<TorrentData> torrentList = apiClient.getTorrents();
-        int activeCount = 0;
-        for (TorrentData torrent : torrentList) {
-            if ("Downloading".equals(torrent.getStatus()) || "Uploading".equals(torrent.getStatus())) {
-                activeCount++;
-            }
-        }
+        int activeCount = (int) torrentList.stream()
+                .filter(t -> "Downloading".equals(t.getStatus()) || "Uploading".equals(t.getStatus()))
+                .count();
+
+        List<TorrentData> filteredTorrents = torrentList.stream()
+                .filter(t -> t.getName() != null && !t.getName().isEmpty())
+                .collect(Collectors.toList());
 
         activeTorrentsLabel.setText(String.valueOf(activeCount));
         totalTorrentsLabel.setText(String.valueOf(torrentList.size()));
-
-        torrents.setAll(torrentList);
+        torrents.setAll(filteredTorrents);
 
         String filter = statusFilter.getValue();
         if (filter != null && !filter.equals("All")) {

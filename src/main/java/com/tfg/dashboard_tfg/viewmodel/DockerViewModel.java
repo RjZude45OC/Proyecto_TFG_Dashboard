@@ -2,6 +2,7 @@ package com.tfg.dashboard_tfg.viewmodel;
 
 import eu.hansolo.tilesfx.Tile;
 import eu.hansolo.tilesfx.TileBuilder;
+import eu.hansolo.tilesfx.chart.ChartData;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 
@@ -23,6 +24,7 @@ import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -67,6 +69,10 @@ public class DockerViewModel {
     private final StringProperty serverUrl = new SimpleStringProperty("");
     private final StringProperty serverPort = new SimpleStringProperty("");
     private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+    private final Map<String, StatCacheEntry<Double>> cpuStatCache = new ConcurrentHashMap<>();
+    private final Map<String, StatCacheEntry<Double>> memStatCache = new ConcurrentHashMap<>();
+    private final Map<String, StatCacheEntry<Double>> netStatCache = new ConcurrentHashMap<>();
+    private static final long STAT_CACHE_DURATION_MS = 5000;
 
     public void loadProperties() {
         try (FileInputStream fis = new FileInputStream(PROPERTIES_FILE)) {
@@ -460,7 +466,6 @@ public class DockerViewModel {
     @FXML
     public void refreshContainers() {
         statusLabel.setText("Refreshing containers...");
-        containerTilesPane.getChildren().clear();
 
         String filter = containerFilter.getValue();
         if (filter == null) filter = "All Containers";
@@ -468,23 +473,41 @@ public class DockerViewModel {
         String finalFilter = filter;
         new Thread(() -> {
             try {
+                Map<String, MetricType> previousTileMetrics = new HashMap<>();
+                for (Map.Entry<String, ContainerTile> entry : containerTiles.entrySet()) {
+                    previousTileMetrics.put(entry.getKey(), entry.getValue().currentMetric);
+                }
                 List<Map<String, String>> containers = getContainersViaAPI(finalFilter);
-
-                containerTiles.clear();
-
+                Map<String, Map<String, String>> idToContainerMap = new HashMap<>();
                 for (Map<String, String> container : containers) {
-                    Tile tile = createContainerTile(container);
-                    ContainerTile containerTile = new ContainerTile(
-                            container.get("id"),
-                            container.get("name"),
-                            tile);
-                    containerTiles.put(container.get("id"), containerTile);
+                    idToContainerMap.put(container.get("id"), container);
+                }
+
+                Map<String, ContainerTile> newTiles = new HashMap<>();
+                for (String id : idToContainerMap.keySet()) {
+                    Map<String, String> info = idToContainerMap.get(id);
+                    ContainerTile tile = containerTiles.get(id);
+                    if (tile == null) {
+                        Tile newTile = createContainerTile(info);
+                        tile = new ContainerTile(id, info.get("name"), newTile);
+                    } else {
+                        tile.name = info.get("name");
+                    }
+                    MetricType metric = previousTileMetrics.get(id);
+                    if (metric != null) tile.currentMetric = metric;
+                    Map<String, String> containerInfoFinal = info;
+                    ContainerTile finalTile = tile;
+                    Platform.runLater(() -> updateTileWithMetric(finalTile, containerInfoFinal));
+                    newTiles.put(id, tile);
                 }
 
                 Platform.runLater(() -> {
-                    for (ContainerTile containerTile : containerTiles.values()) {
-                        containerTilesPane.getChildren().add(containerTile.tile);
+                    containerTilesPane.getChildren().clear();
+                    for (String id : idToContainerMap.keySet()) {
+                        containerTilesPane.getChildren().add(newTiles.get(id).tile);
                     }
+                    containerTiles.clear();
+                    containerTiles.putAll(newTiles);
 
                     containerCountLabel.setText(String.valueOf(containerTiles.size()));
                     statusLabel.setText("Ready");
@@ -690,20 +713,36 @@ public class DockerViewModel {
 
             case NETWORK:
                 fetchContainerNetworkStats(id, (netIO) -> {
-                    tile.setSkinType(Tile.SkinType.HIGH_LOW);
+                    tile.setSkinType(Tile.SkinType.SMOOTH_AREA_CHART);
                     tile.setTitle("Network");
                     tile.setDescription(name);
+                    if (netIO > 0) {
+                        double value = netIO;
+                        String unit;
 
-                    String displayValue;
-                    if (netIO >= 1024) {
-                        displayValue = String.format("%.2f GB/s", netIO / 1024);
-                    } else if (netIO >= 1) {
-                        displayValue = String.format("%.2f MB/s", netIO);
-                    } else {
-                        displayValue = String.format("%.2f kB/s", netIO * 1024);
+                        ChartData chartData = new ChartData("Network", value);
+                        tile.addChartData(chartData);
+
+                        if (tile.getChartData().size() > 15) {
+                            tile.getChartData().remove(0);
+                        }
+
+                        double lastValue = value;
+                        if (!tile.getChartData().isEmpty()) {
+                            lastValue = tile.getChartData().get(tile.getChartData().size() - 1).getValue();
+                        }
+
+                        if (lastValue >= 1000) {
+                            unit = "Mbps";
+                            tile.setValue(lastValue / 1000);
+                        } else {
+                            unit = "Kbps";
+                            tile.setValue(lastValue);
+                        }
+
+                        tile.setUnit(unit);
+                        tile.setDecimals(2);
                     }
-
-                    tile.setText(displayValue);
                 });
                 break;
 
@@ -725,9 +764,16 @@ public class DockerViewModel {
     }
 
     private void fetchContainerCpuStats(String containerId, java.util.function.Consumer<Double> callback) {
+        StatCacheEntry<Double> cache = cpuStatCache.get(containerId);
+        long now = System.currentTimeMillis();
+        if (cache != null && (now - cache.timestamp) < STAT_CACHE_DURATION_MS) {
+            Platform.runLater(() -> callback.accept(cache.value));
+            return;
+        }
         new Thread(() -> {
             try {
                 double cpuUsage = fetchCpuStatsViaAPI(containerId);
+                cpuStatCache.put(containerId, new StatCacheEntry<>(cpuUsage, System.currentTimeMillis()));
                 Platform.runLater(() -> callback.accept(cpuUsage));
             } catch (Exception e) {
                 Platform.runLater(() -> {
@@ -737,6 +783,7 @@ public class DockerViewModel {
             }
         }).start();
     }
+
 
     private double fetchCpuStatsViaAPI(String containerId) throws Exception {
         URL url = new URL(dockerApiUrl + "/containers/" + containerId + "/stats?stream=false");
@@ -776,9 +823,16 @@ public class DockerViewModel {
     }
 
     private void fetchContainerMemoryStats(String containerId, java.util.function.Consumer<Double> callback) {
+        StatCacheEntry<Double> cache = memStatCache.get(containerId);
+        long now = System.currentTimeMillis();
+        if (cache != null && (now - cache.timestamp) < STAT_CACHE_DURATION_MS) {
+            Platform.runLater(() -> callback.accept(cache.value));
+            return;
+        }
         new Thread(() -> {
             try {
                 double memUsage = fetchMemoryStatsViaAPI(containerId);
+                memStatCache.put(containerId, new StatCacheEntry<>(memUsage, System.currentTimeMillis()));
                 Platform.runLater(() -> callback.accept(memUsage));
             } catch (Exception e) {
                 Platform.runLater(() -> {
@@ -821,9 +875,16 @@ public class DockerViewModel {
     }
 
     private void fetchContainerNetworkStats(String containerId, java.util.function.Consumer<Double> callback) {
+        StatCacheEntry<Double> cache = netStatCache.get(containerId);
+        long now = System.currentTimeMillis();
+        if (cache != null && (now - cache.timestamp) < STAT_CACHE_DURATION_MS) {
+            Platform.runLater(() -> callback.accept(cache.value));
+            return;
+        }
         new Thread(() -> {
             try {
                 double netIO = fetchNetworkStatsViaAPI(containerId);
+                netStatCache.put(containerId, new StatCacheEntry<>(netIO, System.currentTimeMillis()));
                 Platform.runLater(() -> callback.accept(netIO));
             } catch (Exception e) {
                 Platform.runLater(() -> {
@@ -868,6 +929,16 @@ public class DockerViewModel {
             }
 
             return (rxBytes + txBytes) / (1024.0 * 1024.0);
+        }
+    }
+
+    private static class StatCacheEntry<T> {
+        T value;
+        long timestamp;
+
+        StatCacheEntry(T value, long timestamp) {
+            this.value = value;
+            this.timestamp = timestamp;
         }
     }
 

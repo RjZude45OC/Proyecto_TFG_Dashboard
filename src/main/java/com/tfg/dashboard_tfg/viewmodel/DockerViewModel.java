@@ -137,7 +137,7 @@ public class DockerViewModel {
         }
 
         url = appProperties.getProperty("dockerApi");
-        if (url != null || !url.isEmpty()) {
+        if (url != null && !url.isEmpty()) {
             if (!url.startsWith("http://")){
                 url = "http://" + url;
             }

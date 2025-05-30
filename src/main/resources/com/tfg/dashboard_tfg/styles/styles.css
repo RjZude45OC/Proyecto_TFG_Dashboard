@@ -375,6 +375,9 @@
 .setting-field{
     -fx-text-fill: -terminal-foreground;
 }
+.stat-value{
+    -fx-text-fill: -terminal-foreground;
+}
 /* Button styling */
 .console-button {
     -fx-background-radius: 4px;
@@ -646,14 +649,14 @@
 
 .dark-theme .container-scroll {
     -fx-border-color: #3d3d56;
-        -fx-background-color: #1e1e2e;
-        -fx-border-color: #383847;
+    -fx-background-color: #1e1e2e;
+    -fx-border-color: #383847;
 }
 
 .light-theme .container-scroll {
     -fx-border-color: #d2d3db;
-        -fx-background-color: #f0f1f5;
-        -fx-border-color: #e4e5f0;
+    -fx-background-color: #f0f1f5;
+    -fx-border-color: #e4e5f0;
 }
 
 .dark-theme .container-scroll > .viewport {

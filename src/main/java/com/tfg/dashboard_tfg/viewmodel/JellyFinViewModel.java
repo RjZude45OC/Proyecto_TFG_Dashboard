@@ -429,6 +429,7 @@ public class JellyFinViewModel implements Initializable {
             addLogEntry("Info", "System", "Server status refreshed");
         });
     }
+
     /**
      * Manually refresh server status
      */
@@ -448,6 +449,7 @@ public class JellyFinViewModel implements Initializable {
             addLogEntry("Info", "Session", "Session status refreshed");
         });
     }
+
     private CompletableFuture<Void> fetchSystemInfo() {
         return CompletableFuture.runAsync(() -> {
             try {
@@ -869,6 +871,12 @@ public class JellyFinViewModel implements Initializable {
     private VBox createStreamTile(StreamSession session) {
         VBox tile = new VBox(10);
         tile.setPadding(new Insets(10));
+        tile.setStyle(
+                "-fx-background-color: -terminal-background; " +
+                "-fx-border-color: transparent; " +
+                "-fx-border-width: 1; " +
+                "-fx-border-radius: 5px; " +
+                "-fx-background-radius: 10px;");
         tile.setMinWidth(280);
         tile.setMaxWidth(350);
         tile.setPrefWidth(280);

@@ -93,34 +93,34 @@
                             <HBox spacing="30">
                                 <VBox spacing="5">
                                     <HBox spacing="10">
-                                        <Label text="Download Speed:" styleClass="setting-label"/>
+                                        <Label text="Download Speed:" styleClass="filter-label"/>
                                         <Label fx:id="downloadSpeedLabel" text="0 KiB/s" styleClass="stat-value"/>
                                     </HBox>
                                     <HBox spacing="10">
-                                        <Label text="Upload Speed:" styleClass="setting-label"/>
+                                        <Label text="Upload Speed:" styleClass="filter-label"/>
                                         <Label fx:id="uploadSpeedLabel" text="0 KiB/s" styleClass="stat-value"/>
                                     </HBox>
                                     <HBox spacing="10">
-                                        <Label text="Session Downloaded:" styleClass="setting-label"/>
+                                        <Label text="Session Downloaded:" styleClass="filter-label"/>
                                         <Label fx:id="sessionDownloadedLabel" text="0 MiB" styleClass="stat-value"/>
                                     </HBox>
                                     <HBox spacing="10">
-                                        <Label text="Session Uploaded:" styleClass="setting-label"/>
+                                        <Label text="Session Uploaded:" styleClass="filter-label"/>
                                         <Label fx:id="sessionUploadedLabel" text="0 MiB" styleClass="stat-value"/>
                                     </HBox>
                                 </VBox>
 
                                 <VBox spacing="5">
                                     <HBox spacing="10">
-                                        <Label text="All-time Download:" styleClass="setting-label"/>
+                                        <Label text="All-time Download:" styleClass="filter-label"/>
                                         <Label fx:id="allTimeDownloadLabel" text="0 GiB" styleClass="stat-value"/>
                                     </HBox>
                                     <HBox spacing="10">
-                                        <Label text="All-time Upload:" styleClass="setting-label"/>
+                                        <Label text="All-time Upload:" styleClass="filter-label"/>
                                         <Label fx:id="allTimeUploadLabel" text="0 GiB" styleClass="stat-value"/>
                                     </HBox>
                                     <HBox spacing="10">
-                                        <Label text="Ratio:" styleClass="setting-label"/>
+                                        <Label text="Ratio:" styleClass="filter-label"/>
                                         <Label fx:id="ratioLabel" text="0.00" styleClass="stat-value"/>
                                     </HBox>
                                 </VBox>

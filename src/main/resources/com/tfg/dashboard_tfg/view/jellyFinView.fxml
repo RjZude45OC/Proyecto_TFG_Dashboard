@@ -58,22 +58,22 @@
                             </columnConstraints>
 
                             <Label text="Server URL:" GridPane.columnIndex="0" GridPane.rowIndex="0"
-                                   styleClass="setting-label"/>
+                                   styleClass="filter-label"/>
                             <TextField fx:id="serverUrlField" promptText="http://localhost:8096"
                                        GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="setting-field"/>
 
                             <Label text="API Key:" GridPane.columnIndex="0" GridPane.rowIndex="1"
-                                   styleClass="setting-label"/>
+                                   styleClass="filter-label"/>
                             <PasswordField fx:id="apiKeyField" promptText="Enter API key"
                                            GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="setting-field"/>
 
                             <Label text="Username:" GridPane.columnIndex="0" GridPane.rowIndex="2"
-                                   styleClass="setting-label"/>
+                                   styleClass="filter-label"/>
                             <TextField fx:id="usernameField" promptText="Optional"
                                        GridPane.columnIndex="1" GridPane.rowIndex="2" styleClass="setting-field"/>
 
                             <Label text="Password:" GridPane.columnIndex="0" GridPane.rowIndex="3"
-                                   styleClass="setting-label"/>
+                                   styleClass="filter-label"/>
                             <PasswordField fx:id="passwordField" promptText="Optional"
                                            GridPane.columnIndex="1" GridPane.rowIndex="3" styleClass="setting-field"/>
 
@@ -88,12 +88,12 @@
                     <VBox spacing="5" styleClass="settings-container">
                         <HBox>
                             <VBox spacing="5" prefWidth="150">
-                                <Label text="CPU Usage:" styleClass="setting-label"/>
-                                <Label text="Memory Usage:" styleClass="setting-label"/>
-                                <Label text="Storage:" styleClass="setting-label"/>
-                                <Label text="Network:" styleClass="setting-label" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
-                                <Label text="Version:" styleClass="setting-label"/>
-                                <Label text="Uptime:" styleClass="setting-label"/>
+                                <Label text="CPU Usage:" styleClass="filter-label"/>
+                                <Label text="Memory Usage:" styleClass="filter-label"/>
+                                <Label text="Storage:" styleClass="filter-label"/>
+                                <Label text="Network:" styleClass="filter-label" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                                <Label text="Version:" styleClass="filter-label"/>
+                                <Label text="Uptime:" styleClass="filter-label"/>
                             </VBox>
 
                             <VBox spacing="5" HBox.hgrow="ALWAYS" >
@@ -103,7 +103,7 @@
                                              maxWidth="Infinity"/>
                                 <ProgressBar fx:id="storageUsageBar" progress="0.0" styleClass="stat-progress"
                                              maxWidth="Infinity"/>
-                                <Label fx:id="networkUsageLabel" text="down:0B/up:0B" maxWidth="Infinity"/>
+                                <Label fx:id="networkUsageLabel" text="down:0B/up:0B" maxWidth="Infinity" styleClass="stat-value"/>
                                 <Label fx:id="versionLabel" text="N/A" styleClass="stat-value"/>
                                 <Label fx:id="uptimeLabel" text="N/A" styleClass="stat-value"/>
                             </VBox>
@@ -125,22 +125,22 @@
                         </columnConstraints>
 
                         <Label text="Movies:" GridPane.columnIndex="0" GridPane.rowIndex="0"
-                               styleClass="setting-label"/>
+                               styleClass="filter-label"/>
                         <Label fx:id="moviesCountLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="0"
                                styleClass="stat-value"/>
 
                         <Label text="TV Shows:" GridPane.columnIndex="0" GridPane.rowIndex="1"
-                               styleClass="setting-label"/>
+                               styleClass="filter-label"/>
                         <Label fx:id="tvShowsCountLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="1"
                                styleClass="stat-value"/>
 
                         <Label text="Episodes:" GridPane.columnIndex="0" GridPane.rowIndex="2"
-                               styleClass="setting-label"/>
+                               styleClass="filter-label"/>
                         <Label fx:id="episodesCountLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="2"
                                styleClass="stat-value"/>
 
                         <Label text="Total Size:" GridPane.columnIndex="0" GridPane.rowIndex="5"
-                               styleClass="setting-label"/>
+                               styleClass="filter-label"/>
                         <Label fx:id="totalSizeLabel" text="0 GB" GridPane.columnIndex="1" GridPane.rowIndex="5"
                                styleClass="stat-value"/>
                     </GridPane>

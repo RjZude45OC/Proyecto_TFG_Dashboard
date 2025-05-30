@@ -79,12 +79,12 @@
                     <VBox spacing="5" styleClass="settings-container">
                         <HBox>
                             <VBox spacing="5" prefWidth="120">
-                                <Label text="CPU Usage:" styleClass="setting-label"/>
-                                <Label text="Memory Usage:" styleClass="setting-label"/>
-                                <Label text="Storage:" styleClass="setting-label"/>
-                                <Label text="Network:" styleClass="setting-label"/>
-                                <Label text="Version:" styleClass="setting-label"/>
-                                <Label text="Uptime:" styleClass="setting-label"/>
+                                <Label text="CPU Usage:" styleClass="filter-label"/>
+                                <Label text="Memory Usage:" styleClass="filter-label"/>
+                                <Label text="Storage:" styleClass="filter-label"/>
+                                <Label text="Network:" styleClass="filter-label"/>
+                                <Label text="Version:" styleClass="filter-label"/>
+                                <Label text="Uptime:" styleClass="filter-label"/>
                             </VBox>
 
                             <VBox spacing="5" HBox.hgrow="ALWAYS">
@@ -94,7 +94,7 @@
                                              maxWidth="Infinity"/>
                                 <ProgressBar fx:id="storageUsageBar" progress="0.0" styleClass="stat-progress"
                                              maxWidth="Infinity"/>
-                                <Label fx:id="networkUsageLabel" text="Down:0B/Up:0B" maxWidth="Infinity"/>
+                                <Label fx:id="networkUsageLabel" text="Down:0B/Up:0B" maxWidth="Infinity" styleClass="stat-value"/>
                                 <Label fx:id="versionLabel" text="N/A" styleClass="stat-value"/>
                                 <Label fx:id="uptimeLabel" text="N/A" styleClass="stat-value"/>
                             </VBox>
@@ -116,17 +116,17 @@
                         </columnConstraints>
 
                         <Label text="Series Count:" GridPane.columnIndex="0" GridPane.rowIndex="0"
-                               styleClass="setting-label"/>
+                               styleClass="filter-label"/>
                         <Label fx:id="seriesCountLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="0"
                                styleClass="stat-value"/>
 
                         <Label text="Episodes:" GridPane.columnIndex="0" GridPane.rowIndex="1"
-                               styleClass="setting-label"/>
+                               styleClass="filter-label"/>
                         <Label fx:id="episodesCountLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="1"
                                styleClass="stat-value"/>
 
                         <Label text="Total Size:" GridPane.columnIndex="0" GridPane.rowIndex="2"
-                               styleClass="setting-label"/>
+                               styleClass="filter-label"/>
                         <Label fx:id="totalSizeLabel" text="0 GB" GridPane.columnIndex="1" GridPane.rowIndex="2"
                                styleClass="stat-value"/>
                     </GridPane>

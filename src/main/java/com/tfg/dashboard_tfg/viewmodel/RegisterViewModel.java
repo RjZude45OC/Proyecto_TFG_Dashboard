@@ -23,7 +23,6 @@ import javafx.scene.layout.VBox;
 
 public class RegisterViewModel {
 
-    // FXML Injected Registration Components
     @FXML
     private TextField fullNameField;
 
@@ -57,7 +56,7 @@ public class RegisterViewModel {
     private Controller mainController;
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
-    private static final String API_BASE_URL = "http://localhost:8080/psp/api/user"; // Updated to match JSP API URL
+    private static final String API_BASE_URL = "http://localhost:8080/psp/api/user";
 
     public RegisterViewModel() {
         this.httpClient = HttpClient.newBuilder()
@@ -72,7 +71,6 @@ public class RegisterViewModel {
         registerErrorLabel.setVisible(false);
         registerProgress.setVisible(false);
 
-        // Add listeners for enter key on fields
         fullNameField.setOnAction(event -> emailField.requestFocus());
         emailField.setOnAction(event -> usernameField.requestFocus());
         usernameField.setOnAction(event -> passwordField.requestFocus());
@@ -84,7 +82,6 @@ public class RegisterViewModel {
         this.mainController = mainController;
     }
 
-    // Registration Handling Methods
     @FXML
     private void handleRegister() {
         String fullName = fullNameField.getText().trim();
@@ -118,10 +115,8 @@ public class RegisterViewModel {
             return;
         }
 
-        // Show progress indicator and disable form
         setRegisterInProgress(true);
 
-        // Create Task for background processing
         Task<Integer> registerTask = new Task<>() {
             @Override
             protected Integer call() throws Exception {
@@ -134,10 +129,8 @@ public class RegisterViewModel {
                     int statusCode = getValue();
                     if (statusCode == 200 || statusCode == 201) {
                         registerErrorLabel.setVisible(false);
-                        // Show success message or directly navigate to login
                         showRegistrationSuccess();
 
-                        // After 3 seconds, navigate to login (similar to JSP behavior)
                         new Thread(() -> {
                             try {
                                 Thread.sleep(3000);
@@ -168,49 +161,42 @@ public class RegisterViewModel {
             }
         };
 
-        // Start the background task
         new Thread(registerTask).start();
     }
 
     private int registerUser(String fullName, String email, String username, String password) {
         try {
-            // Create JSON request body matching JSP format
             ObjectNode requestBody = objectMapper.createObjectNode();
             requestBody.put("username", username);
             requestBody.put("email", email);
-            requestBody.put("name", username); // Using username as name like in JSP
+            requestBody.put("name", username);
             requestBody.put("password", password);
             requestBody.put("isActive", false);
 
             // Create HTTP request
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(API_BASE_URL + "/create")) // Updated endpoint to match JSP
+                    .uri(URI.create(API_BASE_URL + "/create"))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(requestBody.toString()))
                     .build();
 
-            // Send request and get response
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-            // Return status code for handling in the UI thread
             return response.statusCode();
 
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
-            return 500; // Internal error
+            return 500;
         }
     }
 
     private void showRegistrationSuccess() {
-        // Clear the form
         clearForm();
 
-        // Display success message
         registerErrorLabel.setText("Account created successfully! Redirecting to login...");
         registerErrorLabel.setTextFill(javafx.scene.paint.Color.GREEN);
         registerErrorLabel.setVisible(true);
 
-        // Disable progress indicator
         setRegisterInProgress(false);
     }
 

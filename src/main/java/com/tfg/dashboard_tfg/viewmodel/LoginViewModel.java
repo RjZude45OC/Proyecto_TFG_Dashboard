@@ -24,7 +24,7 @@ import javafx.stage.Stage;
 public class LoginViewModel {
 
     public Hyperlink registerLink;
-    // FXML Injected Login Components
+
     @FXML
     private TextField usernameField;
 
@@ -46,7 +46,7 @@ public class LoginViewModel {
     private Controller mainController;
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
-    public static final String API_BASE_URL = "http://localhost:8080/api/user"; // Adjust the URL to match your API
+    public static final String API_BASE_URL = "http://localhost:8080/api/user";
 
     public LoginViewModel() {
         this.httpClient = HttpClient.newBuilder()
@@ -54,7 +54,6 @@ public class LoginViewModel {
                 .connectTimeout(Duration.ofSeconds(10))
                 .build();
         this.objectMapper = new ObjectMapper();
-        // Enable Jackson to bypass module restrictions
         objectMapper.disable(MapperFeature.CAN_OVERRIDE_ACCESS_MODIFIERS);
         objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
     }
@@ -64,7 +63,6 @@ public class LoginViewModel {
         loginErrorLabel.setVisible(false);
         loginProgress.setVisible(false);
 
-        // Add listeners for enter key on fields
         usernameField.setOnAction(event -> passwordField.requestFocus());
         passwordField.setOnAction(event -> handleLogin());
     }
@@ -73,31 +71,26 @@ public class LoginViewModel {
         this.mainController = mainController;
     }
 
-    // Login Handling Methods
     @FXML
     private void handleLogin() {
         String username = usernameField.getText().trim();
         String password = passwordField.getText();
 
-        // Basic validation
         if (username.isEmpty() || password.isEmpty()) {
             loginErrorLabel.setText("Username and password cannot be empty");
             loginErrorLabel.setVisible(true);
             return;
         }
 
-        // Show progress indicator and disable form
         setLoginInProgress(true);
 
-        // Create Task for background processing
         Task<Boolean> loginTask = new Task<>() {
             @Override
             protected Boolean call() throws Exception {
-                // First authenticate the user
+
                 boolean isAuthenticated = authenticateUser(username, password);
 
                 if (isAuthenticated) {
-                    // Then create the session if authentication succeeded
                     return createUserSession(username, password);
                 }
 
@@ -109,12 +102,10 @@ public class LoginViewModel {
                 Platform.runLater(() -> {
                     boolean success = getValue();
                     if (success) {
-                        // Update login status in controller
                         mainController.setIsLoggedIn(true);
-                        mainController.setCurrentUsername(username); // Add this line
-                        mainController.updateLoginButtonText(); // Add this line
+                        mainController.setCurrentUsername(username);
+                        mainController.updateLoginButtonText();
 
-                        // Clear form and navigate to dashboard
                         loginErrorLabel.setVisible(false);
                         usernameField.clear();
                         passwordField.clear();
@@ -140,41 +131,33 @@ public class LoginViewModel {
             }
         };
 
-        // Start the background task
         new Thread(loginTask).start();
     }
 
     private boolean authenticateUser(String username, String password) {
         try {
-            // Create JSON request body
             ObjectNode requestBody = objectMapper.createObjectNode();
             requestBody.put("username", username);
             requestBody.put("password", password);
 
-            // Create HTTP request
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(API_BASE_URL + "/login"))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(requestBody.toString()))
                     .build();
 
-            // Send request and get response
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-            // Check response status
             int statusCode = response.statusCode();
 
-            // 200 OK means successful login
             if (statusCode == 200) {
                 System.out.println("Authentication successful (200 OK)");
                 return true;
             } else if (statusCode == 403) {
-                // Account not activated
                 System.out.println("Account not activated (403 Forbidden)");
                 Platform.runLater(() -> loginErrorLabel.setText("Account not activated. Please check your email."));
                 return false;
             } else {
-                // Other errors (401 for invalid credentials, etc.)
                 System.out.println("Authentication failed with status code: " + statusCode);
                 return false;
             }
@@ -197,13 +180,10 @@ public class LoginViewModel {
                     .POST(HttpRequest.BodyPublishers.ofString(sessionData.toString()))
                     .build();
 
-            // Use synchronous call for the task
             HttpResponse<String> response = httpClient.send(sessionRequest, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() == 200) {
                 System.out.println("Session created successfully (200 OK)");
-                // Here you could parse the session token if the server returns one
-                // and store it for future authenticated requests
                 return true;
             } else {
                 System.out.println("Session creation failed with status code: " + response.statusCode());
@@ -230,7 +210,7 @@ public class LoginViewModel {
         usernameField.clear();
         passwordField.clear();
         loginErrorLabel.setVisible(false);
-        mainController.showDashboardView(); // Return to dashboard
+        mainController.showDashboardView();
     }
     @FXML
     public void switchToRegisterView() {

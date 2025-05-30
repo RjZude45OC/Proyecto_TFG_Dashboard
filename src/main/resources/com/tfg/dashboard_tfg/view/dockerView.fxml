@@ -72,12 +72,12 @@
                             </columnConstraints>
 
                             <Label text="Host:" GridPane.columnIndex="0" GridPane.rowIndex="0"
-                                   styleClass="setting-label"/>
+                                   styleClass="filter-label"/>
                             <TextField fx:id="serverHostField" promptText="localhost or IP address"
                                        GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="setting-field"/>
 
                             <Label text="Port:" GridPane.columnIndex="0" GridPane.rowIndex="1"
-                                   styleClass="setting-label"/>
+                                   styleClass="filter-label"/>
                             <TextField fx:id="serverPortField" promptText="2375"
                                        GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="setting-field"/>
 

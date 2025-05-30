@@ -57,12 +57,12 @@
                             </columnConstraints>
 
                             <Label text="Server URL:" GridPane.columnIndex="0" GridPane.rowIndex="0"
-                                   styleClass="setting-label"/>
+                                   styleClass="filter-label"/>
                             <TextField fx:id="serverUrlField" promptText="http://localhost:8989"
                                        GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="setting-field"/>
 
                             <Label text="API Key:" GridPane.columnIndex="0" GridPane.rowIndex="1"
-                                   styleClass="setting-label"/>
+                                   styleClass="filter-label"/>
                             <PasswordField fx:id="apiKeyField" promptText="Enter API key"
                                            GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="setting-field"/>
 

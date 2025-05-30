@@ -369,10 +369,12 @@
 
 .light-theme .terminal-input {
     -fx-text-fill: -terminal-foreground;
-    -fx-border-color: transparent;
-    -fx-background-color: transparent;
+    -fx-border-color: -terminal-black;
+    -fx-background-color: white;
 }
-
+.setting-field{
+    -fx-text-fill: -terminal-foreground;
+}
 /* Button styling */
 .console-button {
     -fx-background-radius: 4px;

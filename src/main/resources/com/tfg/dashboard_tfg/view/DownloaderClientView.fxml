@@ -66,17 +66,17 @@
                                 </columnConstraints>
 
                                 <Label text="Host:" GridPane.columnIndex="0" GridPane.rowIndex="0"
-                                       styleClass="setting-label"/>
+                                       styleClass="filter-label"/>
                                 <TextField fx:id="hostField" promptText="http://192.168.1.72:8080"
                                            GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="setting-field"/>
 
                                 <Label text="Username:" GridPane.columnIndex="0" GridPane.rowIndex="1"
-                                       styleClass="setting-label"/>
+                                       styleClass="filter-label"/>
                                 <TextField fx:id="usernameField" promptText="Enter username"
                                            GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="setting-field"/>
 
                                 <Label text="Password:" GridPane.columnIndex="0" GridPane.rowIndex="2"
-                                       styleClass="setting-label"/>
+                                       styleClass="filter-label"/>
                                 <PasswordField fx:id="passwordField" promptText="Enter password"
                                                GridPane.columnIndex="1" GridPane.rowIndex="2"
                                                styleClass="setting-field"/>

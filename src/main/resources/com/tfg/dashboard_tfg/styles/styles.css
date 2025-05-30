@@ -103,13 +103,13 @@
     -fx-text-fill: -terminal-black;
     -fx-font-weight: bold;
     -fx-background-color: -terminal-blue;
-    -fx-padding: 2 6 2 6;      /* Reduced padding (top right bottom left) */
-    -fx-font-size: 10px;       /* Smaller font size */
-    -fx-min-height: 22px;      /* Explicitly set a smaller height */
-    -fx-max-height: 22px;      /* Keep consistent height */
-    -fx-min-width: 50px;       /* Minimum width to maintain readability */
-    -fx-background-radius: 2;  /* Slightly rounded corners */
-    -fx-border-radius: 2;      /* Matching border radius */
+    -fx-padding: 2 6 2 6;
+    -fx-font-size: 10px;
+    -fx-min-height: 22px;
+    -fx-max-height: 22px;
+    -fx-min-width: 50px;
+    -fx-background-radius: 2;
+    -fx-border-radius: 2;
     -fx-cursor: hand;
 }
 .dark-theme .command-prompt {
@@ -193,13 +193,13 @@
     -fx-text-fill: -terminal-background;
     -fx-font-weight: bold;
     -fx-background-color: -terminal-blue;
-    -fx-padding: 2 6 2 6;      /* Reduced padding (top right bottom left) */
-    -fx-font-size: 10px;       /* Smaller font size */
-    -fx-min-height: 22px;      /* Explicitly set a smaller height */
-    -fx-max-height: 22px;      /* Keep consistent height */
-    -fx-min-width: 50px;       /* Minimum width to maintain readability */
-    -fx-background-radius: 2;  /* Slightly rounded corners */
-    -fx-border-radius: 2;      /* Matching border radius */
+    -fx-padding: 2 6 2 6;
+    -fx-font-size: 10px;
+    -fx-min-height: 22px;
+    -fx-max-height: 22px;
+    -fx-min-width: 50px;
+    -fx-background-radius: 2;
+    -fx-border-radius: 2;
     -fx-cursor: hand;
 }
 .light-theme .command-prompt {
@@ -248,9 +248,7 @@
 .tile:hover {
     -fx-border-color: #61afef;
 }
-/* Modern Docker Terminal styles - to be added to your existing CSS */
 
-/* Global styles for the terminal pane */
 .docker-terminal-pane {
     -fx-background-radius: 8px;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0, 0, 2);
@@ -270,7 +268,7 @@
     -fx-border-radius: 8px;
 }
 
-/* Terminal container - better padding and layout */
+/* Terminal container */
 .terminal-container {
     -fx-padding: 15;
     -fx-spacing: 12;
@@ -356,21 +354,23 @@
     -fx-text-fill: -terminal-green;
 }
 
-/* Input field styling */
 .terminal-input {
-    -fx-background-color: transparent;
-    -fx-border-width: 0;
-    -fx-border-color: transparent;
+    -fx-border-width: 1;
     -fx-padding: 8 4;
+    -fx-border-radius: 4;
     -fx-font-family: "Monospace", "Consolas", "Monaco", monospace;
 }
 
 .dark-theme .terminal-input {
     -fx-text-fill: -terminal-foreground;
+    -fx-border-color: -terminal-black;
+    -fx-background-color: #252537;
 }
 
 .light-theme .terminal-input {
     -fx-text-fill: -terminal-foreground;
+    -fx-border-color: transparent;
+    -fx-background-color: transparent;
 }
 
 /* Button styling */
@@ -765,11 +765,11 @@
 
 /* Light theme tabs */
 .light-theme .tab-pane .tab {
-    -fx-background-color: #d0d2db; /* Slightly darker neutral */
+    -fx-background-color: #d0d2db;
 }
 
 .light-theme .tab-pane .tab:selected {
-    -fx-background-color: #96b946; /* Accent green for selected tab */
+    -fx-background-color: #96b946;
 }
 
 .light-theme .tab .tab-label {

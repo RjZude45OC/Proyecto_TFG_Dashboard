@@ -391,6 +391,9 @@ public class RssViewModel implements Initializable {
             {
                 box.setAlignment(Pos.CENTER);
 
+                editButton.getStyleClass().add("table-button");
+                deleteButton.getStyleClass().add("table-button");
+
                 editButton.setOnAction(event -> {
                     TagItem tag = getTableView().getItems().get(getIndex());
                     showEditTagDialog(tag);

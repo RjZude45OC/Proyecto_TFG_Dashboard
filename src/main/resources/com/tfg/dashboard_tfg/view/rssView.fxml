@@ -74,20 +74,21 @@
                 <VBox spacing="10.0" styleClass="terminal-container">
                     <HBox spacing="10.0" alignment="CENTER_LEFT" styleClass="monitoring-toolbar">
                         <Button text="Refresh Tags" onAction="#refreshTags"
-                                styleClass="console-button"/>
+                                styleClass="console-button" />
                         <Button text="Add Tag" onAction="#showAddTagDialog"
                                 styleClass="console-button"/>
                         <Region HBox.hgrow="ALWAYS"/>
+
                         <TextField fx:id="tagSearchField" promptText="Search tags..."
-                                   styleClass="terminal-input"/>
+                                   styleClass="search-field" VBox.vgrow="ALWAYS"/>
                     </HBox>
 
                     <TableView fx:id="tagsTableView" VBox.vgrow="ALWAYS"
                                styleClass="container-scroll">
                         <columns>
-                            <TableColumn fx:id="tagIdColumn" text="ID"/>
-                            <TableColumn fx:id="tagLabelColumn" text="Label"/>
-                            <TableColumn fx:id="tagActionColumn" text="Actions"/>
+                            <TableColumn fx:id="tagIdColumn" text="ID" prefWidth="60"/>
+                            <TableColumn fx:id="tagLabelColumn" text="Label" prefWidth="60"/>
+                            <TableColumn fx:id="tagActionColumn" text="Actions" minWidth="180" prefWidth="200"/>
                         </columns>
                     </TableView>
                 </VBox>
@@ -100,7 +101,7 @@
                                 styleClass="console-button"/>
                     </HBox>
 
-                    <TitledPane text="System Status" expanded="true">
+                    <TitledPane text="System Status">
                         <GridPane hgap="10" vgap="5" styleClass="filter-container">
                             <Label text="Prowlarr Version:" styleClass="filter-label"
                                    GridPane.columnIndex="0" GridPane.rowIndex="0"/>
@@ -134,7 +135,7 @@
 
             <Tab text="Settings" closable="false">
                 <VBox spacing="10.0" styleClass="terminal-container">
-                    <TitledPane text="General Settings" expanded="true">
+                    <TitledPane text="General Settings">
                         <GridPane hgap="10" vgap="5" styleClass="filter-container">
                             <Label text="Connection Timeout (sec):" styleClass="filter-label"
                                    GridPane.columnIndex="0" GridPane.rowIndex="0"/>

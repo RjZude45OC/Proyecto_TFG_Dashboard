@@ -173,10 +173,9 @@ public class Controller {
         isLoggedIn.set(value);
     }
 
-    private String currentUsername = "admin";
+    private String currentUsername = "";
 
     public void updateLoginButtonText() {
-        isLoggedIn.set(true);
         if (isLoggedIn.get() && !currentUsername.isEmpty()) {
             loginMenuBtn.setText(currentUsername);
         } else {

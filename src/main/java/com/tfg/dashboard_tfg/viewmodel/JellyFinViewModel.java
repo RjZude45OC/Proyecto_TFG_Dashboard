@@ -147,7 +147,11 @@ public class JellyFinViewModel implements Initializable {
                 serverUrl.set(appProperties.getProperty("jellyfin-apiUrl"));
             }
             if (appProperties.containsKey("monitoringApi")) {
-                serverMonitoringEndpoint.set(appProperties.getProperty("monitoringApi"));
+                if (!appProperties.getProperty("monitoringApi").startsWith("http://")) {
+                    serverMonitoringEndpoint.set("http://" + appProperties.getProperty("monitoringApi"));
+                } else {
+                    serverMonitoringEndpoint.set(appProperties.getProperty("monitoringApi"));
+                }
             }
             if (appProperties.containsKey("update-interval")) {
                 autoUpdateInterval.set(appProperties.getProperty("update-interval"));
@@ -454,8 +458,15 @@ public class JellyFinViewModel implements Initializable {
         return CompletableFuture.runAsync(() -> {
             try {
                 long requestSentTime = System.currentTimeMillis();
+                String url = "";
+                if (!serverMonitoringEndpoint.get().endsWith("/api/v1/system")) {
+                    url = serverMonitoringEndpoint.get() + "/api/v1/system" ;
+                }
+                else {
+                    url = serverMonitoringEndpoint.get();
+                }
                 HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create(serverMonitoringEndpoint.get()))
+                        .uri(URI.create(url))
                         .GET()
                         .build();
 

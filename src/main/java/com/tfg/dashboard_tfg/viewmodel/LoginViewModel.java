@@ -157,8 +157,6 @@ public class LoginViewModel {
             ObjectNode requestBody = objectMapper.createObjectNode();
             requestBody.put("username", username);
             requestBody.put("password", password);
-            System.out.println(username);
-            System.out.println(password);
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(API_BASE_URL + "/login"))
                     .header("Content-Type", "application/json")

@@ -137,6 +137,9 @@ public class DockerViewModel {
         }
 
         url = appProperties.getProperty("dockerApi");
+        if (!url.startsWith("http://")){
+            url = "http://" + url;
+        }
         connectToDockerAPI();
         commandHistoryList.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {

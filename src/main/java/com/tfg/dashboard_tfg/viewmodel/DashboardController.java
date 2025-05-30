@@ -540,6 +540,9 @@ public class DashboardController {
         if (!apiUrl.startsWith("http://") && !apiUrl.startsWith("https://")) {
             apiUrl = "http://" + apiUrl;
         }
+        if (!apiUrl.endsWith("/api/v1/system")){
+            apiUrl += "/api/v1/system";
+        }
         try {
             long initfetch = System.currentTimeMillis();
             URL url = new URL(apiUrl);

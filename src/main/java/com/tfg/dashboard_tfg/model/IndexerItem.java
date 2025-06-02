@@ -88,16 +88,4 @@ public class IndexerItem {
         return categories;
     }
 
-    // Setter methods for mutable properties (needed for edit functionality)
-    public void setName(String name) {
-        // Since fields are final, implement as needed or consider making them non-final
-    }
-
-    public void setEnabled(boolean enabled) {
-        // Since fields are final, implement as needed or consider making them non-final
-    }
-
-    public void setPriority(int priority) {
-        // Since fields are final, implement as needed or consider making them non-final
-    }
 }

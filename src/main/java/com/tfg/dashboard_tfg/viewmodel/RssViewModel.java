@@ -15,6 +15,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.*;
@@ -604,7 +605,7 @@ public class RssViewModel implements Initializable {
                 return null;
             }
         });
-        definitionComboBox.setPromptText("Select Indexer Type");
+        definitionComboBox.setPromptText("Select Indexer");
 
         TextField nameField = new TextField();
         nameField.setPromptText("Custom Name (optional)");
@@ -615,7 +616,7 @@ public class RssViewModel implements Initializable {
         TextField priorityField = new TextField("25");
         priorityField.setPromptText("Priority (1-50)");
 
-        grid.add(new Label("Indexer Type:"), 0, 0);
+        grid.add(new Label("Indexer:"), 0, 0);
         grid.add(definitionComboBox, 1, 0);
         grid.add(new Label("Name:"), 0, 1);
         grid.add(nameField, 1, 1);
@@ -651,32 +652,70 @@ public class RssViewModel implements Initializable {
                         return null;
                     }
 
-                    JSONObject indexerJson = new JSONObject(selectedDefinition.toString());
+                    String implementation = selectedDefinition.getString("implementation");
+                    JSONObject schemaResponse = makeApiGetRequest("/api/v1/indexer/schema/" + implementation);
+
+                    if (schemaResponse == null) {
+                        throw new Exception("Failed to get indexer schema");
+                    }
+
+                    JSONObject indexerJson = new JSONObject();
                     indexerJson.put("name", name);
                     indexerJson.put("enable", enabled);
                     indexerJson.put("priority", priority);
+                    indexerJson.put("implementation", implementation);
+                    indexerJson.put("implementationName", selectedDefinition.getString("implementationName"));
+                    indexerJson.put("configContract", selectedDefinition.getString("configContract"));
                     indexerJson.put("tags", new JSONArray());
+
+                    if (selectedDefinition.has("fields")) {
+                        JSONArray fields = selectedDefinition.getJSONArray("fields");
+                        for (int i = 0; i < fields.length(); i++) {
+                            JSONObject field = fields.getJSONObject(i);
+                            String fieldName = field.getString("name");
+                            if (field.has("value")) {
+                                indexerJson.put(fieldName, field.get("value"));
+                            }
+                        }
+                    }
+                    System.out.println("Adding indexer with configuration:");
+                    System.out.println(indexerJson.toString(2));
 
                     JSONObject response = makeApiPostRequest(INDEXERS_ENDPOINT, indexerJson);
 
-                    if (response != null && response.has("id")) {
-                        int id = response.getInt("id");
-                        statusLabel.setText("Indexer added successfully");
-                        statusLabel.setStyle("-fx-text-fill: green;");
+                    if (response != null) {
+                        System.out.println("Received response:");
+                        System.out.println(response.toString(2));
 
-                        return new IndexerItem(
-                                id,
-                                name,
-                                getIndexerTypeDisplayName(selectedDefinition.getString("protocol")),
-                                enabled,
-                                priority,
-                                new ArrayList<>(),
-                                "{}"
-                        );
+                        if (response.has("id")) {
+                            int id = response.getInt("id");
+                            statusLabel.setText("Indexer added successfully");
+                            statusLabel.setStyle("-fx-text-fill: green;");
+
+                            return new IndexerItem(
+                                    id,
+                                    name,
+                                    selectedDefinition.getString("implementationName"),
+                                    enabled,
+                                    priority,
+                                    new ArrayList<>(),
+                                    indexerJson.toString()
+                            );
+                        } else if (response.has("errors")) {
+                            JSONArray errors = response.getJSONArray("errors");
+                            StringBuilder errorMsg = new StringBuilder();
+                            for (int i = 0; i < errors.length(); i++) {
+                                errorMsg.append(errors.getString(i));
+                                if (i < errors.length() - 1) {
+                                    errorMsg.append(", ");
+                                }
+                            }
+                            throw new Exception(errorMsg.toString());
+                        } else {
+                            throw new Exception("Invalid response from server");
+                        }
                     } else {
-                        statusLabel.setText("Failed to add indexer");
-                        statusLabel.setStyle("-fx-text-fill: red;");
-                        return null;
+                        throw new Exception("No response received from server");
                     }
 
                 } catch (NumberFormatException e) {
@@ -684,8 +723,12 @@ public class RssViewModel implements Initializable {
                     statusLabel.setStyle("-fx-text-fill: red;");
                     return null;
                 } catch (Exception e) {
-                    statusLabel.setText("Failed to add indexer: " + e.getMessage());
+                    String errorMessage = e.getMessage();
+                    statusLabel.setText("Failed to add indexer: " +
+                            (errorMessage != null ? errorMessage : "Unknown error"));
                     statusLabel.setStyle("-fx-text-fill: red;");
+                    System.out.println("Error adding indexer:");
+                    e.printStackTrace();
                     return null;
                 }
             }
@@ -799,15 +842,21 @@ public class RssViewModel implements Initializable {
 
         CompletableFuture.runAsync(() -> {
             try {
-                JSONObject testResponse = makeApiPostRequest("/api/v1/indexer/" + indexerId + "/test", new JSONObject());
+                JSONObject indexerConfig = makeApiGetRequest("/api/v1/indexer/" + indexerId);
 
+                JSONObject testResponse = makeApiPostRequest("/api/v1/indexer/test", indexerConfig);
                 Platform.runLater(() -> {
-                    if (testResponse != null && testResponse.optBoolean("isValid", false)) {
-                        statusLabel.setText("Indexer test successful");
-                        statusLabel.setStyle("-fx-text-fill: green;");
+                    if (testResponse != null) {
+                        if (testResponse.has("success") && testResponse.getBoolean("success")) {
+                            statusLabel.setText("Indexer test successful");
+                            statusLabel.setStyle("-fx-text-fill: green;");
+                        } else {
+                            String error = testResponse.optString("errors", "Unknown error");
+                            statusLabel.setText("Indexer test failed: " + error);
+                            statusLabel.setStyle("-fx-text-fill: red;");
+                        }
                     } else {
-                        String error = testResponse != null ? testResponse.optString("errors", "Unknown error") : "Test failed";
-                        statusLabel.setText("Indexer test failed: " + error);
+                        statusLabel.setText("Test failed: No response received");
                         statusLabel.setStyle("-fx-text-fill: red;");
                     }
                 });
@@ -1204,24 +1253,31 @@ public class RssViewModel implements Initializable {
         URL url = new URL(urlString);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
-        conn.setRequestMethod(method);
-        conn.setRequestProperty("X-Api-Key", apiKey.get());
-        conn.setRequestProperty("Content-Type", "application/json");
-        conn.setConnectTimeout(CONNECTION_TIMEOUT);
-        conn.setReadTimeout(CONNECTION_TIMEOUT);
+        try {
+            conn.setRequestMethod(method);
+            conn.setRequestProperty("X-Api-Key", apiKey.get());
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("Accept", "application/json");
+            conn.setConnectTimeout(CONNECTION_TIMEOUT);
+            conn.setReadTimeout(CONNECTION_TIMEOUT);
 
-        if (data != null && ("POST".equals(method) || "PUT".equals(method))) {
-            conn.setDoOutput(true);
-            try (OutputStream os = conn.getOutputStream()) {
-                byte[] input = data.toString().getBytes(StandardCharsets.UTF_8);
-                os.write(input, 0, input.length);
+            if (data != null && ("POST".equals(method) || "PUT".equals(method))) {
+                conn.setDoOutput(true);
+                try (OutputStream os = conn.getOutputStream()) {
+                    byte[] input = data.toString().getBytes(StandardCharsets.UTF_8);
+                    os.write(input, 0, input.length);
+                }
             }
-        }
 
-        int responseCode = conn.getResponseCode();
+            int responseCode = conn.getResponseCode();
 
-        if (responseCode >= 200 && responseCode < 300) {
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
+            try (BufferedReader br = new BufferedReader(
+                    new InputStreamReader(
+                            responseCode >= 200 && responseCode < 300
+                                    ? conn.getInputStream()
+                                    : conn.getErrorStream(),
+                            StandardCharsets.UTF_8))) {
+
                 StringBuilder response = new StringBuilder();
                 String responseLine;
                 while ((responseLine = br.readLine()) != null) {
@@ -1229,16 +1285,38 @@ public class RssViewModel implements Initializable {
                 }
 
                 String responseStr = response.toString();
-                if (responseStr.isEmpty()) {
-                    return new JSONObject();
-                }
 
-                return responseStr.startsWith("[") ?
-                        new JSONObject().put("records", new JSONArray(responseStr)) :
-                        new JSONObject(responseStr);
+//                System.out.println("Request URL: " + urlString);
+//                System.out.println("Request Method: " + method);
+//                System.out.println("Request Data: " + (data != null ? data.toString() : "null"));
+//                System.out.println("Response Code: " + responseCode);
+//                System.out.println("Response Body: " + responseStr);
+
+                if (responseCode >= 200 && responseCode < 300) {
+                    if (responseStr.isEmpty()) {
+                        return new JSONObject().put("success", true);
+                    }
+
+                    try {
+                        if (responseStr.startsWith("[")) {
+                            return new JSONObject().put("records", new JSONArray(responseStr));
+                        } else {
+                            return new JSONObject(responseStr);
+                        }
+                    } catch (JSONException e) {
+                        return new JSONObject()
+                                .put("rawResponse", responseStr)
+                                .put("success", true);
+                    }
+                } else {
+                    throw new Exception(String.format("HTTP %d: %s\nResponse: %s",
+                            responseCode,
+                            conn.getResponseMessage(),
+                            responseStr));
+                }
             }
-        } else {
-            throw new Exception("HTTP " + responseCode + ": " + conn.getResponseMessage());
+        } finally {
+            conn.disconnect();
         }
     }
 

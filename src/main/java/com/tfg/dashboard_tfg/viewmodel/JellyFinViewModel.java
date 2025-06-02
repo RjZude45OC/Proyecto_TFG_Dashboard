@@ -11,6 +11,7 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
@@ -231,10 +232,11 @@ public class JellyFinViewModel implements Initializable {
                         .then("-fx-text-fill: green;")
                         .otherwise("-fx-text-fill: red;")
         );
-
+        serverUrlField.setText(appProperties.getProperty("jellyfin-apiUrl"));
+        apiKeyField.setText(appProperties.getProperty("jellyfin-apiKey"));
+        usernameField.setText(appProperties.getProperty("username"));
+        passwordField.setText(appProperties.getProperty("password"));
         setupLogTable();
-        connectButton.setOnAction(event -> connectToServer());
-        setupTextFieldBindings();
 
         logLevelFilter.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             filterLogs();
@@ -247,41 +249,41 @@ public class JellyFinViewModel implements Initializable {
         addLogEntry("Info", "System", "Startup complete");
     }
 
-    private void setupTextFieldBindings() {
-        serverUrlField.textProperty().bindBidirectional(serverUrl);
-        apiKeyField.textProperty().bindBidirectional(apiKey);
-        usernameField.textProperty().bindBidirectional(username);
-        passwordField.textProperty().bindBidirectional(password);
-
-        serverUrlField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
-            if (wasFocused && !isNowFocused) {
-                String url = serverUrl.get().trim();
-                if (!url.isEmpty() && !url.toLowerCase().startsWith("http://") && !url.toLowerCase().startsWith("https://")) {
-                    url = "http://" + url;
-                    serverUrl.set(url);
-                }
-                updateProperty("jellyfin-apiUrl", serverUrl.get());
-            }
-        });
-
-        apiKeyField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
-            if (wasFocused && !isNowFocused) {
-                updateProperty("jellyfin-apiKey", apiKey.get());
-            }
-        });
-
-        usernameField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
-            if (wasFocused && !isNowFocused) {
-                updateProperty("username", username.get());
-            }
-        });
-
-        passwordField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
-            if (wasFocused && !isNowFocused) {
-                updateProperty("password", password.get());
-            }
-        });
-    }
+//    private void setupTextFieldBindings() {
+//        serverUrlField.textProperty().bindBidirectional(serverUrl);
+//        apiKeyField.textProperty().bindBidirectional(apiKey);
+//        usernameField.textProperty().bindBidirectional(username);
+//        passwordField.textProperty().bindBidirectional(password);
+//
+//        serverUrlField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+//            if (wasFocused && !isNowFocused) {
+//                String url = serverUrl.get().trim();
+//                if (!url.isEmpty() && !url.toLowerCase().startsWith("http://") && !url.toLowerCase().startsWith("https://")) {
+//                    url = "http://" + url;
+//                    serverUrl.set(url);
+//                }
+//                updateProperty("jellyfin-apiUrl", serverUrl.get());
+//            }
+//        });
+//
+//        apiKeyField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+//            if (wasFocused && !isNowFocused) {
+//                updateProperty("jellyfin-apiKey", apiKey.get());
+//            }
+//        });
+//
+//        usernameField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+//            if (wasFocused && !isNowFocused) {
+//                updateProperty("username", username.get());
+//            }
+//        });
+//
+//        passwordField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+//            if (wasFocused && !isNowFocused) {
+//                updateProperty("password", password.get());
+//            }
+//        });
+//    }
 
     private void setupLogTable() {
         timeColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getTime()));
@@ -1329,5 +1331,23 @@ public class JellyFinViewModel implements Initializable {
             uploadText = String.format("%.2f MB/s", uploadKBps / 1024.0);
         }
         return String.format("Down: %s / Up: %s", downloadText, uploadText);
+    }
+    @FXML
+    public void onConnectBtnClicked() {
+        String url = serverUrlField.getText() != null ? serverUrlField.getText().trim() : "";
+        String apiKey = apiKeyField.getText() != null ? apiKeyField.getText().trim() : "";
+        String usernameVal = usernameField.getText() != null ? usernameField.getText().trim() : "";
+        String passwordVal = passwordField.getText() != null ? passwordField.getText().trim() : "";
+
+        if (!url.isEmpty() && !url.toLowerCase().startsWith("http://") && !url.toLowerCase().startsWith("https://")) {
+            url = "http://" + url;
+        }
+
+        updateProperty("jellyfin-apiUrl", url);
+        updateProperty("jellyfin-apiKey", apiKey);
+        updateProperty("username", usernameVal);
+        updateProperty("password", passwordVal);
+        serverUrlField.setText(url);
+        connectToServer();
     }
 }

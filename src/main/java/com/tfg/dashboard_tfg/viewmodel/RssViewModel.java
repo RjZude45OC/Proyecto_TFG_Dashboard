@@ -422,7 +422,8 @@ public class RssViewModel implements Initializable {
 
     @FXML
     private void connectToProwlarr() {
-        if (apiUrlField.getText().isEmpty() || apiKeyField.getText().isEmpty()) {
+        if ((apiUrlField.getText() == null || apiUrlField.getText().isEmpty()) ||
+                (apiKeyField.getText() == null || apiKeyField.getText().isEmpty())) {
             statusLabel.setText("Please provide both API URL and API Key");
             statusLabel.setStyle("-fx-text-fill: red;");
             return;

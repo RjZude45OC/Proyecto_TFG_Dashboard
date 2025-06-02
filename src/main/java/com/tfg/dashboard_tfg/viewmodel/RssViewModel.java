@@ -582,7 +582,7 @@ public class RssViewModel implements Initializable {
     private void createAddIndexerDialog(List<JSONObject> availableDefinitions) {
         Dialog<IndexerItem> dialog = new Dialog<>();
         dialog.setTitle("Add Indexer");
-        dialog.setHeaderText("Select an indexer to add");
+        dialog.setHeaderText("Add a new indexer");
 
         ButtonType addButtonType = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
@@ -592,143 +592,104 @@ public class RssViewModel implements Initializable {
         grid.setVgap(10);
         grid.setPadding(new Insets(20, 150, 10, 10));
 
-        ComboBox<JSONObject> definitionComboBox = new ComboBox<>();
-        definitionComboBox.getItems().addAll(availableDefinitions);
-        definitionComboBox.setConverter(new javafx.util.StringConverter<JSONObject>() {
+        ComboBox<JSONObject> indexerComboBox = new ComboBox<>();
+        indexerComboBox.getItems().addAll(availableDefinitions);
+        indexerComboBox.setConverter(new javafx.util.StringConverter<JSONObject>() {
             @Override
             public String toString(JSONObject object) {
-                if (object == null) return null;
-                return object.optString("name", "Unknown");
+                return object == null ? null : object.optString("name", "Unknown");
             }
-
             @Override
-            public JSONObject fromString(String string) {
-                return null;
-            }
+            public JSONObject fromString(String string) { return null; }
         });
-        definitionComboBox.setPromptText("Select Indexer");
+        indexerComboBox.setPromptText("Select Indexer Type");
 
         TextField nameField = new TextField();
-        nameField.setPromptText("Custom Name (optional)");
+        nameField.setPromptText("Enter indexer name (Optional)");
 
-        CheckBox enabledCheckBox = new CheckBox("Enabled");
+        CheckBox enabledCheckBox = new CheckBox("Enable this indexer");
         enabledCheckBox.setSelected(true);
 
-        TextField priorityField = new TextField("25");
-        priorityField.setPromptText("Priority (1-50)");
-
         grid.add(new Label("Indexer:"), 0, 0);
-        grid.add(definitionComboBox, 1, 0);
+        grid.add(indexerComboBox, 1, 0);
         grid.add(new Label("Name:"), 0, 1);
         grid.add(nameField, 1, 1);
-        grid.add(new Label("Priority:"), 0, 2);
-        grid.add(priorityField, 1, 2);
-        grid.add(enabledCheckBox, 1, 3);
+        grid.add(enabledCheckBox, 1, 2);
 
         dialog.getDialogPane().setContent(grid);
-
-        Platform.runLater(definitionComboBox::requestFocus);
+        Platform.runLater(indexerComboBox::requestFocus);
 
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == addButtonType) {
                 try {
-                    JSONObject selectedDefinition = definitionComboBox.getValue();
-                    if (selectedDefinition == null) {
-                        statusLabel.setText("Please select an indexer type");
-                        statusLabel.setStyle("-fx-text-fill: red;");
+                    JSONObject selectedIndexer = indexerComboBox.getValue();
+                    if (selectedIndexer == null) {
+                        showError("Please select an indexer type");
                         return null;
                     }
-
                     String name = nameField.getText().trim();
                     if (name.isEmpty()) {
-                        name = selectedDefinition.getString("name");
+                        name = selectedIndexer.optString("name", "Unnamed Indexer");
                     }
-
-                    int priority = Integer.parseInt(priorityField.getText().trim());
                     boolean enabled = enabledCheckBox.isSelected();
+                    JSONObject indexerConfig = new JSONObject(selectedIndexer.toString());
 
-                    if (priority < 1 || priority > 50) {
-                        statusLabel.setText("Priority must be between 1 and 50");
-                        statusLabel.setStyle("-fx-text-fill: red;");
+                    indexerConfig.put("name", name);
+                    indexerConfig.put("enable", enabled);
+                    indexerConfig.put("priority", 25);
+
+                    if (!indexerConfig.has("implementation")) {
+                        indexerConfig.put("implementation", selectedIndexer.optString("implementation", ""));
+                    }
+                    if (!indexerConfig.has("configContract")) {
+                        indexerConfig.put("configContract", selectedIndexer.optString("configContract", ""));
+                    }
+                    if (!indexerConfig.has("fields")) {
+                        JSONArray fields = selectedIndexer.optJSONArray("fields");
+                        if (fields != null) {
+                            JSONArray configFields = new JSONArray();
+                            for (int i = 0; i < fields.length(); i++) {
+                                JSONObject field = fields.getJSONObject(i);
+                                JSONObject configField = new JSONObject();
+                                configField.put("name", field.getString("name"));
+                                configField.put("value", field.optString("value", ""));
+                                configFields.put(configField);
+                            }
+                            indexerConfig.put("fields", configFields);
+                        } else {
+                            indexerConfig.put("fields", new JSONArray());
+                        }
+                    }
+                    JSONArray profiles = makeApiGetRequest("/api/v1/appProfile").getJSONArray("records");
+                    int defaultProfileId = profiles.length() > 0 ? profiles.getJSONObject(0).getInt("id") : 1;
+                    indexerConfig.put("appProfileId", defaultProfileId);
+
+                    indexerConfig.remove("id");
+
+                    JSONObject response = makeApiPostRequest("/api/v1/indexer", indexerConfig);
+
+                    if (response != null && response.has("id")) {
+                        showSuccess("Indexer added successfully");
+
+                        return new IndexerItem(
+                                response.getInt("id"),
+                                name,
+                                selectedIndexer.optString("implementationName", ""),
+                                enabled,
+                                25,
+                                new ArrayList<>(),
+                                indexerConfig.toString()
+                        );
+                    } else {
+                        String errorMsg = response != null && response.has("errors")
+                                ? response.getJSONArray("errors").join(", ")
+                                : "Failed to add indexer";
+                        showError(errorMsg);
                         return null;
                     }
 
-                    String implementation = selectedDefinition.getString("implementation");
-                    JSONObject schemaResponse = makeApiGetRequest("/api/v1/indexer/schema/" + implementation);
-
-                    if (schemaResponse == null) {
-                        throw new Exception("Failed to get indexer schema");
-                    }
-
-                    JSONObject indexerJson = new JSONObject();
-                    indexerJson.put("name", name);
-                    indexerJson.put("enable", enabled);
-                    indexerJson.put("priority", priority);
-                    indexerJson.put("implementation", implementation);
-                    indexerJson.put("implementationName", selectedDefinition.getString("implementationName"));
-                    indexerJson.put("configContract", selectedDefinition.getString("configContract"));
-                    indexerJson.put("tags", new JSONArray());
-
-                    if (selectedDefinition.has("fields")) {
-                        JSONArray fields = selectedDefinition.getJSONArray("fields");
-                        for (int i = 0; i < fields.length(); i++) {
-                            JSONObject field = fields.getJSONObject(i);
-                            String fieldName = field.getString("name");
-                            if (field.has("value")) {
-                                indexerJson.put(fieldName, field.get("value"));
-                            }
-                        }
-                    }
-                    System.out.println("Adding indexer with configuration:");
-                    System.out.println(indexerJson.toString(2));
-
-                    JSONObject response = makeApiPostRequest(INDEXERS_ENDPOINT, indexerJson);
-
-                    if (response != null) {
-                        System.out.println("Received response:");
-                        System.out.println(response.toString(2));
-
-                        if (response.has("id")) {
-                            int id = response.getInt("id");
-                            statusLabel.setText("Indexer added successfully");
-                            statusLabel.setStyle("-fx-text-fill: green;");
-
-                            return new IndexerItem(
-                                    id,
-                                    name,
-                                    selectedDefinition.getString("implementationName"),
-                                    enabled,
-                                    priority,
-                                    new ArrayList<>(),
-                                    indexerJson.toString()
-                            );
-                        } else if (response.has("errors")) {
-                            JSONArray errors = response.getJSONArray("errors");
-                            StringBuilder errorMsg = new StringBuilder();
-                            for (int i = 0; i < errors.length(); i++) {
-                                errorMsg.append(errors.getString(i));
-                                if (i < errors.length() - 1) {
-                                    errorMsg.append(", ");
-                                }
-                            }
-                            throw new Exception(errorMsg.toString());
-                        } else {
-                            throw new Exception("Invalid response from server");
-                        }
-                    } else {
-                        throw new Exception("No response received from server");
-                    }
-
-                } catch (NumberFormatException e) {
-                    statusLabel.setText("Priority must be a number");
-                    statusLabel.setStyle("-fx-text-fill: red;");
-                    return null;
                 } catch (Exception e) {
-                    String errorMessage = e.getMessage();
-                    statusLabel.setText("Failed to add indexer: " +
-                            (errorMessage != null ? errorMessage : "Unknown error"));
-                    statusLabel.setStyle("-fx-text-fill: red;");
-                    System.out.println("Error adding indexer:");
+                    showError("Failed to add indexer: " + e.getMessage());
                     e.printStackTrace();
                     return null;
                 }
@@ -737,13 +698,21 @@ public class RssViewModel implements Initializable {
         });
 
         Optional<IndexerItem> result = dialog.showAndWait();
+        result.ifPresent(indexersList::add);
+    }
 
-        result.ifPresent(indexer -> {
-            indexersList.add(indexer);
-            indexersCountLabel.setText(String.valueOf(indexersList.size()));
-            enabledIndexersLabel.setText(String.valueOf(
-                    indexersList.stream().filter(IndexerItem::isEnabled).count()));
-        });
+    private void showError(String message) {
+        if (statusLabel != null) {
+            statusLabel.setText(message);
+            statusLabel.setStyle("-fx-text-fill: red;");
+        }
+    }
+
+    private void showSuccess(String message) {
+        if (statusLabel != null) {
+            statusLabel.setText(message);
+            statusLabel.setStyle("-fx-text-fill: green;");
+        }
     }
 
     private void showEditIndexerDialog(IndexerItem indexer) {
@@ -885,24 +854,48 @@ public class RssViewModel implements Initializable {
         CompletableFuture.runAsync(() -> {
             int successCount = 0;
             int totalCount = indexersList.size();
+            List<String> failures = new ArrayList<>();
 
             for (IndexerItem indexer : indexersList) {
                 if (indexer.isEnabled()) {
                     try {
-                        JSONObject testResponse = makeApiPostRequest("/api/v1/indexer/" + indexer.getId() + "/test", new JSONObject());
-                        if (testResponse != null && testResponse.optBoolean("isValid", false)) {
-                            successCount++;
+                        JSONObject indexerConfig = makeApiGetRequest("/api/v1/indexer/" + indexer.getId());
+                        JSONObject testResponse = makeApiPostRequest("/api/v1/indexer/test", indexerConfig);
+
+                        if (testResponse != null) {
+                            if (testResponse.has("success") && testResponse.getBoolean("success")) {
+                                successCount++;
+                            } else {
+                                String error = testResponse.optString("errors", "Unknown error");
+                                failures.add(indexer.getName() + ": " + error);
+                            }
+                        } else {
+                            failures.add(indexer.getName() + ": No response received");
                         }
+
+                        // Add a small delay between tests
                         Thread.sleep(1000);
                     } catch (Exception e) {
-
+                        failures.add(indexer.getName() + ": " + e.getMessage());
                     }
                 }
             }
 
             final int finalSuccessCount = successCount;
+            final List<String> finalFailures = failures;
+
             Platform.runLater(() -> {
-                statusLabel.setText(String.format("Test completed: %d/%d indexers passed", finalSuccessCount, totalCount));
+                StringBuilder statusMessage = new StringBuilder();
+                statusMessage.append(String.format("Test completed: %d/%d indexers passed", finalSuccessCount, totalCount));
+
+                if (!finalFailures.isEmpty()) {
+                    statusMessage.append("\nFailures:");
+                    for (String failure : finalFailures) {
+                        statusMessage.append("\n- ").append(failure);
+                    }
+                }
+
+                statusLabel.setText(statusMessage.toString());
                 statusLabel.setStyle(finalSuccessCount == totalCount ? "-fx-text-fill: green;" : "-fx-text-fill: orange;");
             });
         });

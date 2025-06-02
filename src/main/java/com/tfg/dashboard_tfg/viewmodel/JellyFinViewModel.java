@@ -124,14 +124,10 @@ public class JellyFinViewModel implements Initializable {
     private final DateTimeFormatter logTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final String PROPERTIES_FILE = "src/main/resources/com/tfg/dashboard_tfg/connection.properties";
     private final Properties appProperties = new Properties();
-    private boolean propertiesLoaded = false;
     private JSONObject systeminfo;
     private long latency;
 
     private void loadProperties() {
-        if (propertiesLoaded) {
-            return;
-        }
         File propertiesFile = new File(PROPERTIES_FILE);
 
         try {
@@ -172,13 +168,13 @@ public class JellyFinViewModel implements Initializable {
             if (appProperties.containsKey("password")) {
                 password.set(appProperties.getProperty("password"));
             }
-            propertiesLoaded = true;
         } catch (IOException e) {
             addLogEntry("Error", "Properties", "Failed to load properties: " + e.getMessage());
         }
     }
 
     private void saveConnectionProperties() {
+        loadProperties();
         appProperties.setProperty("jellyfin-apiUrl", serverUrl.get() != null ? serverUrl.get() : "");
         appProperties.setProperty("jellyfin-apiKey", apiKey.get() != null ? apiKey.get() : "");
 

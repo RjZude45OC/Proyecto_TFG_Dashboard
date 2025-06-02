@@ -106,7 +106,8 @@ public class RssViewModel implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         loadProperties();
-
+        apiUrlField.setText(appProperties.getProperty("prowlarr-apiUrl"));
+        apiKeyField.setText(appProperties.getProperty("prowlarr-apiKey"));
         filteredIndexers = new FilteredList<>(indexersList);
         filteredTags = new FilteredList<>(tagsList);
 
@@ -1245,16 +1246,13 @@ public class RssViewModel implements Initializable {
         File propertiesFile = new File(PROPERTIES_FILE);
         try (FileInputStream in = new FileInputStream(propertiesFile)) {
             appProperties.load(in);
-            apiUrlField.setText(appProperties.getProperty("prowlarr-apiUrl", "http://localhost:9696"));
-            apiKeyField.setText(appProperties.getProperty("prowlarr-apiKey", ""));
-            timeoutField.setText(appProperties.getProperty("timeout", "30"));
-            cacheDurationField.setText(appProperties.getProperty("cacheDuration", "10"));
         } catch (Exception e) {
-            apiUrlField.setText("http://localhost:9696");
+            System.out.println("Error loading property: " + e.getMessage());
         }
     }
 
     private void updateProperty() {
+        loadProperties();
         try (FileOutputStream out = new FileOutputStream(PROPERTIES_FILE)) {
             appProperties.setProperty("prowlarr-apiUrl", apiUrlField.getText());
             appProperties.setProperty("prowlarr-apiKey", apiKeyField.getText());

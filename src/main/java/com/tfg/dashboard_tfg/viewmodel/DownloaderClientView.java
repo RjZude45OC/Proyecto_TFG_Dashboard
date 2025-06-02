@@ -199,6 +199,7 @@ public class DownloaderClientView implements Initializable {
     }
 
     private void updateProperty() {
+        loadProperties();
         try (FileOutputStream out = new FileOutputStream(PROPERTIES_FILE)) {
             appProperties.setProperty("qbittorrent-url", hostField.getText());
             appProperties.setProperty("qbittorrent-Username", usernameField.getText());

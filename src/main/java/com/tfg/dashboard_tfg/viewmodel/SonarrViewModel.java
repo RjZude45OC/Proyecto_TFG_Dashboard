@@ -150,7 +150,6 @@ public class SonarrViewModel implements Initializable {
     private final StringProperty password = new SimpleStringProperty("");
     private static final String PROPERTIES_FILE = "src/main/resources/com/tfg/dashboard_tfg/connection.properties";
     private final Properties appProperties = new Properties();
-    private boolean propertiesLoaded = false;
     private HttpClient httpClient;
     private ExecutorService executorService;
     private Timeline autoRefreshTimeline;
@@ -164,9 +163,6 @@ public class SonarrViewModel implements Initializable {
 
 
     private void loadPropertiesIfNeeded() {
-        if (propertiesLoaded) {
-            return;
-        }
         File propertiesFile = new File(PROPERTIES_FILE);
 
         try {
@@ -207,7 +203,6 @@ public class SonarrViewModel implements Initializable {
             if (appProperties.containsKey("password")) {
                 password.set(appProperties.getProperty("password"));
             }
-            propertiesLoaded = true;
         } catch (IOException e) {
             addLogEntry("Error", "Properties", "Failed to load properties: " + e.getMessage());
         }
@@ -1337,6 +1332,7 @@ public class SonarrViewModel implements Initializable {
     }
 
     public void applySettings(String newApiUrl, String apikey) {
+        loadPropertiesIfNeeded();
         if (!newApiUrl.startsWith("http://") && !newApiUrl.startsWith("https://")) {
             newApiUrl = "http://" + newApiUrl;
         }

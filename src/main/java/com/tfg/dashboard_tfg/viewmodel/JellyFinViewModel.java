@@ -122,7 +122,7 @@ public class JellyFinViewModel implements Initializable {
     private Timeline autoRefreshTimeline;
     private final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
     private final DateTimeFormatter logTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    private static final String PROPERTIES_FILE = "connection.properties";
+    private static final String PROPERTIES_FILE = "src/main/resources/com/tfg/dashboard_tfg/connection.properties";
     private final Properties appProperties = new Properties();
     private boolean propertiesLoaded = false;
     private JSONObject systeminfo;

@@ -83,7 +83,8 @@
 
                             <Button fx:id="connectButton" text="Connect"
                                     GridPane.columnIndex="1" GridPane.rowIndex="5"
-                                    styleClass="console-button"/>
+                                    styleClass="console-button"
+                                    onAction="#onConnectClick"/>
                         </GridPane>
                     </VBox>
                 </TitledPane>

@@ -494,12 +494,17 @@ public class Controller {
         String path = "";
         System.out.println("check null");
 
-        path = "/com/tfg/dashboard_tfg/MainView.fxml";
-        System.out.println(path);
-        if (getClass().getResource(path) != null) {
-            System.out.println("exist");
-        } else {
-            System.out.println("no");
+        path = "src/main/resources/com/tfg/dashboard_tfg/connection.properties";
+        File file = new File(path);
+        if (!file.exists()) {
+            file.getParentFile().mkdirs();
+            try {
+                if (file.createNewFile()) {
+                    System.out.println("Property File created at: " + file.getAbsolutePath());
+                }
+            } catch (IOException e) {
+                System.out.println("Error creating file: " + e.getMessage());
+            }
         }
 
         //load dashboard view

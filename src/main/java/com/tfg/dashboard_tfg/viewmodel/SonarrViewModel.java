@@ -148,7 +148,7 @@ public class SonarrViewModel implements Initializable {
     private Map<String, Long> previousBytesSent = new HashMap<>();
     private final StringProperty username = new SimpleStringProperty("");
     private final StringProperty password = new SimpleStringProperty("");
-    private static final String PROPERTIES_FILE = "connection.properties";
+    private static final String PROPERTIES_FILE = "src/main/resources/com/tfg/dashboard_tfg/connection.properties";
     private final Properties appProperties = new Properties();
     private boolean propertiesLoaded = false;
     private HttpClient httpClient;

@@ -8,6 +8,7 @@ import javafx.application.Platform;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
@@ -39,7 +40,6 @@ public class DockerViewModel {
     private Label statusLabel;
     @FXML
     public GridPane connectionPane;
-
     @FXML
     private FlowPane containerTilesPane;
     @FXML
@@ -65,7 +65,7 @@ public class DockerViewModel {
     private final Properties appProperties = new Properties();
     private String url;
     private List<String> commandList = new ArrayList<>();
-    private static final String PROPERTIES_FILE = "connection.properties";
+    private static final String PROPERTIES_FILE = "src/main/resources/com/tfg/dashboard_tfg/connection.properties";
     private final StringProperty serverUrl = new SimpleStringProperty("");
     private final StringProperty serverPort = new SimpleStringProperty("");
     private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
@@ -89,6 +89,23 @@ public class DockerViewModel {
     @FXML
     public void clearTerminal() {
         cliOutput.clear();
+    }
+
+    @FXML
+    public void onConnectClick() {
+        String url = serverUrl.get().trim();
+        if (!url.isEmpty() && !url.toLowerCase().startsWith("http://") && !url.toLowerCase().startsWith("https://")) {
+            url = "http://" + url;
+            serverUrl.set(url);
+        }
+        updateProperty("dockerApi", serverUrl.get());
+
+        if (!serverPort.get().isEmpty() && serverPort.get() != null) {
+            updateProperty("dockerPort", serverPort.get());
+        }
+        serverHostField.setText(serverUrl.get());
+        serverPortField.setText(serverPort.get());
+        connectToDockerAPI();
     }
 
     private enum MetricType {
@@ -117,9 +134,9 @@ public class DockerViewModel {
             serverPortField.setText("2375");
         }
 
-        if (connectButton != null) {
-            connectButton.setOnAction(event -> connectToDockerAPI());
-        }
+//        if (connectButton != null) {
+//            connectButton.setOnAction(event -> connectToDockerAPI());
+//        }
 
         cliInput.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ENTER) {
@@ -138,7 +155,7 @@ public class DockerViewModel {
 
         url = appProperties.getProperty("dockerApi");
         if (url != null && !url.isEmpty()) {
-            if (!url.startsWith("http://")){
+            if (!url.startsWith("http://")) {
                 url = "http://" + url;
             }
         }
@@ -227,22 +244,22 @@ public class DockerViewModel {
         serverHostField.textProperty().bindBidirectional(serverUrl);
         serverPortField.textProperty().bindBidirectional(serverPort);
 
-        serverHostField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
-            if (wasFocused && !isNowFocused) {
-                String url = serverUrl.get().trim();
-                if (!url.isEmpty() && !url.toLowerCase().startsWith("http://") && !url.toLowerCase().startsWith("https://")) {
-                    url = "http://" + url;
-                    serverUrl.set(url);
-                }
-                updateProperty("dockerApi", serverUrl.get());
-            }
-        });
-
-        serverPortField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
-            if (wasFocused && !isNowFocused) {
-                updateProperty("dockerPort", serverPort.get());
-            }
-        });
+//        serverHostField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+//            if (wasFocused && !isNowFocused) {
+//                String url = serverUrl.get().trim();
+//                if (!url.isEmpty() && !url.toLowerCase().startsWith("http://") && !url.toLowerCase().startsWith("https://")) {
+//                    url = "http://" + url;
+//                    serverUrl.set(url);
+//                }
+//                updateProperty("dockerApi", serverUrl.get());
+//            }
+//        });
+//
+//        serverPortField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+//            if (wasFocused && !isNowFocused) {
+//                updateProperty("dockerPort", serverPort.get());
+//            }
+//        });
     }
 
     public void updateProperty(String key, String value) {

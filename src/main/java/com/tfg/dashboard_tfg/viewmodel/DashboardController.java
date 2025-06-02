@@ -11,14 +11,11 @@ import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.chart.Chart;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
-import javafx.scene.input.DragEvent;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
@@ -72,7 +69,7 @@ public class DashboardController {
     private Map<String, Long> previousNetworkBytes = new HashMap<>();
 
     private final Properties appProperties = new Properties();
-    private final File PROPERTIES_FILE = new File("connection.properties");
+    private final File PROPERTIES_FILE = new File("src/main/resources/com/tfg/dashboard_tfg/connection.properties");
     private String dockerApiUrl;
     public static ProcessedData processedData = new ProcessedData();
     private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
@@ -183,10 +180,14 @@ public class DashboardController {
         appProperties.setProperty(key, value);
         try (FileOutputStream out = new FileOutputStream(PROPERTIES_FILE)) {
             appProperties.store(out, "Updated by user");
-            statusLabel.setText("Updated property: " + key);
-            statusLabel.setTextFill(Color.web("#28a745"));
+            Platform.runLater(() -> {
+                statusLabel.setText("Updated property: " + key);
+                statusLabel.setTextFill(Color.web("#28a745"));
+            });
         } catch (IOException e) {
-            statusLabel.setText("Failed to save property: " + e.getMessage());
+            Platform.runLater(() -> {
+                statusLabel.setText("Failed to save property: " + e.getMessage());
+            });
         }
     }
 
@@ -199,13 +200,13 @@ public class DashboardController {
             }
             processedData = processAllData(systemData);
 
-            javafx.application.Platform.runLater(() -> {
+            Platform.runLater(() -> {
                 updateAllTiles(processedData);
                 lastUpdateLabel.setText("Last update: " + LocalDateTime.now().format(timeFormatter));
             });
         } catch (Exception e) {
             System.err.println("Error in background processing: " + e.getMessage());
-            javafx.application.Platform.runLater(() -> {
+            Platform.runLater(() -> {
                 statusLabel.setText("Error connecting to API: " + e.getMessage());
                 statusLabel.setTextFill(Color.web("#dc3545"));
             });
@@ -540,7 +541,7 @@ public class DashboardController {
         if (!apiUrl.startsWith("http://") && !apiUrl.startsWith("https://")) {
             apiUrl = "http://" + apiUrl;
         }
-        if (!apiUrl.endsWith("/api/v1/system")){
+        if (!apiUrl.endsWith("/api/v1/system")) {
             apiUrl += "/api/v1/system";
         }
         try {

@@ -32,7 +32,7 @@
             <TextField fx:id="apiUrlField" promptText="http://localhost:9696"
                        styleClass="terminal-input" HBox.hgrow="ALWAYS" />
             <Label text="API Key:" styleClass="filter-label" />
-            <TextField fx:id="apiKeyField" promptText="Your API Key"
+            <PasswordField fx:id="apiKeyField" promptText="Your API Key"
                        styleClass="terminal-input" HBox.hgrow="ALWAYS" />
             <Button text="Connect" onAction="#connectToProwlarr"
                     styleClass="console-button" />

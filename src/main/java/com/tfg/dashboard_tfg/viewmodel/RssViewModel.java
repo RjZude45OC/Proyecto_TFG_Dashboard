@@ -94,7 +94,7 @@ public class RssViewModel implements Initializable {
     private final StringProperty apiKey = new SimpleStringProperty();
     private final BooleanProperty connected = new SimpleBooleanProperty(false);
 
-    private static final String PROPERTIES_FILE = "connection.properties";
+    private static final String PROPERTIES_FILE = "src/main/resources/com/tfg/dashboard_tfg/connection.properties";
     private static final int CONNECTION_TIMEOUT = 30000;
     private static final String INDEXERS_ENDPOINT = "/api/v1/indexer";
     private static final String TAG_ENDPOINT = "/api/v1/tag";
@@ -1260,7 +1260,7 @@ public class RssViewModel implements Initializable {
             appProperties.setProperty("prowlarr-apiKey", apiKeyField.getText());
             appProperties.setProperty("timeout", timeoutField.getText());
             appProperties.setProperty("cacheDuration", cacheDurationField.getText());
-            appProperties.store(out, "Dashboard Settings");
+            appProperties.store(out, "Updated by user");
         } catch (Exception e) {
             statusLabel.setText("Failed to save settings: " + e.getMessage());
             statusLabel.setStyle("-fx-text-fill: red;");

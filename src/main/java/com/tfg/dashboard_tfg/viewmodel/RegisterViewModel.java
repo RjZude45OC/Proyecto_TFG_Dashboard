@@ -61,7 +61,7 @@ public class RegisterViewModel {
     private final ObjectMapper objectMapper;
     private static String API_BASE_URL = "";
     private final Properties appProperties = new Properties();
-    private final File PROPERTIES_FILE = new File("connection.properties");
+    private final File PROPERTIES_FILE = new File("src/main/resources/com/tfg/dashboard_tfg/connection.properties");
 
     public RegisterViewModel() {
         this.httpClient = HttpClient.newBuilder()

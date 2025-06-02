@@ -188,7 +188,7 @@ public class DownloaderClientView implements Initializable {
     private final BooleanProperty connected = new SimpleBooleanProperty(false);
     private final StringProperty selectedTorrentHash = new SimpleStringProperty();
     private final Properties appProperties = new Properties();
-    private static final String PROPERTIES_FILE = "connection.properties";
+    private static final String PROPERTIES_FILE = "src/main/resources/com/tfg/dashboard_tfg/connection.properties";
 
     public void loadProperties() {
         try (FileInputStream fis = new FileInputStream(PROPERTIES_FILE)) {
@@ -203,7 +203,7 @@ public class DownloaderClientView implements Initializable {
             appProperties.setProperty("qbittorrent-url", hostField.getText());
             appProperties.setProperty("qbittorrent-Username", usernameField.getText());
             appProperties.setProperty("qbittorrent-Password", passwordField.getText());
-            appProperties.store(out, "Prowlarr Dashboard Settings");
+            appProperties.store(out, "Updated by user");
         } catch (Exception e) {
             clientStatusLabel.setText("Failed to save settings: " + e.getMessage());
             clientStatusLabel.setStyle("-fx-text-fill: red;");

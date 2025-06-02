@@ -1260,7 +1260,7 @@ public class RssViewModel implements Initializable {
             appProperties.setProperty("prowlarr-apiKey", apiKeyField.getText());
             appProperties.setProperty("timeout", timeoutField.getText());
             appProperties.setProperty("cacheDuration", cacheDurationField.getText());
-            appProperties.store(out, "Prowlarr Dashboard Settings");
+            appProperties.store(out, "Dashboard Settings");
         } catch (Exception e) {
             statusLabel.setText("Failed to save settings: " + e.getMessage());
             statusLabel.setStyle("-fx-text-fill: red;");

@@ -1,6 +1,5 @@
 package com.tfg.dashboard_tfg.viewmodel;
 
-import eu.hansolo.tilesfx.Tile;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -494,6 +493,15 @@ public class Controller {
     private void loadViews() throws IOException {
         String path = "";
         System.out.println("check null");
+
+        path = "/com/tfg/dashboard_tfg/MainView.fxml";
+        System.out.println(path);
+        if (getClass().getResource(path) != null) {
+            System.out.println("exist");
+        } else {
+            System.out.println("no");
+        }
+
         //load dashboard view
         path = "/com/tfg/dashboard_tfg/view/DashboardView.fxml";
         FXMLLoader dashboardLoader = new FXMLLoader(getClass().getResource(path));

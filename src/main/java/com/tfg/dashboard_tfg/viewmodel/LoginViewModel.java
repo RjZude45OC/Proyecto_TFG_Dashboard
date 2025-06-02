@@ -13,6 +13,7 @@ import java.util.Properties;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import com.tfg.dashboard_tfg.services.LoginStatus;
@@ -58,9 +59,10 @@ public class LoginViewModel {
                 .version(HttpClient.Version.HTTP_2)
                 .connectTimeout(Duration.ofSeconds(10))
                 .build();
-        this.objectMapper = new ObjectMapper();
-        objectMapper.disable(MapperFeature.CAN_OVERRIDE_ACCESS_MODIFIERS);
-        objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+        this.objectMapper = JsonMapper.builder()
+                .configure(MapperFeature.CAN_OVERRIDE_ACCESS_MODIFIERS, false)
+                .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+                .build();
     }
     public void loadProperties() {
         try (FileInputStream fis = new FileInputStream(PROPERTIES_FILE)) {

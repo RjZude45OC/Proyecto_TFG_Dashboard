@@ -9,10 +9,10 @@ import java.util.List;
 
 public class IndexerItem {
     private final int id;
-    private final String name;
+    private String name;
     private final String type;
-    private final boolean enabled;
-    private final int priority;
+    private boolean enabled;
+    private int priority;
     private final List<Integer> tagIds;
     private final String jsonConfig;
     private String language;
@@ -88,4 +88,9 @@ public class IndexerItem {
         return categories;
     }
 
+    public void setName(String name) { this.name = name; }
+
+    public void setEnabled(boolean enabled) { this.enabled = enabled; }
+
+    public void setPriority(int priority) {  this.priority = priority; }
 }

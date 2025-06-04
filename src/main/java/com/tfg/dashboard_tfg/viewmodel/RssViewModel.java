@@ -599,8 +599,11 @@ public class RssViewModel implements Initializable {
             public String toString(JSONObject object) {
                 return object == null ? null : object.optString("name", "Unknown");
             }
+
             @Override
-            public JSONObject fromString(String string) { return null; }
+            public JSONObject fromString(String string) {
+                return null;
+            }
         });
         indexerComboBox.setPromptText("Select Indexer Type");
 
@@ -753,50 +756,80 @@ public class RssViewModel implements Initializable {
                     boolean enabled = enabledCheckBox.isSelected();
 
                     if (name.isEmpty()) {
-                        statusLabel.setText("Name cannot be empty");
-                        statusLabel.setStyle("-fx-text-fill: red;");
+                        showError("Name cannot be empty");
                         return null;
                     }
 
                     if (priority < 1 || priority > 50) {
-                        statusLabel.setText("Priority must be between 1 and 50");
-                        statusLabel.setStyle("-fx-text-fill: red;");
+                        showError("Priority must be between 1 and 50");
                         return null;
                     }
 
-                    JSONObject updateJson = new JSONObject();
-                    updateJson.put("id", indexer.getId());
+                    JSONObject currentConfig = makeApiGetRequest(INDEXERS_ENDPOINT + "/" + indexer.getId());
+                    if (currentConfig == null) {
+                        showError("Failed to get current indexer configuration");
+                        return null;
+                    }
+
+                    JSONObject updateJson = new JSONObject(currentConfig.toString());
+
                     updateJson.put("name", name);
                     updateJson.put("enable", enabled);
                     updateJson.put("priority", priority);
-                    updateJson.put("protocol", getProtocolFromDisplayName(indexer.getType()));
-                    updateJson.put("tags", new JSONArray(indexer.getTagIds()));
+                    updateJson.put("id", indexer.getId());
+
+                    if (!updateJson.has("implementation")) {
+                        updateJson.put("implementation", indexer.getType());
+                    }
+                    if (!updateJson.has("configContract")) {
+                        updateJson.put("configContract", indexer.getType() + "Settings");
+                    }
+                    if (!updateJson.has("implementationName")) {
+                        updateJson.put("implementationName", indexer.getType());
+                    }
+
+                    if (!updateJson.has("appProfileId")) {
+                        JSONArray profiles = makeApiGetRequest("/api/v1/appProfile").getJSONArray("records");
+                        int defaultProfileId = profiles.length() > 0 ? profiles.getJSONObject(0).getInt("id") : 1;
+                        updateJson.put("appProfileId", defaultProfileId);
+                    }
+
+                    if (!updateJson.has("protocol")) {
+                        updateJson.put("protocol", getProtocolFromDisplayName(indexer.getType()));
+                    }
+
+                    if (!updateJson.has("fields")) {
+                        updateJson.put("fields", new JSONArray());
+                    }
+
+                    System.out.println("Sending update request for indexer " + indexer.getId());
+                    System.out.println("Request body: " + updateJson.toString(2));
 
                     JSONObject response = makeApiPutRequest(INDEXERS_ENDPOINT + "/" + indexer.getId(), updateJson);
 
-                    if (response != null) {
-                        statusLabel.setText("Indexer updated successfully");
-                        statusLabel.setStyle("-fx-text-fill: green;");
+                    if (response != null && !response.has("errors")) {
+                        showSuccess("Indexer updated successfully");
 
                         indexer.setName(name);
                         indexer.setEnabled(enabled);
                         indexer.setPriority(priority);
-                        indexersTableView.refresh();
 
+                        indexersTableView.refresh();
                         return indexer;
                     } else {
-                        statusLabel.setText("Failed to update indexer");
-                        statusLabel.setStyle("-fx-text-fill: red;");
+                        String errorMsg = response != null && response.has("errors")
+                                ? response.getJSONArray("errors").join(", ")
+                                : "Failed to update indexer";
+                        showError(errorMsg);
                         return null;
                     }
 
                 } catch (NumberFormatException e) {
-                    statusLabel.setText("Priority must be a number");
-                    statusLabel.setStyle("-fx-text-fill: red;");
+                    showError("Priority must be a number");
                     return null;
                 } catch (Exception e) {
-                    statusLabel.setText("Failed to update indexer: " + e.getMessage());
-                    statusLabel.setStyle("-fx-text-fill: red;");
+                    showError("Failed to update indexer: " + e.getMessage());
+                    e.printStackTrace();
                     return null;
                 }
             }

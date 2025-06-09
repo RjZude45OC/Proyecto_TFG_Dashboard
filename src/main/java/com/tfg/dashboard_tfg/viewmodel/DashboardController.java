@@ -9,6 +9,7 @@ import javafx.animation.PauseTransition;
 import javafx.animation.ScaleTransition;
 import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -36,6 +37,7 @@ import java.util.concurrent.TimeUnit;
 import static javafx.scene.control.PopupControl.USE_COMPUTED_SIZE;
 
 public class DashboardController {
+
     @FXML
     private Tile systemStatusTile;
     @FXML
@@ -64,6 +66,9 @@ public class DashboardController {
     private Button applyUrlButton;
     @FXML
     private Label lastUpdateLabel;
+    @FXML
+    public Button getLogDiscord;
+
     private List<Tile> tileList;
     private ScheduledExecutorService scheduler;
     private Map<String, Long> previousNetworkBytes = new HashMap<>();
@@ -666,5 +671,34 @@ public class DashboardController {
     //handle theme change
     private void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
         updateTileColors(newValue);
+    }
+
+    public void onSentDiscordClicked() {
+        apiUrl = appProperties.getProperty("monitoringApi");
+        if (apiUrl == null || apiUrl.isEmpty()) {
+            statusLabel.setText("Monitoring URL empty: Please provide Correct URL");
+            statusLabel.setTextFill(Color.web("#dc3545"));
+        }
+        if (!apiUrl.startsWith("http://") && !apiUrl.startsWith("https://")) {
+            apiUrl = "http://" + apiUrl;
+        }
+        if (apiUrl.endsWith("/api/v1/system")) {
+            apiUrl = apiUrl.replace("/api/v1/system", "/health/test");
+        } else {
+            apiUrl = apiUrl + "/health/test";
+        }
+        try {
+            URL url = new URL(apiUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+
+            int responseCode = connection.getResponseCode();
+            if (responseCode != HttpURLConnection.HTTP_OK) {
+                throw new RuntimeException("HTTP GET request failed with response code: " + responseCode);
+            }
+        } catch (Exception e) {
+            System.err.println("Error fetching data from " + apiUrl + ": " + e.getMessage());
+            throw new RuntimeException(e);
+        }
     }
 }

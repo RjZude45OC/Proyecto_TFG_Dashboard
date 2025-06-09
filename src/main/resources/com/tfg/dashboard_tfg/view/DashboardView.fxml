@@ -28,6 +28,7 @@
                 <Label text="API URL:" style="-fx-font-weight: bold;" styleClass="filter-label"/>
                 <TextField fx:id="apiUrlField" promptText="Enter API base URL" styleClass="terminal-input" HBox.hgrow="ALWAYS"/>
                 <Button fx:id="applyUrlButton" text="Apply" onAction="#onApplyUrlClicked" styleClass="console-button"/>
+                <Button fx:id="getLogDiscord" text="Sent to discord" onAction="#onSentDiscordClicked" styleClass="console-button"/>
             </HBox>
 
             <HBox spacing="20.0" alignment="CENTER" VBox.vgrow="ALWAYS">

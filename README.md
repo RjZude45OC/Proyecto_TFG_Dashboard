@@ -13,17 +13,16 @@ A comprehensive monitoring dashboard application for Docker containers and *arr 
   - Start/Stop/Restart container controls
 
 - ***Arr Stack Integration**
-  - Monitor Sonarr, Radarr, and other *arr applications
+  - Monitor Sonarr and other *arr applications
   - Queue status and download progress
   - Library statistics
   - Upcoming downloads
   - System status and disk space monitoring
 
 - **Dashboard Features**
-  - Customizable widgets
   - Real-time updates
   - Dark/Light theme support
-  - Mobile-responsive design
+  - responsive design
   - Alert notifications
 
 ## 🛠️ Technologies
@@ -35,14 +34,12 @@ A comprehensive monitoring dashboard application for Docker containers and *arr 
   - WebSocket for real-time updates
 
 - **Frontend**
-  - HTML5
-  - CSS3
-  - JavaScript
-  - Bootstrap for responsive design
+  - JavaFx
+  - CSS
 
 ## 📋 Prerequisites
 
-- Java JDK 11 or higher
+- Java JDK 17 or higher
 - Docker Engine
 - Docker API access
 - *Arr applications (if using the *arr stack features)
@@ -68,7 +65,7 @@ cp config.example.yml config.yml
 
 4. Run the application:
 ```bash
-java -jar target/dashboard.jar
+java --module-path lib --add-modules javafx.controls,javafx.fxml,javafx.web,javafx.swing -cp "Dashboard_TFG-1.0-SNAPSHOT.jar;lib/*" com.tfg.dashboard_tfg.App
 ```
 
 ## ⚙️ Configuration
@@ -86,32 +83,13 @@ arr-stack:
   sonarr:
     url: http://localhost:8989
     apikey: your-api-key
-  radarr:
-    url: http://localhost:7878
+  prowlarr:
+    url: http://localhost:9696
+    apikey: your-api-key
+  jellyfin:
+    url: http://localhost:8096
     apikey: your-api-key
 ```
-
-## 🖥️ Usage
-
-1. Access the dashboard at `http://localhost:8080`
-2. Log in with your credentials
-3. Configure your monitoring preferences
-4. Add widgets to your dashboard
-
-## 🔐 Security
-
-- API key authentication for *arr services
-- HTTPS support
-- Docker socket security considerations
-- Role-based access control
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
 
 ## 📝 License
 

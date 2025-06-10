@@ -41,7 +41,12 @@ jobs:
         key: ${{ matrix.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ matrix.os }}-m2
 
-    - name: Build with Maven
+    - name: Build with Maven (Windows)
+      if: matrix.os == 'windows-latest'
+      run: mvn clean package --file pom.xml -B "-Djavafx.platform=${{ matrix.platform }}"
+
+    - name: Build with Maven (Unix)
+      if: matrix.os != 'windows-latest'
       run: mvn clean package --file pom.xml -B -Djavafx.platform=${{ matrix.platform }}
 
     - name: Run tests

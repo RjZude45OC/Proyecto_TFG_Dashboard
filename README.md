@@ -2,7 +2,6 @@
 
 A comprehensive monitoring dashboard application for Docker containers and *arr stack (Sonarr, Radarr, Lidarr, etc.) developed as a final project for Higher Degree in Multi-platform Application Development at IES Doctor Balmis.
 
-![Dashboard Preview](screenshots/dashboard.png)
 
 ## 🚀 Features
 

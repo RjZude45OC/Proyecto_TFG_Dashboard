@@ -50,19 +50,12 @@ A comprehensive monitoring dashboard application for Docker containers and *arr 
 git clone https://github.com/RjZude45OC/Proyecto_TFG_Dashboard.git
 ```
 
-2. Configure application settings:
-```bash
-cd Proyecto_TFG_Dashboard
-cp config.example.yml config.yml
-# Edit config.yml with your settings
-```
-
-3. Build the application:
+2. Build the application:
 ```bash
 ./mvnw clean package
 ```
 
-4. Run the application:
+3. Run the application:
 ```bash
 java --module-path lib --add-modules javafx.controls,javafx.fxml,javafx.web,javafx.swing -cp "Dashboard_TFG-1.0-SNAPSHOT.jar;lib/*" com.tfg.dashboard_tfg.App
 ```
